@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
 use crate::prelude::*;
-use anchor_spl::token_2022::spl_token_2022::extension::ExtensionType;
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitializeParams {

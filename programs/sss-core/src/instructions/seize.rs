@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_2022::{self, TransferChecked, Token2022, spl_token_2022::state::AccountState};
-use anchor_spl::token_2022::TokenAccount;
+use anchor_spl::token_interface::TokenAccount;
 use crate::state::{StablecoinConfig, SeizureRecord};
 use crate::errors::SSSError;
 
@@ -33,10 +33,10 @@ pub struct Seize<'info> {
     pub seizure_record: Account<'info, SeizureRecord>,
 
     #[account(mut)]
-    pub source_account: Account<'info, TokenAccount>,
+    pub source_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(mut)]
-    pub destination_account: Account<'info, TokenAccount>,
+    pub destination_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(mut)]
     /// CHECK: Validated by token program
