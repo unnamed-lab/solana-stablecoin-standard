@@ -3,6 +3,7 @@ use anchor_spl::token_interface::Mint;
 use spl_tlv_account_resolution::{
     account::ExtraAccountMeta, seeds::Seed, state::ExtraAccountMetaList,
 };
+use spl_transfer_hook_interface::instruction::ExecuteInstruction;
 use sss_core::state::{BlacklistEntry, StablecoinConfig};
 
 pub mod state;
@@ -197,8 +198,6 @@ pub mod sss_transfer_hook {
     }
 }
 
-// Structs
-pub struct ExecuteInstruction;
 
 #[derive(Accounts)]
 pub struct InitializeHook<'info> {

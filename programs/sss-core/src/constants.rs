@@ -5,7 +5,7 @@ pub const MAX_URI_LENGTH: usize = 200;
 pub const MAX_REASON_LENGTH: usize = 100;
 
 // System Accounts
-pub const SYSTEM_PROGRAM_ID: anchor_lang::prelude::Pubkey = solana_program::system_program::ID;
+pub const SYSTEM_PROGRAM_ID: anchor_lang::prelude::Pubkey = anchor_lang::solana_program::system_program::ID;
 pub const TOKEN_2022_PROGRAM_ID: anchor_lang::prelude::Pubkey = anchor_spl::token_2022::ID;
 pub const ASSOCIATED_TOKEN_PROGRAM_ID: anchor_lang::prelude::Pubkey = anchor_spl::associated_token::ID;
 
