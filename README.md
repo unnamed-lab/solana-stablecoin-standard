@@ -15,10 +15,10 @@ The standard consists of two deeply interconnected Anchor programs:
 
 Dive deep into the SSS architecture and compliance models in this directory:
 
-* [Architecture Overview](./ARCHITECTURE.md) - Understanding the PDAs, CPIs, and program interactions.
-* [Compliance & Regulations](./COMPLIANCE.md) - How SSS handles Blacklists, Seizures, and KYC workflows.
-* [SSS-1 (Standard) Preset](./SSS-1.md) - Utilizing the standard token flows without strict compliance overhead.
-* [SSS-2 (Regulated) Preset](./SSS-2.md) - Unlocking dynamic Transfer Hooks and Permanent Delegates.
+* [Architecture Overview](./docs/ARCHITECTURE.md) - Understanding the PDAs, CPIs, and program interactions.
+* [Compliance & Regulations](./docs/COMPLIANCE.md) - How SSS handles Blacklists, Seizures, and KYC workflows.
+* [SSS-1 (Standard) Preset](./docs/SSS-1.md) - Utilizing the standard token flows without strict compliance overhead.
+* [SSS-2 (Regulated) Preset](./docs/SSS-2.md) - Unlocking dynamic Transfer Hooks and Permanent Delegates.
 
 ## Building and Testing
 
