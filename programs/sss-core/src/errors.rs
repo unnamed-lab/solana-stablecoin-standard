@@ -1,138 +1,64 @@
 use anchor_lang::prelude::*;
 
 #[error_code]
-pub enum StablecoinError {
-    // Initialization Errors (0-99)
-    #[msg("Already initialized")]
-    AlreadyInitialized,
-    #[msg("Not initialized")]
-    NotInitialized,
-    #[msg("Invalid preset")]
-    InvalidPreset,
-    #[msg("Invalid name length")]
-    InvalidNameLength,
-    #[msg("Invalid symbol length")]
-    InvalidSymbolLength,
-    #[msg("Invalid decimals")]
-    InvalidDecimals,
+pub enum SSSError {
+    // -- Access Control --
+    #[msg("Signer is not the master authority")]
+    NotMasterAuthority,
+    #[msg("Signer is not authorized to mint")]
+    NotMinter,
+    #[msg("Signer is not authorized to burn")]
+    NotBurner,
+    #[msg("Signer is not the blacklister")]
+    NotBlacklister,
+    #[msg("Signer is not the seizer")]
+    NotSeizer,
+    #[msg("Signer is not the pauser")]
+    NotPauser,
 
-    // Authorization Errors (100-199)
-    #[msg("Unauthorized: Master authority required")]
-    UnauthorizedMaster,
-    #[msg("Unauthorized: Minter role required")]
-    UnauthorizedMinter,
-    #[msg("Unauthorized: Burner role required")]
-    UnauthorizedBurner,
-    #[msg("Unauthorized: Pauser role required")]
-    UnauthorizedPauser,
-    #[msg("Unauthorized: Blacklister role required")]
-    UnauthorizedBlacklister,
-    #[msg("Unauthorized: Seizer role required")]
-    UnauthorizedSeizer,
-
-    // Feature Errors (200-299)
-    #[msg("Feature not enabled: Permanent delegate")]
+    // -- Feature Gating --
+    #[msg("Compliance module not enabled. Initialize with enable_transfer_hook: true for SSS-2")]
+    ComplianceNotEnabled,
+    #[msg("Permanent delegate not enabled. Initialize with enable_permanent_delegate: true for SSS-2")]
     PermanentDelegateNotEnabled,
-    #[msg("Feature not enabled: Transfer hook")]
-    TransferHookNotEnabled,
-    #[msg("Feature not enabled: Blacklist")]
-    BlacklistNotEnabled,
-    #[msg("Feature not enabled: Confidential transfers")]
-    ConfidentialTransfersNotEnabled,
+    #[msg("Transfer hook not registered on this stablecoin")]
+    HookNotRegistered,
 
-    // Operation Errors (300-399)
-    #[msg("Math overflow")]
-    MathOverflow,
-    #[msg("Invalid amount: must be greater than 0")]
-    InvalidAmount,
-    #[msg("Insufficient balance")]
-    InsufficientBalance,
-    #[msg("Mint quota exceeded")]
-    MintQuotaExceeded,
-    #[msg("Burn quota exceeded")]
-    BurnQuotaExceeded,
-    #[msg("Supply cap exceeded")]
-    SupplyCapExceeded,
-
-    // Account State Errors (400-499)
-    #[msg("Account is frozen")]
-    AccountFrozen,
-    #[msg("Account is not frozen")]
-    AccountNotFrozen,
-    #[msg("Account is blacklisted")]
-    AccountBlacklisted,
-    #[msg("Account is not blacklisted")]
-    AccountNotBlacklisted,
-    #[msg("Default account frozen: cannot create account")]
-    DefaultAccountFrozen,
-    #[msg("Token operations are paused")]
+    // -- State Guards --
+    #[msg("Stablecoin is paused")]
     Paused,
-    #[msg("Token operations are not paused")]
+    #[msg("Stablecoin is not paused")]
     NotPaused,
-
-    // Blacklist Errors (500-599)
-    #[msg("Blacklist is full")]
-    BlacklistFull,
-    #[msg("Address already blacklisted")]
+    #[msg("Address is already blacklisted")]
     AlreadyBlacklisted,
-    #[msg("Address not blacklisted")]
+    #[msg("Address is not blacklisted")]
     NotBlacklisted,
-    #[msg("Cannot blacklist mint authority")]
-    CannotBlacklistMintAuthority,
-    #[msg("Cannot blacklist self")]
-    CannotBlacklistSelf,
+    #[msg("Cannot blacklist the zero address")]
+    InvalidBlacklistTarget,
+    #[msg("Cannot seize from a non-frozen account")]
+    AccountNotFrozen,
 
-    // Seize Errors (600-699)
-    #[msg("Cannot seize from non-blacklisted account")]
-    SeizeRequiresBlacklist,
-    #[msg("Cannot seize: account must be frozen first")]
-    SeizeRequiresFrozen,
-    #[msg("Invalid treasury account")]
-    InvalidTreasury,
+    // -- Quota --
+    #[msg("Mint amount exceeds per-period quota")]
+    QuotaExceeded,
+    #[msg("Minter is inactive")]
+    MinterInactive,
+    #[msg("Minter config already exists")]
+    MinterAlreadyExists,
 
-    // Transfer Hook Errors (700-799)
-    #[msg("Transfer hook: sender blacklisted")]
-    TransferHookSenderBlacklisted,
-    #[msg("Transfer hook: recipient blacklisted")]
-    TransferHookRecipientBlacklisted,
-    #[msg("Transfer hook: paused")]
-    TransferHookPaused,
+    // -- Authority Transfer --
+    #[msg("No pending authority transfer")]
+    NoPendingTransfer,
+    #[msg("Signer is not the pending authority")]
+    NotPendingAuthority,
 
-    // Configuration Errors (800-899)
-    #[msg("Invalid authority")]
-    InvalidAuthority,
-    #[msg("Invalid mint")]
-    InvalidMint,
-    #[msg("Invalid token account")]
-    InvalidTokenAccount,
-    #[msg("Invalid configuration")]
-    InvalidConfiguration,
-
-    // Quota Errors (900-999)
-    #[msg("Minter quota exceeded")]
-    MinterQuotaExceeded,
-    #[msg("Burner quota exceeded")]
-    BurnerQuotaExceeded,
-    #[msg("Daily mint limit exceeded")]
-    DailyMintLimitExceeded,
-    #[msg("Daily burn limit exceeded")]
-    DailyBurnLimitExceeded,
-
-    // PDA Errors (1000-1099)
-    #[msg("PDA derivation failed")]
-    PDADerivationFailed,
-    #[msg("Invalid bump")]
-    InvalidBump,
-
-    // Timelock Errors (1100-1199)
-    #[msg("Timelock not expired")]
-    TimelockNotExpired,
-    #[msg("Invalid timelock delay")]
-    InvalidTimelockDelay,
-
-    // Custom Preset Errors (1200-1299)
-    #[msg("Custom preset configuration invalid")]
-    InvalidCustomConfig,
-    #[msg("Extension conflict detected")]
-    ExtensionConflict,
+    // -- Validation --
+    #[msg("Name exceeds 32 characters")]
+    NameTooLong,
+    #[msg("Symbol exceeds 10 characters")]
+    SymbolTooLong,
+    #[msg("Amount must be greater than zero")]
+    ZeroAmount,
+    #[msg("Overflow in supply calculation")]
+    SupplyOverflow,
 }
