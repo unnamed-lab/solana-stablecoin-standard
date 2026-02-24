@@ -24,8 +24,9 @@ pub struct AuditEntry {
 }
 
 #[repr(u8)]
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, Debug)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, Debug, Default)]
 pub enum ActionType {
+    #[default]
     Initialize = 0,
     Mint = 1,
     Burn = 2,
@@ -71,8 +72,9 @@ pub struct ComplianceReport {
 }
 
 #[repr(u8)]
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, Debug)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, Debug, Default)]
 pub enum ReportType {
+    #[default]
     Daily = 0,
     Weekly = 1,
     Monthly = 2,

@@ -1,12 +1,12 @@
 [package]
-name = "sss-core"
+name = "sss-transfer-hook"
 version = "0.1.0"
 description = "Created with Anchor"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "sss_core"
+name = "sss_transfer_hook"
 
 [features]
 default = []
@@ -14,16 +14,14 @@ cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
-idl-build = ["anchor-lang/idl-build"]
-anchor-debug = []
-custom-heap = []
-custom-panic = []
-
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [dependencies]
 anchor-lang = "0.32.1"
 anchor-spl = { version = "0.32.1", features = ["token_2022"] }
-
+sss-core = { path = "../sss-core", features = ["cpi"] }
+spl-tlv-account-resolution = "0.7.0"
+spl-transfer-hook-interface = "0.7.0"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = [
