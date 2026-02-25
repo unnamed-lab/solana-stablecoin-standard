@@ -1,5 +1,5 @@
 import { PublicKey, Keypair } from '@solana/web3.js';
-import { Program } from '@coral-xyz/anchor';
+import { Program } from '@anchor-lang/core';
 import { SssCore } from '../sss_core';
 import { BlacklistParams } from '../types';
 export interface BlacklistEntry {

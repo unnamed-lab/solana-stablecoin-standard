@@ -1,11 +1,15 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SolanaStablecoin = void 0;
 const web3_js_1 = require("@solana/web3.js");
-const anchor_1 = require("@coral-xyz/anchor");
+const core_1 = require("@anchor-lang/core");
 const spl_token_1 = require("@solana/spl-token");
 const types_1 = require("./types");
 const compliance_1 = require("./modules/compliance");
+const sss_core_json_1 = __importDefault(require("../../target/idl/sss_core.json"));
 class SolanaStablecoin {
     program;
     hookProgram;
@@ -13,8 +17,21 @@ class SolanaStablecoin {
     config;
     compliance; // SSS-2 only, throws if SSS-1
     preset;
-    constructor(program, hookProgram, mint, config, preset) {
-        this.program = program;
+    connection;
+    constructor(network = types_1.SolanaNetwork.DEVNET, program, hookProgram, mint, config, preset) {
+        const networkRpc = {
+            [types_1.SolanaNetwork.DEVNET]: "https://api.devnet.solana.com",
+            [types_1.SolanaNetwork.MAINNET]: "https://api.mainnet-beta.solana.com",
+            [types_1.SolanaNetwork.TESTNET]: "https://api.testnet.solana.com",
+            [types_1.SolanaNetwork.LOCALNET]: "http://127.0.0.1:8899",
+        };
+        // Set up a connection to the cluster
+        const connection = new web3_js_1.Connection(networkRpc[network], "confirmed");
+        this.connection = connection;
+        // Create a Program instance using the IDL and connection
+        this.program = new core_1.Program(sss_core_json_1.default, {
+            connection,
+        });
         this.hookProgram = hookProgram;
         this.mintAddress = mint;
         this.config = config;
@@ -72,7 +89,7 @@ class SolanaStablecoin {
             .signers([config.authority, mint])
             .rpc();
     }
-    static async load(connection, mint, program, hookProgram) {
+    static async load(network = types_1.SolanaNetwork.DEVNET, mint, program, hookProgram) {
         const [configPda] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("sss-config"), mint.toBuffer()], program.programId);
         const configData = await program.account.stablecoinConfig.fetch(configPda);
         let presetStr = types_1.StablecoinPreset.SSS_1;
@@ -80,12 +97,12 @@ class SolanaStablecoin {
             presetStr = types_1.StablecoinPreset.SSS_2;
         if (configData.preset.custom)
             presetStr = types_1.StablecoinPreset.CUSTOM;
-        return new SolanaStablecoin(program, hookProgram, mint, configPda, presetStr);
+        return new SolanaStablecoin(network, program, hookProgram, mint, configPda, presetStr);
     }
     async mint(params) {
         const [minterConfig] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("sss-minter"), this.mintAddress.toBuffer(), params.minter.publicKey.toBuffer()], this.program.programId);
         return await this.program.methods
-            .mint(new anchor_1.BN(params.amount))
+            .mint(new core_1.BN(params.amount))
             .accounts({
             minter: params.minter.publicKey,
             config: this.config,
@@ -100,7 +117,7 @@ class SolanaStablecoin {
     async burn(params) {
         const source = params.source || (0, spl_token_1.getAssociatedTokenAddressSync)(this.mintAddress, params.burner.publicKey, false, spl_token_1.TOKEN_2022_PROGRAM_ID);
         return await this.program.methods
-            .burn(new anchor_1.BN(params.amount))
+            .burn(new core_1.BN(params.amount))
             .accounts({
             burner: params.burner.publicKey,
             config: this.config,
@@ -182,7 +199,7 @@ class SolanaStablecoin {
     async addMinter(authority, minter, quota) {
         const [minterConfig] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("sss-minter"), this.mintAddress.toBuffer(), minter.toBuffer()], this.program.programId);
         return await this.program.methods
-            .addMinter(minter, new anchor_1.BN(quota?.amount || 0), new anchor_1.BN(0) // Default period seconds
+            .addMinter(minter, new core_1.BN(quota?.amount || 0), new core_1.BN(0) // Default period seconds
         )
             .accounts({
             minterAuthority: authority.publicKey,

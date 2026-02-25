@@ -4,6 +4,12 @@ export declare enum StablecoinPreset {
     SSS_2 = "sss2",
     CUSTOM = "custom"
 }
+export declare enum SolanaNetwork {
+    DEVNET = "devnet",
+    MAINNET = "mainnet",
+    TESTNET = "testnet",
+    LOCALNET = "localnet"
+}
 export interface CreateStablecoinConfig {
     preset?: StablecoinPreset;
     name: string;
