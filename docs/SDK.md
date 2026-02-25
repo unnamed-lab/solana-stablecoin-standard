@@ -27,7 +27,7 @@ import { Keypair } from "@solana/web3.js";
 
 // 1. Create a new stablecoin
 const authority = Keypair.generate();
-const txSig = await SolanaStablecoin.create(
+const { txSig, mintAddress } = await SolanaStablecoin.create(
   {
     name: "My USD",
     symbol: "MUSD",
@@ -42,7 +42,7 @@ const txSig = await SolanaStablecoin.create(
 );
 
 // 2. Load an existing stablecoin
-const sdk = await SolanaStablecoin.load(SolanaNetwork.DEVNET, mintPubkey);
+const sdk = await SolanaStablecoin.load(SolanaNetwork.DEVNET, mintAddress);
 
 // 3. Interact
 const info = await sdk.getInfo();
@@ -78,7 +78,7 @@ Deploy a brand-new stablecoin. Initialises the mint, creates the `StablecoinConf
 | `config` | `CreateStablecoinConfig` | Token name, symbol, decimals, preset, authority keypair, roles |
 | `network` | `SolanaNetwork` | Target cluster (default: `DEVNET`) |
 
-**Returns:** `Promise<string>` — transaction signature.
+**Returns:** `Promise<{ txSig: string, mintAddress: PublicKey }>` — transaction signature and the new mint address.
 
 ---
 

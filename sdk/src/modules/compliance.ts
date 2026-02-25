@@ -100,8 +100,8 @@ export class ComplianceModule {
                 blacklister: authority.publicKey,
                 config: this.config,
                 blacklistEntry,
+                targetAccount: targetTokenAccount,
                 mint: this.mint,
-                targetTokenAccount,
                 tokenProgram: TOKEN_2022_PROGRAM_ID,
                 systemProgram: SystemProgram.programId,
             } as any)
@@ -140,8 +140,8 @@ export class ComplianceModule {
                 blacklister: authority.publicKey,
                 config: this.config,
                 blacklistEntry,
+                targetAccount: targetTokenAccount,
                 mint: this.mint,
-                targetTokenAccount,
                 tokenProgram: TOKEN_2022_PROGRAM_ID,
             } as any)
             .signers([authority])
@@ -171,14 +171,21 @@ export class ComplianceModule {
     ): Promise<string> {
         const program = this.buildProgram(authority);
 
+        const [seizureRecord] = PublicKey.findProgramAddressSync(
+            [Buffer.from("sss-seizure"), this.mint.toBuffer(), from.toBuffer()],
+            this.programId,
+        );
+
         return await program.methods
             .seize(new BN(amount), reason)
             .accounts({
                 seizer: authority.publicKey,
                 config: this.config,
-                source: from,
-                destination: to,
+                seizureRecord,
+                sourceAccount: from,
+                destinationAccount: to,
                 mint: this.mint,
+                systemProgram: SystemProgram.programId,
                 tokenProgram: TOKEN_2022_PROGRAM_ID,
             } as any)
             .signers([authority])
