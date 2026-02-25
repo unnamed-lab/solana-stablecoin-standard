@@ -33,6 +33,7 @@ describe("SolanaStablecoin SDK via anchor test", () => {
 
   let user1Ata: PublicKey;
   let user2Ata: PublicKey;
+  let authorityAta: PublicKey;
 
   // ─── Setup: airdrop SOL to all test wallets before any test runs ───────────
   before(async () => {
@@ -161,6 +162,27 @@ describe("SolanaStablecoin SDK via anchor test", () => {
   it("Can mint tokens to user1", async () => {
     expect(sdk, "SDK not initialized").to.exist;
 
+    // Also create authority's ATA for burn testing
+    authorityAta = getAssociatedTokenAddressSync(
+      mintAddress,
+      authority.publicKey,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    );
+    const createAuthAtaTx = new Transaction().add(
+      createAssociatedTokenAccountInstruction(
+        authority.publicKey,
+        authorityAta,
+        authority.publicKey,
+        mintAddress,
+        TOKEN_2022_PROGRAM_ID
+      )
+    );
+    await provider.sendAndConfirm(createAuthAtaTx, [authority]);
+
+    // Thaw authority's ATA (SSS-2 default frozen)
+    try { await sdk.thaw(authority, authorityAta); } catch { /* already thawed */ }
+
     const tx = await sdk.mint({
       recipient: user1Ata,
       amount: 100_000,
@@ -169,25 +191,36 @@ describe("SolanaStablecoin SDK via anchor test", () => {
     expect(tx).to.be.a("string");
     console.log("  → Mint tx:", tx);
 
+    // Mint some tokens to authority's ATA for burn test
+    const tx2 = await sdk.mint({
+      recipient: authorityAta,
+      amount: 50_000,
+      minter,
+    });
+    expect(tx2).to.be.a("string");
+    console.log("  → Mint to authority ATA tx:", tx2);
+
     const supply = await sdk.getTotalSupply();
-    expect(supply).to.equal(100_000);
+    expect(supply).to.equal(150_000);
     console.log("  → Total supply:", supply);
   });
 
   // ─── 5. Burn ──────────────────────────────────────────────────────────────
-  it("Can burn tokens from user1", async () => {
+  // The designated burner (authority) can only burn from their OWN ATA,
+  // because SPL Token requires the CPI authority to be the account owner.
+  it("Can burn tokens from authority's ATA", async () => {
     expect(sdk, "SDK not initialized").to.exist;
 
     const tx = await sdk.burn({
       amount: 50_000,
       burner: authority,
-      source: user1Ata,
+      source: authorityAta,
     });
     expect(tx).to.be.a("string");
     console.log("  → Burn tx:", tx);
 
     const supply = await sdk.getTotalSupply();
-    expect(supply).to.equal(50_000);
+    expect(supply).to.equal(100_000); // 150k minted − 50k burned
     console.log("  → Total supply after burn:", supply);
   });
 
@@ -237,11 +270,15 @@ describe("SolanaStablecoin SDK via anchor test", () => {
   it("Can seize tokens from a frozen account", async () => {
     expect(sdk, "SDK not initialized").to.exist;
 
-    // user1Ata still has 50_000 tokens (100_000 minted − 50_000 burned)
-    // It was thawed in test 6 — we need to freeze it again before seizing
+    // user1Ata still has 100_000 tokens
+    // Freeze user1Ata before seizing
     const freezeTx = await sdk.freeze(authority, user1Ata);
     expect(freezeTx).to.be.a("string");
     console.log("  → Pre-seize freeze tx:", freezeTx);
+
+    // Ensure destination (user2Ata) is NOT frozen — it may have been
+    // re-frozen during the blacklist test cycle
+    try { await sdk.thaw(authority, user2Ata); } catch { /* already thawed */ }
 
     const seizeTx = await sdk.compliance.seize(
       authority,
@@ -255,7 +292,7 @@ describe("SolanaStablecoin SDK via anchor test", () => {
 
     // Supply is unchanged — seize just moves tokens, doesn't burn them
     const supply = await sdk.getTotalSupply();
-    expect(supply).to.equal(50_000);
+    expect(supply).to.equal(100_000);
   });
 
   // ─── 9. Pause / Unpause ──────────────────────────────────────────────────
@@ -286,7 +323,7 @@ describe("SolanaStablecoin SDK via anchor test", () => {
     expect(info.symbol).to.equal("TUSD");
     expect(info.preset).to.equal(StablecoinPreset.SSS_2);
     expect(info.paused).to.be.false;
-    expect(info.totalSupply).to.equal(50_000);
+    expect(info.totalSupply).to.equal(100_000); // 150k minted − 50k burned = 100k
     console.log("  → Info:", JSON.stringify(info, null, 2));
   });
 
@@ -426,7 +463,7 @@ describe("SolanaStablecoin SDK — SSS-1 preset", () => {
   it("Can mint and burn on SSS-1", async () => {
     expect(sdk1, "SDK not initialized").to.exist;
 
-    // Create ATA
+    // Create recipient ATA
     recipientAta = getAssociatedTokenAddressSync(
       mintAddress1,
       recipient1.publicKey,
@@ -444,10 +481,28 @@ describe("SolanaStablecoin SDK — SSS-1 preset", () => {
     );
     await provider.sendAndConfirm(createAtaTx, [authority]);
 
+    // Create authority ATA for burn testing (burner must own the ATA)
+    const authorityAta1 = getAssociatedTokenAddressSync(
+      mintAddress1,
+      authority.publicKey,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    );
+    const createAuthAtaTx = new Transaction().add(
+      createAssociatedTokenAccountInstruction(
+        authority.publicKey,
+        authorityAta1,
+        authority.publicKey,
+        mintAddress1,
+        TOKEN_2022_PROGRAM_ID
+      )
+    );
+    await provider.sendAndConfirm(createAuthAtaTx, [authority]);
+
     // Add minter
     await sdk1.addMinter(authority, minter1.publicKey, { amount: 500_000 });
 
-    // Mint
+    // Mint to recipient
     const mintTx = await sdk1.mint({
       recipient: recipientAta,
       amount: 100_000,
@@ -459,17 +514,28 @@ describe("SolanaStablecoin SDK — SSS-1 preset", () => {
     let supply = await sdk1.getTotalSupply();
     expect(supply).to.equal(100_000);
 
-    // Burn
+    // Mint to authority ATA for burn test
+    const mintTx2 = await sdk1.mint({
+      recipient: authorityAta1,
+      amount: 30_000,
+      minter: minter1,
+    });
+    expect(mintTx2).to.be.a("string");
+
+    supply = await sdk1.getTotalSupply();
+    expect(supply).to.equal(130_000);
+
+    // Burn from authority's own ATA (SPL Token requires signer = ATA owner)
     const burnTx = await sdk1.burn({
       amount: 30_000,
       burner: authority,
-      source: recipientAta,
+      source: authorityAta1,
     });
     expect(burnTx).to.be.a("string");
     console.log("  → SSS-1 burn tx:", burnTx);
 
     supply = await sdk1.getTotalSupply();
-    expect(supply).to.equal(70_000);
+    expect(supply).to.equal(100_000); // 130k - 30k burned
     console.log("  → SSS-1 final supply:", supply);
   });
 
@@ -481,7 +547,7 @@ describe("SolanaStablecoin SDK — SSS-1 preset", () => {
     expect(info.name).to.equal("Simple USD");
     expect(info.symbol).to.equal("SUSD");
     expect(info.preset).to.equal(StablecoinPreset.SSS_1);
-    expect(info.totalSupply).to.equal(70_000);
+    expect(info.totalSupply).to.equal(100_000);
     console.log("  → SSS-1 Info:", JSON.stringify(info, null, 2));
   });
 });
