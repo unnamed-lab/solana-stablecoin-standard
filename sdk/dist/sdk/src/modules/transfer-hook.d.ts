@@ -45,6 +45,17 @@ export declare class TransferHookModule {
      * @param authority      - Hook authority (must match sss-core config authority).
      * @param defaultEnabled - Whether the hook starts enabled (`true`) or disabled.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.transferHook.initializeHook(
+     *   payer,
+     *   authority,
+     *   true, // start enabled
+     * );
+     * // txSig → "4BHi5...DMBy" (base-58 transaction signature)
+     * // Hook config PDA created; hook is now active.
+     * ```
      */
     initializeHook(payer: Keypair, authority: Keypair, defaultEnabled?: boolean): Promise<string>;
     /**
@@ -56,6 +67,17 @@ export declare class TransferHookModule {
      * @param payer     - Keypair that pays for account creation.
      * @param authority - Hook authority.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.transferHook.initializeExtraAccountMetaList(
+     *   payer,
+     *   authority,
+     * );
+     * // txSig → "44s5H...yYS" (base-58 transaction signature)
+     * // Extra account meta list PDA created; Token-2022 transfers
+     * // will now invoke the hook automatically.
+     * ```
      */
     initializeExtraAccountMetaList(payer: Keypair, authority: Keypair): Promise<string>;
     /**
@@ -63,6 +85,15 @@ export declare class TransferHookModule {
      *
      * @param authority - Keypair of the hook authority.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.transferHook.enableHook(authority);
+     * // txSig → "2cmV9...fJQ" (base-58 transaction signature)
+     *
+     * const config = await sdk.transferHook.getHookConfig();
+     * // config.enabled → true
+     * ```
      */
     enableHook(authority: Keypair): Promise<string>;
     /**
@@ -72,12 +103,34 @@ export declare class TransferHookModule {
      *
      * @param authority - Keypair of the hook authority.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.transferHook.disableHook(authority);
+     * // txSig → "4JpSs...QYzR" (base-58 transaction signature)
+     *
+     * const config = await sdk.transferHook.getHookConfig();
+     * // config.enabled → false
+     * // Transfers now proceed without blacklist enforcement.
+     * ```
      */
     disableHook(authority: Keypair): Promise<string>;
     /**
      * Fetch the current hook configuration from the chain.
      *
      * @returns A {@link HookConfigInfo} with enabled state, transfer/blocked counts, etc.
+     *
+     * @example
+     * ```ts
+     * const config = await sdk.transferHook.getHookConfig();
+     * // config → {
+     * //   mint: PublicKey("BWuc..."),
+     * //   authority: PublicKey("AyMj..."),
+     * //   enabled: true,
+     * //   transferCount: 0,
+     * //   blockedCount: 0
+     * // }
+     * ```
      */
     getHookConfig(): Promise<HookConfigInfo>;
 }
