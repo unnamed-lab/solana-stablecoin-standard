@@ -172,11 +172,11 @@ export class SolanaStablecoin {
      *
      * @param config - Stablecoin configuration (name, symbol, preset, roles, etc.).
      * @param network - Target Solana cluster. Defaults to `DEVNET`.
-     * @returns The transaction signature of the `initialize` instruction.
+     * @returns An object with `txSig` (transaction signature) and `mintAddress` (the new mint public key).
      *
      * @example
      * ```ts
-     * const txSig = await SolanaStablecoin.create({
+     * const { txSig, mintAddress } = await SolanaStablecoin.create({
      *   name: "ACME USD", symbol: "AUSD",
      *   uri: "https://acme.co/meta.json",
      *   decimals: 6,
@@ -188,7 +188,7 @@ export class SolanaStablecoin {
     static async create(
         config: CreateStablecoinConfig,
         network: SolanaNetwork = SolanaNetwork.DEVNET,
-    ): Promise<string> {
+    ): Promise<{ txSig: string; mintAddress: PublicKey }> {
         const resolvedConfig = SolanaStablecoin.resolvePreset(config);
         const connection = new Connection(NETWORK_RPC[network], "confirmed");
 
@@ -224,7 +224,7 @@ export class SolanaStablecoin {
             hookProgramId: hookProgram.programId,
         };
 
-        return await program.methods
+        const txSig = await program.methods
             .initialize(params as any)
             .accounts({
                 payer: config.authority.publicKey,
@@ -235,8 +235,10 @@ export class SolanaStablecoin {
                 systemProgram: SystemProgram.programId,
                 rent: SYSVAR_RENT_PUBKEY,
             } as any)
-            .signers([config.authority, mint]) // authority is already the wallet signer; mint is extra
+            .signers([config.authority, mint])
             .rpc();
+
+        return { txSig, mintAddress: mint.publicKey };
     }
 
     /**

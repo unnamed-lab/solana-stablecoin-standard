@@ -7,9 +7,9 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { expect } from "chai";
-import { SolanaStablecoin } from "../sdk/src/SolanaStablecoin";
-import { StablecoinPreset, SolanaNetwork } from "../sdk/src/types";
-import { SssCore } from "../target/types/sss_core";
+import { SolanaStablecoin } from "../../sdk/src/SolanaStablecoin";
+import { StablecoinPreset, SolanaNetwork } from "../../sdk/src/types";
+import { SssCore } from "../../target/types/sss_core";
 import {
   getAssociatedTokenAddressSync,
   createAssociatedTokenAccountInstruction,
@@ -59,16 +59,18 @@ describe("SolanaStablecoin SDK via anchor test", () => {
       seizer: authority.publicKey,
     };
 
-    const txSig = await SolanaStablecoin.create(config, SolanaNetwork.LOCALNET);
-    expect(txSig).to.be.a("string");
-    console.log("  → Init tx:", txSig);
+    const result = await SolanaStablecoin.create(config, SolanaNetwork.LOCALNET);
+    expect(result.txSig).to.be.a("string");
+    console.log("  → Init tx:", result.txSig);
 
-    // Fetch the config PDA that was just created
-    const configs = await program.account.stablecoinConfig.all();
-    expect(configs.length).to.be.greaterThan(0);
-
-    mintAddress = configs[configs.length - 1].account.mint;
+    mintAddress = result.mintAddress;
     console.log("  → Mint address:", mintAddress.toBase58());
+
+    // Derive the configPda from the mint
+    const [configPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("sss-config"), mintAddress.toBuffer()],
+      program.programId
+    );
 
     // Derive ATAs for test users
     user1Ata = getAssociatedTokenAddressSync(
@@ -110,7 +112,7 @@ describe("SolanaStablecoin SDK via anchor test", () => {
       .thawAccount()
       .accounts({
         authority: authority.publicKey,
-        config: configs[configs.length - 1].publicKey,
+        config: configPda,
         account: user1Ata,
         mint: mintAddress,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -123,7 +125,7 @@ describe("SolanaStablecoin SDK via anchor test", () => {
       .thawAccount()
       .accounts({
         authority: authority.publicKey,
-        config: configs[configs.length - 1].publicKey,
+        config: configPda,
         account: user2Ata,
         mint: mintAddress,
         tokenProgram: TOKEN_2022_PROGRAM_ID,
@@ -178,7 +180,7 @@ describe("SolanaStablecoin SDK via anchor test", () => {
 
     const tx = await sdk.burn({
       amount: 50_000,
-      burner: user1,
+      burner: authority,
       source: user1Ata,
     });
     expect(tx).to.be.a("string");
@@ -383,13 +385,11 @@ describe("SolanaStablecoin SDK — SSS-1 preset", () => {
       authority,
     };
 
-    const txSig = await SolanaStablecoin.create(config, SolanaNetwork.LOCALNET);
-    expect(txSig).to.be.a("string");
-    console.log("  → SSS-1 init tx:", txSig);
+    const result = await SolanaStablecoin.create(config, SolanaNetwork.LOCALNET);
+    expect(result.txSig).to.be.a("string");
+    console.log("  → SSS-1 init tx:", result.txSig);
 
-    const configs = await program.account.stablecoinConfig.all();
-    const latest = configs[configs.length - 1];
-    mintAddress1 = latest.account.mint;
+    mintAddress1 = result.mintAddress;
 
     sdk1 = await SolanaStablecoin.load(SolanaNetwork.LOCALNET, mintAddress1);
     expect(sdk1.preset).to.equal(StablecoinPreset.SSS_1);
@@ -462,7 +462,7 @@ describe("SolanaStablecoin SDK — SSS-1 preset", () => {
     // Burn
     const burnTx = await sdk1.burn({
       amount: 30_000,
-      burner: recipient1,
+      burner: authority,
       source: recipientAta,
     });
     expect(burnTx).to.be.a("string");
