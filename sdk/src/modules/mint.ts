@@ -1,7 +1,7 @@
 import { PublicKey, Keypair } from '@solana/web3.js';
 import { Program, BN } from '@anchor-lang/core';
 import { TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddressSync } from '@solana/spl-token';
-import { SssCore } from '../sss_core';
+import { SssCore } from '../types/sss_core';
 import { MintParams, BurnParams } from '../types';
 
 export class MintModule {
