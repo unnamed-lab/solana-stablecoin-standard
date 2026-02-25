@@ -6,6 +6,12 @@ export enum StablecoinPreset {
     CUSTOM = 'custom',
 }
 
+export enum SolanaNetwork {
+    DEVNET = 'devnet',
+    MAINNET = 'mainnet',
+    TESTNET = 'testnet',
+    LOCALNET = 'localnet',
+}
 export interface CreateStablecoinConfig {
     preset?: StablecoinPreset;
     name: string;
@@ -37,6 +43,7 @@ export interface MintParams {
 export interface BurnParams {
     amount: number;
     burner: Keypair;
+    source?: PublicKey;
 }
 
 export interface BlacklistParams {
