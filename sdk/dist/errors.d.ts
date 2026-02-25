@@ -238,7 +238,25 @@ export declare class InvalidNetworkError extends SSSBaseError {
  * unchanged.
  *
  * @param err - The caught error (typically from an `.rpc()` call).
+<<<<<<< HEAD
  * @param isOracleInstruction - Optionally force parsing against the Oracle error map.
  * @returns A typed {@link SSSBaseError} subclass, or the original error.
  */
 export declare function parseProgramError(err: unknown, isOracleInstruction?: boolean): Error;
+=======
+ * @returns A typed {@link SSSBaseError} subclass, or the original error.
+ *
+ * @example
+ * ```ts
+ * try {
+ *   await sdk.mint(params);
+ * } catch (err) {
+ *   const parsed = parseProgramError(err);
+ *   if (parsed instanceof PausedError) {
+ *     console.log("Token is paused, try again later");
+ *   }
+ * }
+ * ```
+ */
+export declare function parseProgramError(err: unknown): Error;
+>>>>>>> 5de29ae (feat(cli): add CLI for stablecoin management)
