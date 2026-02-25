@@ -26,7 +26,7 @@ pub struct Seize<'info> {
             b"sss-seizure", 
             mint.key().as_ref(), 
             source_account.key().as_ref(), 
-            &Clock::get()?.unix_timestamp.to_le_bytes() // unique timestamp bytes
+            &Clock::get().unwrap().unix_timestamp.to_le_bytes() // unique timestamp bytes
         ],
         bump,
     )]
