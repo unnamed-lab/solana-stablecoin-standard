@@ -1,8 +1,8 @@
 import { Connection, PublicKey, Keypair } from '@solana/web3.js';
-import { Program } from '@coral-xyz/anchor';
+import { Program } from '@anchor-lang/core';
 import { SssCore } from './sss_core';
 import { SssTransferHook } from './sss_transfer_hook';
-import { CreateStablecoinConfig, MintParams, BurnParams, StablecoinPreset, StablecoinInfo, MinterQuota } from './types';
+import { CreateStablecoinConfig, MintParams, BurnParams, StablecoinPreset, StablecoinInfo, MinterQuota, SolanaNetwork } from './types';
 import { ComplianceModule } from './modules/compliance';
 export declare class SolanaStablecoin {
     private program;
@@ -11,9 +11,10 @@ export declare class SolanaStablecoin {
     config: PublicKey;
     compliance: ComplianceModule;
     preset: StablecoinPreset;
+    connection: Connection;
     private constructor();
     static create(connection: Connection, config: CreateStablecoinConfig, program: Program<SssCore>, hookProgram?: Program<SssTransferHook>): Promise<string>;
-    static load(connection: Connection, mint: PublicKey, program: Program<SssCore>, hookProgram?: Program<SssTransferHook>): Promise<SolanaStablecoin>;
+    static load(network: SolanaNetwork | undefined, mint: PublicKey, program: Program<SssCore>, hookProgram?: Program<SssTransferHook>): Promise<SolanaStablecoin>;
     mint(params: MintParams): Promise<string>;
     burn(params: BurnParams): Promise<string>;
     freeze(authority: Keypair, account: PublicKey): Promise<string>;

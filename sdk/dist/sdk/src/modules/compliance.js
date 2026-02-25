@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ComplianceModule = void 0;
 const web3_js_1 = require("@solana/web3.js");
-const anchor_1 = require("@coral-xyz/anchor");
+const core_1 = require("@anchor-lang/core");
 const spl_token_1 = require("@solana/spl-token");
 class ComplianceModule {
     program;
@@ -52,7 +52,7 @@ class ComplianceModule {
         const destinationAccount = (0, spl_token_1.getAssociatedTokenAddressSync)(this.mint, to, true, spl_token_1.TOKEN_2022_PROGRAM_ID);
         const [seizureRecordPda] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("sss-seizure"), this.mint.toBuffer(), sourceAccount.toBuffer()], this.program.programId);
         return await this.program.methods
-            .seize(new anchor_1.BN(amount), reason)
+            .seize(new core_1.BN(amount), reason)
             .accounts({
             seizer: authority.publicKey,
             config: configPda,

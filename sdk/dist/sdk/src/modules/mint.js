@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MintModule = void 0;
 const web3_js_1 = require("@solana/web3.js");
-const anchor_1 = require("@coral-xyz/anchor");
+const core_1 = require("@anchor-lang/core");
 const spl_token_1 = require("@solana/spl-token");
 class MintModule {
     program;
@@ -15,7 +15,7 @@ class MintModule {
         const [config] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("sss-config"), this.mint.toBuffer()], this.program.programId);
         const [minterConfig] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("sss-minter"), this.mint.toBuffer(), params.minter.publicKey.toBuffer()], this.program.programId);
         return await this.program.methods
-            .mint(new anchor_1.BN(params.amount))
+            .mint(new core_1.BN(params.amount))
             .accounts({
             minter: params.minter.publicKey,
             config,
@@ -31,7 +31,7 @@ class MintModule {
         const [config] = web3_js_1.PublicKey.findProgramAddressSync([Buffer.from("sss-config"), this.mint.toBuffer()], this.program.programId);
         const source = params.source || (0, spl_token_1.getAssociatedTokenAddressSync)(this.mint, params.burner.publicKey, false, spl_token_1.TOKEN_2022_PROGRAM_ID);
         return await this.program.methods
-            .burn(new anchor_1.BN(params.amount))
+            .burn(new core_1.BN(params.amount))
             .accounts({
             burner: params.burner.publicKey,
             config,
