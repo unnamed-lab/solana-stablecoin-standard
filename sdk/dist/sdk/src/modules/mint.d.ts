@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js';
 import { Program } from '@anchor-lang/core';
-import { SssCore } from '../sss_core';
+import { SssCore } from '../types/sss_core';
 import { MintParams, BurnParams } from '../types';
 export declare class MintModule {
     private program;
