@@ -183,6 +183,8 @@ export class SolanaStablecoin {
      *   preset: StablecoinPreset.SSS_1,
      *   authority: payerKeypair,
      * });
+     * // txSig       → "5Kz7H...xYpQ" (base-58 transaction signature)
+     * // mintAddress  → PublicKey("HduyiW...") (newly created mint)
      * ```
      */
     static async create(
@@ -254,7 +256,12 @@ export class SolanaStablecoin {
      * @example
      * ```ts
      * const sdk = await SolanaStablecoin.load(SolanaNetwork.MAINNET, mintPubkey);
-     * console.log(await sdk.getInfo());
+     * // sdk.mintAddress  → PublicKey("HduyiW...") (the loaded mint)
+     * // sdk.preset       → "sss2"  (auto-detected from on-chain config)
+     *
+     * const info = await sdk.getInfo();
+     * // info.name        → "ACME USD"
+     * // info.totalSupply → 1_000_000
      * ```
      */
     static async load(
@@ -288,6 +295,19 @@ export class SolanaStablecoin {
      *
      * @param params - Minting parameters (recipient ATA, amount, minter keypair).
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.mint({
+     *   recipient: recipientAta,
+     *   amount: 100_000,
+     *   minter: minterKeypair,
+     * });
+     * // txSig → "5Kz7...xYpQ" (base-58 transaction signature)
+     *
+     * const supply = await sdk.getTotalSupply();
+     * // supply → 100_000 (tokens minted in base units)
+     * ```
      */
     async mint(params: MintParams): Promise<string> {
         const program = this.buildProgram(params.minter); // ✅ minter signs
@@ -314,10 +334,24 @@ export class SolanaStablecoin {
     /**
      * Burn tokens from a token account.
      *
+     * The designated burner (from config) must own the source token account.
      * If `source` is omitted, the burner's associated token account (ATA) is used.
      *
      * @param params - Burn parameters (amount, burner keypair, optional source ATA).
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.burn({
+     *   amount: 50_000,
+     *   burner: authorityKeypair,  // must match config.burner
+     *   source: authorityAta,       // must be owned by the burner
+     * });
+     * // txSig → "3wCX...URH8" (base-58 transaction signature)
+     *
+     * const supply = await sdk.getTotalSupply();
+     * // supply → 50_000 (previous supply minus burned amount)
+     * ```
      */
     async burn(params: BurnParams): Promise<string> {
         const program = this.buildProgram(params.burner); // ✅ burner signs
@@ -349,6 +383,13 @@ export class SolanaStablecoin {
      * @param authority - Keypair of the freeze authority (master authority or delegated).
      * @param account   - The token account to freeze.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.freeze(authority, user1Ata);
+     * // txSig → "4NpnK...MN42" (base-58 transaction signature)
+     * // The token account is now frozen; transfers will be rejected.
+     * ```
      */
     async freeze(authority: Keypair, account: PublicKey): Promise<string> {
         const program = this.buildProgram(authority); // ✅ authority signs
@@ -372,6 +413,13 @@ export class SolanaStablecoin {
      * @param authority - Keypair of the freeze authority.
      * @param account   - The token account to thaw.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.thaw(authority, user1Ata);
+     * // txSig → "2yvxr...2bf" (base-58 transaction signature)
+     * // The token account is now unfrozen; transfers are allowed again.
+     * ```
      */
     async thaw(authority: Keypair, account: PublicKey): Promise<string> {
         const program = this.buildProgram(authority);
@@ -394,6 +442,15 @@ export class SolanaStablecoin {
      *
      * @param pauser - Keypair of the designated pauser.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.pause(authority);
+     * // txSig → "Exp3C...LU2" (base-58 transaction signature)
+     *
+     * const paused = await sdk.isPaused();
+     * // paused → true
+     * ```
      */
     async pause(pauser: Keypair): Promise<string> {
         const program = this.buildProgram(pauser);
@@ -414,6 +471,15 @@ export class SolanaStablecoin {
      *
      * @param pauser - Keypair of the designated pauser.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.unpause(authority);
+     * // txSig → "4NpnK...MN42" (base-58 transaction signature)
+     *
+     * const paused = await sdk.isPaused();
+     * // paused → false
+     * ```
      */
     async unpause(pauser: Keypair): Promise<string> {
         const program = this.buildProgram(pauser);
@@ -436,6 +502,17 @@ export class SolanaStablecoin {
      * @param minter    - Public key of the wallet to grant minting rights.
      * @param quota     - Optional minting quota (max tokens per period).
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.addMinter(
+     *   authority,
+     *   minterKeypair.publicKey,
+     *   { amount: 1_000_000 },
+     * );
+     * // txSig → "3MSqf...efX" (base-58 transaction signature)
+     * // minterKeypair can now mint up to 1,000,000 base-unit tokens.
+     * ```
      */
     async addMinter(
         authority: Keypair,
@@ -472,6 +549,13 @@ export class SolanaStablecoin {
      * @param authority - Keypair of the minter authority.
      * @param minter    - Public key of the minter to remove.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.removeMinter(authority, minterKeypair.publicKey);
+     * // txSig → "2kTyb...fZg" (base-58 transaction signature)
+     * // minterKeypair can no longer mint tokens.
+     * ```
      */
     async removeMinter(authority: Keypair, minter: PublicKey): Promise<string> {
         const program = this.buildProgram(authority);
@@ -505,7 +589,12 @@ export class SolanaStablecoin {
      *
      * @example
      * ```ts
-     * await sdk.updateRoles(authority, { newPauser: newPauserPubkey });
+     * const txSig = await sdk.updateRoles(authority, {
+     *   newPauser: newPauserKeypair.publicKey,
+     *   newBurner: newBurnerKeypair.publicKey,
+     * });
+     * // txSig → "2yvxr...2bf" (base-58 transaction signature)
+     * // Only pauser and burner roles are updated; other roles are unchanged.
      * ```
      */
     async updateRoles(authority: Keypair, update: RoleUpdateParams): Promise<string> {
@@ -537,6 +626,16 @@ export class SolanaStablecoin {
      * @param authority    - Keypair of the current master authority.
      * @param newAuthority - Public key of the proposed new authority.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.proposeAuthorityTransfer(
+     *   currentAuthority,
+     *   newAuthorityKeypair.publicKey,
+     * );
+     * // txSig → "4CMrN...MsK" (base-58 transaction signature)
+     * // The transfer is now pending; newAuthorityKeypair must accept.
+     * ```
      */
     async proposeAuthorityTransfer(
         authority: Keypair,
@@ -563,6 +662,13 @@ export class SolanaStablecoin {
      *
      * @param pendingAuthority - Keypair of the pending new authority.
      * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.acceptAuthorityTransfer(newAuthorityKeypair);
+     * // txSig → "5qvDA...7k" (base-58 transaction signature)
+     * // newAuthorityKeypair is now the master authority.
+     * ```
      */
     async acceptAuthorityTransfer(pendingAuthority: Keypair): Promise<string> {
         const program = this.buildProgram(pendingAuthority);
@@ -589,6 +695,20 @@ export class SolanaStablecoin {
      * Fetch a read-only snapshot of the stablecoin's on-chain configuration.
      *
      * @returns A {@link StablecoinInfo} object with name, symbol, supply, etc.
+     *
+     * @example
+     * ```ts
+     * const info = await sdk.getInfo();
+     * // info → {
+     * //   mint: PublicKey("HduyiW..."),
+     * //   preset: "sss2",
+     * //   name: "Test USD",
+     * //   symbol: "TUSD",
+     * //   totalSupply: 100000,
+     * //   paused: false,
+     * //   blacklistCount: 0
+     * // }
+     * ```
      */
     async getInfo(): Promise<StablecoinInfo> {
         const data = await this.readProgram.account.stablecoinConfig.fetch(this.config);
@@ -605,7 +725,14 @@ export class SolanaStablecoin {
 
     /**
      * Get the current total token supply in base units.
+     *
      * @returns Total supply as a number.
+     *
+     * @example
+     * ```ts
+     * const supply = await sdk.getTotalSupply();
+     * // supply → 100_000 (number of tokens in base units)
+     * ```
      */
     async getTotalSupply(): Promise<number> {
         const data = await this.readProgram.account.stablecoinConfig.fetch(this.config);
@@ -614,7 +741,14 @@ export class SolanaStablecoin {
 
     /**
      * Check whether the stablecoin is currently paused.
+     *
      * @returns `true` if paused, `false` otherwise.
+     *
+     * @example
+     * ```ts
+     * const paused = await sdk.isPaused();
+     * // paused → false (stablecoin is operational)
+     * ```
      */
     async isPaused(): Promise<boolean> {
         const data = await this.readProgram.account.stablecoinConfig.fetch(this.config);
