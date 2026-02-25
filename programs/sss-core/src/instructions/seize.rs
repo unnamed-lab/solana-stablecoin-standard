@@ -22,12 +22,7 @@ pub struct Seize<'info> {
         init,
         payer = seizer,
         space = SeizureRecord::LEN,
-        seeds = [
-            b"sss-seizure", 
-            mint.key().as_ref(), 
-            source_account.key().as_ref(), 
-            &Clock::get().unwrap().unix_timestamp.to_le_bytes() // unique timestamp bytes
-        ],
+        seeds = [b"sss-seizure", mint.key().as_ref(), source_account.key().as_ref()],
         bump,
     )]
     pub seizure_record: Account<'info, SeizureRecord>,
