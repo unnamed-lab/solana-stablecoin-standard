@@ -71,3 +71,14 @@ export interface MinterQuota {
     // TODO - Add minter quota details here.
     amount: number;
 }
+
+export interface BlacklistEntry {
+    address: PublicKey;
+    reason: string;
+}
+
+export interface AuditEvent {
+    action: string;
+    timestamp: number;
+    data: any;
+}
