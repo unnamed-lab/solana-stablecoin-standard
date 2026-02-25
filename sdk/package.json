@@ -11,7 +11,8 @@
         "unlink": "npm unlink",
         "build": "yarn fetch-idls && tsc",
         "clean": "rm -rf dist",
-        "watch": "tsc -w"
+        "watch": "tsc -w",
+        "test": "mocha -r ts-node/register tests/**/*.ts"
     },
     "dependencies": {
         "@anchor-lang/core": "^0.32.1",

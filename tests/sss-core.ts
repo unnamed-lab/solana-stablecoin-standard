@@ -287,4 +287,201 @@ describe("SolanaStablecoin SDK via anchor test", () => {
     expect(info.totalSupply).to.equal(50_000);
     console.log("  → Info:", JSON.stringify(info, null, 2));
   });
+
+  // ─── 11. Update roles ───────────────────────────────────────────────────
+  it("Can update roles via SDK", async () => {
+    expect(sdk, "SDK not initialized").to.exist;
+
+    const newPauser = Keypair.generate();
+    const tx = await sdk.updateRoles(authority, {
+      newPauser: newPauser.publicKey,
+    });
+    expect(tx).to.be.a("string");
+    console.log("  → updateRoles tx:", tx);
+
+    // Restore original pauser for subsequent tests
+    const restoreTx = await sdk.updateRoles(authority, {
+      newPauser: authority.publicKey,
+    });
+    expect(restoreTx).to.be.a("string");
+    console.log("  → Restored pauser, tx:", restoreTx);
+  });
+
+  // ─── 12. Propose + accept authority transfer ────────────────────────────
+  it("Can propose and accept authority transfer via SDK", async () => {
+    expect(sdk, "SDK not initialized").to.exist;
+
+    const newAuthority = Keypair.generate();
+    // Fund the new authority so it can sign the accept tx
+    const sig = await connection.requestAirdrop(
+      newAuthority.publicKey,
+      2 * LAMPORTS_PER_SOL
+    );
+    await connection.confirmTransaction(sig, "confirmed");
+
+    // Propose
+    const proposeTx = await sdk.proposeAuthorityTransfer(
+      authority,
+      newAuthority.publicKey
+    );
+    expect(proposeTx).to.be.a("string");
+    console.log("  → proposeAuthorityTransfer tx:", proposeTx);
+
+    // Accept
+    const acceptTx = await sdk.acceptAuthorityTransfer(newAuthority);
+    expect(acceptTx).to.be.a("string");
+    console.log("  → acceptAuthorityTransfer tx:", acceptTx);
+
+    // Transfer back to original authority for subsequent tests
+    const proposeBackTx = await sdk.proposeAuthorityTransfer(
+      newAuthority,
+      authority.publicKey
+    );
+    expect(proposeBackTx).to.be.a("string");
+
+    const acceptBackTx = await sdk.acceptAuthorityTransfer(authority);
+    expect(acceptBackTx).to.be.a("string");
+    console.log("  → Authority restored");
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SSS-1 Preset Tests
+// ═══════════════════════════════════════════════════════════════════════════════
+describe("SolanaStablecoin SDK — SSS-1 preset", () => {
+  anchor.setProvider(anchor.AnchorProvider.env());
+
+  const program = anchor.workspace.SssCore as Program<SssCore>;
+  const provider = anchor.getProvider() as anchor.AnchorProvider;
+  const connection = provider.connection;
+  const authority = (provider.wallet as anchor.Wallet).payer;
+
+  let sdk1: SolanaStablecoin;
+  let mintAddress1: PublicKey;
+
+  const minter1 = Keypair.generate();
+  const recipient1 = Keypair.generate();
+  let recipientAta: PublicKey;
+
+  before(async () => {
+    const airdropAndConfirm = async (pubkey: PublicKey) => {
+      const sig = await connection.requestAirdrop(pubkey, 2 * LAMPORTS_PER_SOL);
+      await connection.confirmTransaction(sig, "confirmed");
+    };
+    await airdropAndConfirm(minter1.publicKey);
+    await airdropAndConfirm(recipient1.publicKey);
+  });
+
+  // ─── 1. Create SSS-1 token ─────────────────────────────────────────────
+  it("Can create an SSS-1 token via SDK", async () => {
+    const config = {
+      name: "Simple USD",
+      symbol: "SUSD",
+      uri: "https://example.com/susd.json",
+      decimals: 6,
+      preset: StablecoinPreset.SSS_1,
+      authority,
+    };
+
+    const txSig = await SolanaStablecoin.create(config, SolanaNetwork.LOCALNET);
+    expect(txSig).to.be.a("string");
+    console.log("  → SSS-1 init tx:", txSig);
+
+    const configs = await program.account.stablecoinConfig.all();
+    const latest = configs[configs.length - 1];
+    mintAddress1 = latest.account.mint;
+
+    sdk1 = await SolanaStablecoin.load(SolanaNetwork.LOCALNET, mintAddress1);
+    expect(sdk1.preset).to.equal(StablecoinPreset.SSS_1);
+    console.log("  → SSS-1 loaded, mint:", mintAddress1.toBase58());
+  });
+
+  // ─── 2. Compliance module should throw on SSS-1 ─────────────────────────
+  it("Compliance module is unavailable on SSS-1", async () => {
+    expect(sdk1, "SDK not initialized").to.exist;
+
+    try {
+      await sdk1.compliance.isBlacklisted(recipient1.publicKey);
+      expect.fail("Should have thrown");
+    } catch (err: any) {
+      expect(err.message).to.include("SSS-2");
+      console.log("  → Correctly threw:", err.message);
+    }
+  });
+
+  // ─── 3. Transfer hook module should throw on SSS-1 ──────────────────────
+  it("Transfer hook module is unavailable on SSS-1", async () => {
+    expect(sdk1, "SDK not initialized").to.exist;
+
+    try {
+      await sdk1.transferHook.getHookConfig();
+      expect.fail("Should have thrown");
+    } catch (err: any) {
+      expect(err.message).to.include("SSS-2");
+      console.log("  → Correctly threw:", err.message);
+    }
+  });
+
+  // ─── 4. Basic mint/burn on SSS-1 ───────────────────────────────────────
+  it("Can mint and burn on SSS-1", async () => {
+    expect(sdk1, "SDK not initialized").to.exist;
+
+    // Create ATA
+    recipientAta = getAssociatedTokenAddressSync(
+      mintAddress1,
+      recipient1.publicKey,
+      false,
+      TOKEN_2022_PROGRAM_ID
+    );
+    const createAtaTx = new Transaction().add(
+      createAssociatedTokenAccountInstruction(
+        authority.publicKey,
+        recipientAta,
+        recipient1.publicKey,
+        mintAddress1,
+        TOKEN_2022_PROGRAM_ID
+      )
+    );
+    await provider.sendAndConfirm(createAtaTx, [authority]);
+
+    // Add minter
+    await sdk1.addMinter(authority, minter1.publicKey, { amount: 500_000 });
+
+    // Mint
+    const mintTx = await sdk1.mint({
+      recipient: recipientAta,
+      amount: 100_000,
+      minter: minter1,
+    });
+    expect(mintTx).to.be.a("string");
+    console.log("  → SSS-1 mint tx:", mintTx);
+
+    let supply = await sdk1.getTotalSupply();
+    expect(supply).to.equal(100_000);
+
+    // Burn
+    const burnTx = await sdk1.burn({
+      amount: 30_000,
+      burner: recipient1,
+      source: recipientAta,
+    });
+    expect(burnTx).to.be.a("string");
+    console.log("  → SSS-1 burn tx:", burnTx);
+
+    supply = await sdk1.getTotalSupply();
+    expect(supply).to.equal(70_000);
+    console.log("  → SSS-1 final supply:", supply);
+  });
+
+  // ─── 5. getInfo on SSS-1 ───────────────────────────────────────────────
+  it("Can fetch SSS-1 stablecoin info", async () => {
+    expect(sdk1, "SDK not initialized").to.exist;
+
+    const info = await sdk1.getInfo();
+    expect(info.name).to.equal("Simple USD");
+    expect(info.symbol).to.equal("SUSD");
+    expect(info.preset).to.equal(StablecoinPreset.SSS_1);
+    expect(info.totalSupply).to.equal(70_000);
+    console.log("  → SSS-1 Info:", JSON.stringify(info, null, 2));
+  });
 });

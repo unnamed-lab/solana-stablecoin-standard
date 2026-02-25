@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const targetTypesDir = path.join(__dirname, '../../target/types');
-const sdkSrcDir = path.join(__dirname, '../src');
+const sdkSrcDir = path.join(__dirname, '../src/types');
 
 const filesToCopy = [
     'sss_core.ts',
