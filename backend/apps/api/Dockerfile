@@ -5,12 +5,13 @@ COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 COPY . .
 RUN npx prisma generate
-RUN yarn build api
+RUN yarn build:api
 
 FROM node:20-alpine AS runner
 WORKDIR /app
-COPY --from=builder /app/dist/apps/api ./dist
+COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/generated ./generated
 EXPOSE 3000
-CMD ["node", "dist/main"]
+CMD ["node", "dist/apps/api/src/main.js"]

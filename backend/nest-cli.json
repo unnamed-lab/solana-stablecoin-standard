@@ -1,14 +1,14 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/backend/src",
+  "sourceRoot": "apps/api/src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "webpack": true,
-    "tsConfigPath": "apps/backend/tsconfig.app.json"
+    "webpack": false,
+    "tsConfigPath": "apps/api/tsconfig.app.json"
   },
   "monorepo": true,
-  "root": "apps/backend",
+  "root": "apps/api",
   "projects": {
     "api": {
       "type": "application",
@@ -19,13 +19,22 @@
         "tsConfigPath": "apps/api/tsconfig.app.json"
       }
     },
-    "backend": {
+    "indexer": {
       "type": "application",
-      "root": "apps/backend",
+      "root": "apps/indexer",
       "entryFile": "main",
-      "sourceRoot": "apps/backend/src",
+      "sourceRoot": "apps/indexer/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/backend/tsconfig.app.json"
+        "tsConfigPath": "apps/indexer/tsconfig.app.json"
+      }
+    },
+    "webhook": {
+      "type": "application",
+      "root": "apps/webhook",
+      "entryFile": "main",
+      "sourceRoot": "apps/webhook/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/webhook/tsconfig.app.json"
       }
     },
     "blockchain": {
@@ -46,15 +55,6 @@
         "tsConfigPath": "libs/database/tsconfig.lib.json"
       }
     },
-    "indexer": {
-      "type": "application",
-      "root": "apps/indexer",
-      "entryFile": "main",
-      "sourceRoot": "apps/indexer/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/indexer/tsconfig.app.json"
-      }
-    },
     "shared": {
       "type": "library",
       "root": "libs/shared",
@@ -62,15 +62,6 @@
       "sourceRoot": "libs/shared/src",
       "compilerOptions": {
         "tsConfigPath": "libs/shared/tsconfig.lib.json"
-      }
-    },
-    "webhook": {
-      "type": "application",
-      "root": "apps/webhook",
-      "entryFile": "main",
-      "sourceRoot": "apps/webhook/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/webhook/tsconfig.app.json"
       }
     }
   }

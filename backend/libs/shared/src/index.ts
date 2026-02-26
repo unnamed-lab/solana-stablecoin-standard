@@ -1,2 +1,3 @@
 export * from './shared.module';
-export * from './shared.service';
+export * from './events/sss-events';
+export * from './constants';
