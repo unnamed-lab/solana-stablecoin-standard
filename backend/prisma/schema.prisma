@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model MintEvent {
+  id               String   @id @default(uuid())
+  mint             String
+  recipient        String
+  amount           BigInt
+  minter           String
+  newTotalSupply   BigInt
+  txSignature      String   @unique
+  onChainTimestamp BigInt
+  indexedAt         DateTime @default(now())
+
+  @@index([mint])
+  @@index([recipient])
+  @@index([indexedAt])
+}
+
+model BurnEvent {
+  id               String   @id @default(uuid())
+  mint             String
+  source           String
+  amount           BigInt
+  burner           String
+  newTotalSupply   BigInt
+  txSignature      String   @unique
+  onChainTimestamp BigInt
+  indexedAt         DateTime @default(now())
+
+  @@index([mint])
+  @@index([source])
+}
+
+model BlacklistEntry {
+  id               String    @id @default(uuid())
+  mint             String
+  address          String
+  reason           String
+  blacklistedBy    String
+  removed          Boolean   @default(false)
+  removedBy        String?
+  removedAt        DateTime?
+  txSignature      String    @unique
+  onChainTimestamp BigInt
+  indexedAt         DateTime  @default(now())
+
+  @@unique([mint, address])
+  @@index([mint, removed])
+}
+
+model SeizureEvent {
+  id               String   @id @default(uuid())
+  mint             String
+  seizedFrom       String
+  seizedTo         String
+  amount           BigInt
+  reason           String
+  seizer           String
+  txSignature      String   @unique
+  onChainTimestamp BigInt
+  indexedAt         DateTime @default(now())
+
+  @@index([mint])
+  @@index([seizedFrom])
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  mint        String
+  action      String   // MINT | BURN | BLACKLIST_ADD | BLACKLIST_REMOVE | SEIZE | PAUSE | UNPAUSE | FREEZE | THAW
+  actor       String
+  target      String?
+  amount      BigInt?
+  reason      String?
+  txSignature String
+  createdAt   DateTime @default(now())
+
+  @@index([mint, action])
+  @@index([mint, createdAt])
+  @@index([actor])
+}
+
+model WebhookConfig {
+  id        String   @id @default(uuid())
+  url       String
+  events    String[] // ["Minted", "Blacklisted", "*"]
+  secret    String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

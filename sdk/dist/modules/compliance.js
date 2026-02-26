@@ -42,7 +42,7 @@ const anchor_1 = require("@coral-xyz/anchor");
 const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
 const spl_token_1 = require("@solana/spl-token");
 const types_1 = require("../types");
-const sss_core_json_1 = __importDefault(require("../../../target/idl/sss_core.json"));
+const sss_core_json_1 = __importDefault(require("../idl/sss_core.json"));
 const NETWORK_RPC = {
     [types_1.SolanaNetwork.DEVNET]: "https://api.devnet.solana.com",
     [types_1.SolanaNetwork.MAINNET]: "https://api.mainnet-beta.solana.com",

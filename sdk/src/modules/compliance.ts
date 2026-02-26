@@ -4,7 +4,7 @@ import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 import { SssCore } from '../types/sss_core';
 import { SolanaNetwork } from '../types';
-import idl from '../../../target/idl/sss_core.json';
+import idl from '../idl/sss_core.json';
 
 const NETWORK_RPC: Record<SolanaNetwork, string> = {
     [SolanaNetwork.DEVNET]: "https://api.devnet.solana.com",

@@ -10,8 +10,8 @@ const spl_token_1 = require("@solana/spl-token");
 const types_1 = require("./types");
 const transfer_hook_1 = require("./modules/transfer-hook");
 const compliance_1 = require("./modules/compliance");
-const sss_core_json_1 = __importDefault(require("../../target/idl/sss_core.json"));
-const sss_transfer_hook_json_1 = __importDefault(require("../../target/idl/sss_transfer_hook.json"));
+const sss_core_json_1 = __importDefault(require("./idl/sss_core.json"));
+const sss_transfer_hook_json_1 = __importDefault(require("./idl/sss_transfer_hook.json"));
 const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
 /** @internal Maps each {@link SolanaNetwork} value to its default JSON-RPC endpoint. */
 const NETWORK_RPC = {

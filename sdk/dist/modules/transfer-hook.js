@@ -8,7 +8,7 @@ const web3_js_1 = require("@solana/web3.js");
 const anchor_1 = require("@coral-xyz/anchor");
 const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
 const types_1 = require("../types");
-const sss_transfer_hook_json_1 = __importDefault(require("../../../target/idl/sss_transfer_hook.json"));
+const sss_transfer_hook_json_1 = __importDefault(require("../idl/sss_transfer_hook.json"));
 const NETWORK_RPC = {
     [types_1.SolanaNetwork.DEVNET]: "https://api.devnet.solana.com",
     [types_1.SolanaNetwork.MAINNET]: "https://api.mainnet-beta.solana.com",

@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/sss_transfer_hook.json`.
  */
 export type SssTransferHook = {
-    "address": "DZojximE3yABxkNAuyRGpuTGPpAdxrUtdocg3Kam3r6A";
+    "address": "9Vu21Cy4yShn7SukayuArDRy36fVzXMjsnJiTG2ZZDxF";
     "metadata": {
         "name": "sssTransferHook";
         "version": "0.1.0";
@@ -366,6 +366,7 @@ export type SssTransferHook = {
                         "program": {
                             "kind": "const";
                             "value": [
+<<<<<<< HEAD
                                 93,
                                 70,
                                 244,
@@ -398,6 +399,40 @@ export type SssTransferHook = {
                                 88,
                                 122,
                                 68
+=======
+                                22,
+                                53,
+                                65,
+                                240,
+                                145,
+                                181,
+                                28,
+                                184,
+                                2,
+                                164,
+                                212,
+                                238,
+                                85,
+                                86,
+                                189,
+                                70,
+                                229,
+                                90,
+                                229,
+                                36,
+                                225,
+                                5,
+                                243,
+                                156,
+                                14,
+                                57,
+                                68,
+                                15,
+                                83,
+                                8,
+                                111,
+                                96
+>>>>>>> c6169f33a3b1601ef2c628082abe9dcf055fbbc9
                             ];
                         };
                     };
