@@ -6,8 +6,8 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-sss_core = "7H7fqqjASpTDCgYwDpp8EatKM4sSMwxaYvbhf6s3ThqM"
-sss_transfer_hook = "DZojximE3yABxkNAuyRGpuTGPpAdxrUtdocg3Kam3r6A"
+sss_core = "2Vh56aB6CX2SsHyLVwGQpt8Z9jWqYKNzjf5BXjgM2F5y"
+sss_transfer_hook = "9Vu21Cy4yShn7SukayuArDRy36fVzXMjsnJiTG2ZZDxF"
 
 [registry]
 url = "https://api.apr.dev"
@@ -21,3 +21,5 @@ test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
 
 [test]
 startup_wait = 50000
+shutdown_wait = 2000
+upgradeable = false
