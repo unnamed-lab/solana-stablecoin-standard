@@ -2,22 +2,31 @@ const fs = require('fs');
 const path = require('path');
 
 const targetTypesDir = path.join(__dirname, '../../target/types');
-const sdkSrcDir = path.join(__dirname, '../src/types');
+const sdkSrcTypesDir = path.join(__dirname, '../src/types');
+
+const targetIdlDir = path.join(__dirname, '../../target/idl');
+const sdkSrcIdlDir = path.join(__dirname, '../src/idl');
+
+if (!fs.existsSync(sdkSrcIdlDir)) {
+    fs.mkdirSync(sdkSrcIdlDir, { recursive: true });
+}
 
 const filesToCopy = [
-    'sss_core.ts',
-    'sss_transfer_hook.ts'
+    { name: 'sss_core.ts', source: targetTypesDir, dest: sdkSrcTypesDir },
+    { name: 'sss_transfer_hook.ts', source: targetTypesDir, dest: sdkSrcTypesDir },
+    { name: 'sss_core.json', source: targetIdlDir, dest: sdkSrcIdlDir },
+    { name: 'sss_transfer_hook.json', source: targetIdlDir, dest: sdkSrcIdlDir }
 ];
 
 console.log('Fetching updated IDLs from target...');
 
 filesToCopy.forEach(file => {
-    const sourcePath = path.join(targetTypesDir, file);
-    const destPath = path.join(sdkSrcDir, file);
+    const sourcePath = path.join(file.source, file.name);
+    const destPath = path.join(file.dest, file.name);
 
     if (fs.existsSync(sourcePath)) {
         fs.copyFileSync(sourcePath, destPath);
-        console.log(`✅ Copied ${file}`);
+        console.log(`✅ Copied ${file.name}`);
     } else {
         console.error(`❌ Source file not found: ${sourcePath}`);
     }
