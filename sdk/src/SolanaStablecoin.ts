@@ -29,8 +29,8 @@ import {
 } from './types';
 import { TransferHookModule } from './modules/transfer-hook';
 import { ComplianceModule } from './modules/compliance';
-import idl from '../../target/idl/sss_core.json';
-import hookIdl from '../../target/idl/sss_transfer_hook.json';
+import idl from './idl/sss_core.json';
+import hookIdl from './idl/sss_transfer_hook.json';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 
 /** @internal Maps each {@link SolanaNetwork} value to its default JSON-RPC endpoint. */

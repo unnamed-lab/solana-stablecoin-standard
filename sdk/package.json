@@ -2,8 +2,14 @@
     "name": "@stbr/sss-token",
     "version": "0.1.0",
     "description": "Solana Stablecoin Standard SDK",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
     "scripts": {
         "fetch-idls": "node scripts/fetch-idls.js",
         "bundle": "yarn build && npm link",
