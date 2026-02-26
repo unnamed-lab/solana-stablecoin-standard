@@ -1,0 +1,743 @@
+{
+    "address": "9Vu21Cy4yShn7SukayuArDRy36fVzXMjsnJiTG2ZZDxF",
+    "metadata": {
+        "name": "sss_transfer_hook",
+        "version": "0.1.0",
+        "spec": "0.1.0",
+        "description": "Created with Anchor"
+    },
+    "instructions": [
+        {
+            "name": "disable_hook",
+            "discriminator": [
+                135,
+                250,
+                78,
+                138,
+                213,
+                16,
+                28,
+                219
+            ],
+            "accounts": [
+                {
+                    "name": "authority",
+                    "writable": true,
+                    "signer": true,
+                    "relations": [
+                        "hook_config"
+                    ]
+                },
+                {
+                    "name": "hook_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    104,
+                                    111,
+                                    111,
+                                    107,
+                                    45,
+                                    99,
+                                    111,
+                                    110,
+                                    102,
+                                    105,
+                                    103
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "hook_config.mint",
+                                "account": "HookConfig"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "enable_hook",
+            "discriminator": [
+                242,
+                81,
+                117,
+                14,
+                86,
+                35,
+                185,
+                143
+            ],
+            "accounts": [
+                {
+                    "name": "authority",
+                    "writable": true,
+                    "signer": true,
+                    "relations": [
+                        "hook_config"
+                    ]
+                },
+                {
+                    "name": "hook_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    104,
+                                    111,
+                                    111,
+                                    107,
+                                    45,
+                                    99,
+                                    111,
+                                    110,
+                                    102,
+                                    105,
+                                    103
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "hook_config.mint",
+                                "account": "HookConfig"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "execute",
+            "discriminator": [
+                130,
+                221,
+                242,
+                154,
+                13,
+                193,
+                189,
+                29
+            ],
+            "accounts": [
+                {
+                    "name": "source"
+                },
+                {
+                    "name": "mint"
+                },
+                {
+                    "name": "destination"
+                },
+                {
+                    "name": "source_authority"
+                },
+                {
+                    "name": "hook_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    104,
+                                    111,
+                                    111,
+                                    107,
+                                    45,
+                                    99,
+                                    111,
+                                    110,
+                                    102,
+                                    105,
+                                    103
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "mint"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "sss_core_program"
+                },
+                {
+                    "name": "sender_blacklist_entry"
+                },
+                {
+                    "name": "recipient_blacklist_entry"
+                }
+            ],
+            "args": [
+                {
+                    "name": "amount",
+                    "type": "u64"
+                }
+            ]
+        },
+        {
+            "name": "initialize_extra_account_meta_list",
+            "discriminator": [
+                92,
+                197,
+                174,
+                197,
+                41,
+                124,
+                19,
+                3
+            ],
+            "accounts": [
+                {
+                    "name": "payer",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "extra_account_meta_list",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    101,
+                                    120,
+                                    116,
+                                    114,
+                                    97,
+                                    45,
+                                    97,
+                                    99,
+                                    99,
+                                    111,
+                                    117,
+                                    110,
+                                    116,
+                                    45,
+                                    109,
+                                    101,
+                                    116,
+                                    97,
+                                    115
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "mint"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "mint"
+                },
+                {
+                    "name": "hook_config",
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    104,
+                                    111,
+                                    111,
+                                    107,
+                                    45,
+                                    99,
+                                    111,
+                                    110,
+                                    102,
+                                    105,
+                                    103
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "mint"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "authority",
+                    "signer": true,
+                    "relations": [
+                        "hook_config"
+                    ]
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "initialize_hook",
+            "discriminator": [
+                37,
+                101,
+                119,
+                255,
+                156,
+                39,
+                252,
+                232
+            ],
+            "accounts": [
+                {
+                    "name": "payer",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "hook_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    104,
+                                    111,
+                                    111,
+                                    107,
+                                    45,
+                                    99,
+                                    111,
+                                    110,
+                                    102,
+                                    105,
+                                    103
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "mint"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "mint",
+                    "relations": [
+                        "sss_config"
+                    ]
+                },
+                {
+                    "name": "sss_config",
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    99,
+                                    111,
+                                    110,
+                                    102,
+                                    105,
+                                    103
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "mint"
+                            }
+                        ],
+                        "program": {
+                            "kind": "const",
+                            "value": [
+                                22,
+                                53,
+                                65,
+                                240,
+                                145,
+                                181,
+                                28,
+                                184,
+                                2,
+                                164,
+                                212,
+                                238,
+                                85,
+                                86,
+                                189,
+                                70,
+                                229,
+                                90,
+                                229,
+                                36,
+                                225,
+                                5,
+                                243,
+                                156,
+                                14,
+                                57,
+                                68,
+                                15,
+                                83,
+                                8,
+                                111,
+                                96
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "authority",
+                    "signer": true
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "default_enabled",
+                    "type": "bool"
+                }
+            ]
+        }
+    ],
+    "accounts": [
+        {
+            "name": "HookConfig",
+            "discriminator": [
+                137,
+                155,
+                101,
+                95,
+                138,
+                72,
+                8,
+                182
+            ]
+        },
+        {
+            "name": "StablecoinConfig",
+            "discriminator": [
+                127,
+                25,
+                244,
+                213,
+                1,
+                192,
+                101,
+                6
+            ]
+        }
+    ],
+    "events": [
+        {
+            "name": "TransferBlocked",
+            "discriminator": [
+                209,
+                54,
+                14,
+                64,
+                139,
+                238,
+                231,
+                236
+            ]
+        },
+        {
+            "name": "TransferValidated",
+            "discriminator": [
+                171,
+                133,
+                176,
+                35,
+                131,
+                74,
+                31,
+                221
+            ]
+        }
+    ],
+    "errors": [
+        {
+            "code": 6000,
+            "name": "SenderBlacklisted",
+            "msg": "Sender is blacklisted and cannot transfer tokens"
+        },
+        {
+            "code": 6001,
+            "name": "RecipientBlacklisted",
+            "msg": "Recipient is blacklisted and cannot receive tokens"
+        },
+        {
+            "code": 6002,
+            "name": "HookDisabled",
+            "msg": "Transfer hook is disabled"
+        },
+        {
+            "code": 6003,
+            "name": "InvalidMint",
+            "msg": "Invalid mint for this hook instance"
+        },
+        {
+            "code": 6004,
+            "name": "InvalidAuthority",
+            "msg": "Invalid authority"
+        }
+    ],
+    "types": [
+        {
+            "name": "HookConfig",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "sss_core_program",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "authority",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "enabled",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "transfer_count",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "blocked_count",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "bump",
+                        "type": "u8"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "StablecoinConfig",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "version",
+                        "type": "u8"
+                    },
+                    {
+                        "name": "preset",
+                        "type": {
+                            "defined": {
+                                "name": "StablecoinPreset"
+                            }
+                        }
+                    },
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "name": "symbol",
+                        "type": "string"
+                    },
+                    {
+                        "name": "uri",
+                        "type": "string"
+                    },
+                    {
+                        "name": "decimals",
+                        "type": "u8"
+                    },
+                    {
+                        "name": "enable_permanent_delegate",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "enable_transfer_hook",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "default_account_frozen",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "master_authority",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "pending_master_authority",
+                        "type": {
+                            "option": "pubkey"
+                        }
+                    },
+                    {
+                        "name": "pauser",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "minter_authority",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "burner",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "blacklister",
+                        "type": {
+                            "option": "pubkey"
+                        }
+                    },
+                    {
+                        "name": "seizer",
+                        "type": {
+                            "option": "pubkey"
+                        }
+                    },
+                    {
+                        "name": "hook_authority",
+                        "type": {
+                            "option": "pubkey"
+                        }
+                    },
+                    {
+                        "name": "paused",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "total_supply",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "total_minted_all_time",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "total_burned_all_time",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "blacklist_count",
+                        "type": "u32"
+                    },
+                    {
+                        "name": "hook_program_id",
+                        "type": {
+                            "option": "pubkey"
+                        }
+                    },
+                    {
+                        "name": "created_at",
+                        "type": "i64"
+                    },
+                    {
+                        "name": "last_updated_at",
+                        "type": "i64"
+                    },
+                    {
+                        "name": "bump",
+                        "type": "u8"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "StablecoinPreset",
+            "repr": {
+                "kind": "rust"
+            },
+            "type": {
+                "kind": "enum",
+                "variants": [
+                    {
+                        "name": "SSS1"
+                    },
+                    {
+                        "name": "SSS2"
+                    },
+                    {
+                        "name": "Custom"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "TransferBlocked",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "blocked_address",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "reason",
+                        "type": "string"
+                    },
+                    {
+                        "name": "amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "TransferValidated",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "source",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "destination",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        }
+    ]
+}
