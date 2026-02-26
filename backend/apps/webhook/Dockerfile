@@ -5,11 +5,12 @@ COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 COPY . .
 RUN npx prisma generate
-RUN yarn build webhook
+RUN yarn build:webhook
 
 FROM node:20-alpine AS runner
 WORKDIR /app
-COPY --from=builder /app/dist/apps/webhook ./dist
+COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
-CMD ["node", "dist/main"]
+COPY --from=builder /app/generated ./generated
+CMD ["node", "dist/apps/webhook/src/main.js"]
