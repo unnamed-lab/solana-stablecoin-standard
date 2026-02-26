@@ -33,6 +33,7 @@
     "test:e2e": "jest --config ./apps/api/test/jest-e2e.json"
   },
   "dependencies": {
+    "@stbr/sss-token": "file:../sdk",
     "@coral-xyz/anchor": "^0.32.1",
     "@nestjs/bull": "^11.0.4",
     "@nestjs/common": "^11.0.1",
