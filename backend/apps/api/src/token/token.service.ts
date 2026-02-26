@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { BlockchainService } from '@app/blockchain';
+import { BlockchainService, SdkService } from '@app/blockchain';
+import { PublicKey } from '@solana/web3.js';
 import { MintDto } from './dto/mint.dto';
 import { BurnDto } from './dto/burn.dto';
 
@@ -7,10 +8,13 @@ import { BurnDto } from './dto/burn.dto';
 export class TokenService {
     private readonly logger = new Logger(TokenService.name);
 
-    constructor(private readonly blockchainService: BlockchainService) { }
+    constructor(
+        private readonly blockchainService: BlockchainService,
+        private readonly sdkService: SdkService,
+    ) { }
 
     /**
-     * Mint new tokens.
+     * Mint new tokens to a recipient's associated token account.
      *
      * In production, keypairs would come from a KMS/HSM.
      * For the bounty demo, the keypair is passed in the request body.
@@ -18,33 +22,42 @@ export class TokenService {
     async mint(
         dto: MintDto,
     ): Promise<{ success: boolean; txSignature: string }> {
-        // SDK integration point — for now, returns a placeholder
-        // In a full integration, this calls:
-        //   const sdk = await SolanaStablecoin.load(...);
-        //   const sig = await sdk.mint({ recipient, amount, minter });
         this.logger.log(
             `Mint request: ${dto.amount} tokens to ${dto.recipient}`,
         );
 
-        // TODO: Wire SDK when available as a NestJS-compatible import
-        return {
-            success: true,
-            txSignature: 'pending-sdk-integration',
-        };
+        const sdk = await this.sdkService.getSdk();
+        const minter = this.sdkService.decodeKeypair(dto.minterKeypair);
+
+        const txSignature = await sdk.mint({
+            recipient: new PublicKey(dto.recipient),
+            amount: dto.amount,
+            minter,
+        });
+
+        this.logger.log(`✅ Mint tx: ${txSignature}`);
+        return { success: true, txSignature };
     }
 
     /**
-     * Burn tokens.
+     * Burn tokens from a token account.
      */
     async burn(
         dto: BurnDto,
     ): Promise<{ success: boolean; txSignature: string }> {
         this.logger.log(`Burn request: ${dto.amount} tokens`);
 
-        return {
-            success: true,
-            txSignature: 'pending-sdk-integration',
-        };
+        const sdk = await this.sdkService.getSdk();
+        const burner = this.sdkService.decodeKeypair(dto.burnerKeypair);
+
+        const txSignature = await sdk.burn({
+            amount: dto.amount,
+            burner,
+            ...(dto.source ? { source: new PublicKey(dto.source) } : {}),
+        });
+
+        this.logger.log(`✅ Burn tx: ${txSignature}`);
+        return { success: true, txSignature };
     }
 
     /**
