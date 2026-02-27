@@ -124,3 +124,38 @@ When the **Indexer** detects a relevant on-chain event (such as `Minted`, `Burne
   "timestamp": 1690000005
 }
 ```
+
+---
+
+## Oracle Endpoints
+*Exposed by the standalone `oracle` microservice (default port 3003). The base path for these endpoints is `/` (no version prefix).*
+
+### `GET /feeds`
+List all registered active Switchboard price feeds.
+- **Response `200`:** Array of `FeedEntry` objects containing `symbol`, `feedType`, `baseCurrency`, `quoteCurrency`, `decimals`, and `switchboardFeed`.
+
+### `POST /feeds/register`
+Register a new Switchboard feed to the Oracle program's global registry.
+- **Body:** `RegisterFeedDto` (requires `symbol`, `feedType`, `baseCurrency`, `quoteCurrency`, `decimals`, `switchboardFeed`)
+- **Response `201`:** `{"success": true, "txSig": "string"}`
+
+### `GET /config/:mint`
+Fetch the stored Oracle configuration for a specific SSS stablecoin mint.
+- **Path Parameter `mint`:** Base58 string of the mint address.
+- **Response `200`:** `OracleConfig` details including thresholds and fees.
+
+### `POST /config/initialize`
+Initialize a new oracle configuration for a specific mint.
+- **Body:** `InitializeConfigDto` (requires `mint`, `feedSymbol`, `maxStalenessSecs`, `mintFeeBps`, `redeemFeeBps`, `maxConfidenceBps`, `quoteValiditySecs`)
+- **Response `201`:** `{"success": true, "txSig": "string"}`
+
+### `GET /quotes/mint/simulate`
+Simulate a mint quote (USD input → Token output). This executes purely in mathematics and makes no RPC calls, making it ideal for high-frequency UI previews.
+- **Query Parameters:** `usdCents`, `priceScaled`, `feedType`, `mintFeeBps`, `cpiMultiplier` (optional).
+- **Response `200`:** `{"gross": number, "fee": number, "net": number}` (Results in token units)
+
+### `GET /quotes/redeem/simulate`
+Simulate a redeem quote (Token input → USD output).
+- **Query Parameters:** `tokenAmount`, `priceScaled`, `feedType`, `redeemFeeBps`, `cpiMultiplier` (optional).
+- **Response `200`:** `{"gross": number, "fee": number, "net": number}` (Results in USD cents)
+
