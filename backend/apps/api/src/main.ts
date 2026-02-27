@@ -2,25 +2,45 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ApiModule } from './api.module';
+import { ResponseInterceptor } from './common/response.interceptor';
+import { SssExceptionFilter } from './common/sss-exception.filter';
+
+// Prisma returns BigInt for fields like amount, onChainTimestamp, etc.
+// JSON.stringify cannot serialise BigInt natively, so convert to string.
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
 
 async function bootstrap() {
   const app = await NestFactory.create(ApiModule);
 
   // Global validation — rejects malformed DTOs automatically
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, transform: true }),
-  );
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  // Enable CORS
-  app.enableCors();
+  // Standard API response envelope + SDK error handling
+  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new SssExceptionFilter());
+
+  // CORS — restrict to allowed origins (env-driven)
+  const allowedOrigins = process.env.CORS_ORIGINS?.split(',').map((o) =>
+    o.trim(),
+  ) ?? ['http://localhost:3000', 'http://localhost:5173'];
+
+  app.enableCors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+    maxAge: 3600,
+  });
 
   // Swagger auto-generated API docs
   const swaggerConfig = new DocumentBuilder()
     .setTitle('SSS Token API')
     .setDescription(
       'Solana Stablecoin Standard — Backend Service API.\n\n' +
-      'Provides endpoints for token lifecycle (mint/burn), compliance operations ' +
-      '(blacklist/seize), audit logging, and webhook management.',
+        'Provides endpoints for token lifecycle (mint/burn), compliance operations ' +
+        '(blacklist/seize), audit logging, and webhook management.',
     )
     .setVersion('1.0')
     .addTag('Health', 'Service health checks')

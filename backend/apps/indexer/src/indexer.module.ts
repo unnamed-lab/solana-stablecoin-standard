@@ -19,4 +19,4 @@ import { IndexerService } from './indexer.service';
   ],
   providers: [IndexerService],
 })
-export class IndexerModule { }
+export class IndexerModule {}

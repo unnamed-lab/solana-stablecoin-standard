@@ -1,98 +1,93 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Solana Stablecoin Standard (SSS) Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This repository contains the backend infrastructure for the Solana Stablecoin Standard (SSS) project. Built with NestJS, it offers a robust, scalable, and modular suite of applications to interact with the SSS Solana smart contracts, index on-chain events, and deliver real-time webhook notifications.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Architecture & Apps
 
-## Description
+The backend is structured as a monorepo consisting of three primary applications:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### 1. API Application (`api`)
+The core REST API serving external clients and dashboards. 
+- **Token Management:** Minting and burning of stablecoins, and fetching token statistics (supply, largest holders).
+- **Compliance:** Managing blacklisted addresses and executing token seizures using permanent delegates.
+- **Audit Logs:** Providing a queryable and exportable history of all administrative actions (minting, burning, freezing, seizing, etc.).
+- **Webhooks Config:** Managing subscriptions for real-time notifications on various on-chain events.
 
-## Project setup
+### 2. Indexer Application (`indexer`)
+A background service responsible for listening to Solana blockchain events emitted by the SSS core smart contract (`7H7fqqjASpTDCgYwDpp8EatKM4sSMwxaYvbhf6s3ThqM`). 
+- **Event Parsing:** Listens for events like `Minted`, `Burned`, `Blacklisted`, `Seized`, `AccountFrozenEvent`, and more.
+- **Database Persistence:** Stores parsed events into a PostgreSQL database using Prisma, offering a reliable, queryable off-chain state.
+- **Queueing:** Pushes detected events into a Redis-backed Bull queue (`webhook-queue`) to trigger asynchronous delivery.
+
+### 3. Webhook Application (`webhook`)
+A dedicated worker service that processes the `webhook-queue` populated by the Indexer.
+- **Payload Construction:** Builds structured, timestamped JSON payloads containing the event details and original transaction signatures.
+- **Security:** Secures outgoing HTTP POST requests with an HMAC-SHA256 signature calculated against a unique integration secret.
+- **Reliability:** Handles failed deliveries with exponential backoff and retries to ensure eventual delivery to external subscribers.
+
+## Project Setup
+
+The applications are built using [NestJS](https://nestjs.com/) and require a local PostgreSQL database and Redis instance (e.g., via Docker Compose).
 
 ```bash
+# Install dependencies
 $ yarn install
 ```
 
-## Compile and run the project
+## Running the Applications
+
+Each application can be run independently using the Nest CLI or standard npm scripts:
 
 ```bash
-# development
-$ yarn run start
+# Run API service
+$ yarn start api --watch
 
-# watch mode
-$ yarn run start:dev
+# Run Indexer service
+$ yarn start indexer --watch
 
-# production mode
-$ yarn run start:prod
+# Run Webhook processor
+$ yarn start webhook --watch
 ```
 
-## Run tests
+## Environment Variables
 
+A `.env` file is required. Key variables include:
+- `DATABASE_URL`: PostgreSQL connection string.
+- `REDIS_URL`: Redis connection string for Bull queues.
+- `RPC_URL`: Solana RPC endpoint (e.g., `https://api.devnet.solana.com`).
+- `WS_URL`: Solana WebSocket endpoint.
+- `SSS_CORE_PROGRAM_ID`: The Program ID of the SSS core smart contract.
+
+## API Documentation
+
+For full details on the REST endpoints provided by the API application, please see the [API Documentation](../../docs/API.md).
+
+## Included Scripts
+
+The `backend/scripts` directory provides CLI utilities to streamline development and deployment tasks for the SSS project.
+
+### 1. Deploy Stablecoin Script
+Deploys a test stablecoin to a local Solana network (or devnet) using the `@stbr/sss-token` SDK.
+- Mints the SSS Token with preset `SSS_2` features (blacklist, seize, freeze).
+- Automatically adds the authority as a minter with a 1,000,000,000 quota to allow for immediate API testing.
+- Outputs the base58 secret key necessary for backend `.env` variables and API authorization headers.
+
+**Prerequisites:**
+You need a `solana-test-validator` running locally and your Anchor smart contracts deployed (`anchor build && anchor deploy`).
+
+**Usage:**
 ```bash
-# unit tests
-$ yarn run test
-
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+$ npx ts-node scripts/deploy-stablecoin.ts
 ```
 
-## Deployment
+### 2. Base58 Keypair Generator
+Utility script to help convert existing Solana JSON keypair files into Base58 secret strings, which are required for backend API authentication (e.g. `minterKeypair`, `blacklisterKeypair`).
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+**Usage:**
 ```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
+# Generate a completely new Base58 keypair
+$ npx ts-node scripts/generate-b58-keypair.ts
+
+# Convert an existing Solana JSON wallet file to Base58
+$ npx ts-node scripts/generate-b58-keypair.ts /path/to/keypair.json
 ```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

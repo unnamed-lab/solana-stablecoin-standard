@@ -29,7 +29,7 @@ export class IndexerService implements OnModuleInit, OnModuleDestroy {
     private readonly prisma: PrismaService,
     @InjectQueue(WEBHOOK_QUEUE)
     private readonly webhookQueue: Queue,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     const rpcUrl = this.configService.get<string>(
@@ -66,11 +66,7 @@ export class IndexerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async handleLogs(
-    logs: string[],
-    signature: string,
-    _ctx: Context,
-  ) {
+  private async handleLogs(logs: string[], signature: string, _ctx: Context) {
     const events = this.parser.parse(logs);
     if (!events.length) return;
 
@@ -93,9 +89,7 @@ export class IndexerService implements OnModuleInit, OnModuleDestroy {
           },
         );
       } catch (err) {
-        this.logger.error(
-          `Failed to process event ${event.name}: ${err}`,
-        );
+        this.logger.error(`Failed to process event ${event.name}: ${err}`);
       }
     }
   }
