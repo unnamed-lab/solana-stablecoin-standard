@@ -6,4 +6,5 @@ export * from './modules/transfer-hook';
 export * from './modules/oracle';
 import * as CoreIdl from './idl/sss_core.json';
 import * as TransferHookIdl from './idl/sss_transfer_hook.json';
-export { CoreIdl, TransferHookIdl };
+import * as OracleIdl from './idl/sss_oracle.json';
+export { CoreIdl, TransferHookIdl, OracleIdl };
