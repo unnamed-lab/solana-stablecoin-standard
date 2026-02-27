@@ -24,7 +24,15 @@
       "entryFile": "main",
       "sourceRoot": "apps/api/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/api/tsconfig.app.json"
+        "tsConfigPath": "apps/api/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "./generated",
+            "outDir": "dist/apps/api/generated",
+            "watchAssets": true
+          }
+        ],
+        "watchAssets": true
       }
     },
     "indexer": {
@@ -33,7 +41,15 @@
       "entryFile": "main",
       "sourceRoot": "apps/indexer/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/indexer/tsconfig.app.json"
+        "tsConfigPath": "apps/indexer/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "./generated",
+            "outDir": "dist/apps/indexer/generated",
+            "watchAssets": true
+          }
+        ],
+        "watchAssets": true
       }
     },
     "webhook": {
@@ -42,7 +58,15 @@
       "entryFile": "main",
       "sourceRoot": "apps/webhook/src",
       "compilerOptions": {
-        "tsConfigPath": "apps/webhook/tsconfig.app.json"
+        "tsConfigPath": "apps/webhook/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "./generated",
+            "outDir": "dist/apps/webhook/generated",
+            "watchAssets": true
+          }
+        ],
+        "watchAssets": true
       }
     },
     "blockchain": {
