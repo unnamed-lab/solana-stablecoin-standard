@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Body, HttpCode, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { TokenService } from './token.service';
@@ -8,7 +8,7 @@ import { BurnDto } from './dto/burn.dto';
 @ApiTags('Token')
 @Controller('api/v1')
 export class TokenController {
-  constructor(private readonly tokenService: TokenService) {}
+  constructor(private readonly tokenService: TokenService) { }
 
   @Post('mint')
   @HttpCode(200)
@@ -47,18 +47,59 @@ export class TokenController {
   }
 
   @Get('supply')
-  @ApiOperation({ summary: 'Get current total supply from on-chain state' })
+  @ApiOperation({ summary: 'Get current total supply, max supply, and burn supply' })
   @ApiResponse({
     status: 200,
     description: 'Current supply info',
     schema: {
       properties: {
         totalSupply: { type: 'string', example: '1000000000' },
+        maxSupply: { type: 'string', nullable: true, example: null },
+        burnSupply: { type: 'string', example: '50000' },
         decimals: { type: 'number', example: 6 },
       },
     },
   })
   async getSupply() {
     return this.tokenService.getSupply();
+  }
+
+  @Get('holders/count')
+  @ApiOperation({ summary: 'Get total number of token holders' })
+  @ApiResponse({
+    status: 200,
+    description: 'Total token holders count',
+    schema: {
+      properties: {
+        count: { type: 'number', example: 1500 },
+      },
+    },
+  })
+  async getHoldersCount() {
+    return this.tokenService.getHoldersCount();
+  }
+
+  @Get('holders/largest')
+  @ApiOperation({ summary: 'Get the largest token holders (can filter by minimum amount)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Largest token holders list',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          address: { type: 'string', example: 'TokenAccountAddress...' },
+          amount: { type: 'string', example: '1000000' },
+          decimals: { type: 'number', example: 6 },
+          uiAmount: { type: 'number', example: 1 },
+          uiAmountString: { type: 'string', example: '1' },
+        }
+      }
+    },
+  })
+  async getLargestHolders(@Query('minAmount') minAmount?: string) {
+    const min = minAmount ? Number(minAmount) : undefined;
+    return this.tokenService.getLargestHolders(min);
   }
 }

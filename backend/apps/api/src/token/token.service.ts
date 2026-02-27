@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BlockchainService, SdkService } from '@app/blockchain';
 import { PublicKey, Transaction } from '@solana/web3.js';
+import { PrismaService } from '@app/database';
 import {
   getAssociatedTokenAddressSync,
   createAssociatedTokenAccountInstruction,
@@ -16,7 +17,8 @@ export class TokenService {
   constructor(
     private readonly blockchainService: BlockchainService,
     private readonly sdkService: SdkService,
-  ) {}
+    private readonly prisma: PrismaService,
+  ) { }
 
   /**
    * Mint new tokens to a recipient's associated token account.
@@ -113,9 +115,52 @@ export class TokenService {
   }
 
   /**
-   * Get current total supply from on-chain state.
+   * Get current total supply from on-chain state, along with max and burn supply.
    */
-  async getSupply(): Promise<{ totalSupply: string; decimals: number }> {
-    return this.blockchainService.getTotalSupply();
+  async getSupply(): Promise<{ totalSupply: string; maxSupply: string | null; burnSupply: string; decimals: number }> {
+    const sdk = await this.sdkService.getSdk();
+    const { totalSupply, decimals } = await this.blockchainService.getTotalSupply();
+
+    const maxSupplyResult = await sdk.getMaxSupply();
+    const maxSupply = maxSupplyResult === null ? null : maxSupplyResult.toString();
+
+    // Sum all burned amounts for this mint from the database
+    const burnAggregation = await this.prisma.burnEvent.aggregate({
+      _sum: {
+        amount: true,
+      },
+      where: {
+        mint: sdk.mintAddress.toBase58(),
+      },
+    });
+
+    const burnSupply = burnAggregation._sum.amount ? burnAggregation._sum.amount.toString() : '0';
+
+    return { totalSupply, maxSupply, burnSupply, decimals };
+  }
+
+  /**
+   * Get the total number of unique token holders.
+   */
+  async getHoldersCount(): Promise<{ count: number }> {
+    const sdk = await this.sdkService.getSdk();
+    const count = await sdk.getHoldersCount();
+    return { count };
+  }
+
+  /**
+   * Get the largest token holders.
+   */
+  async getLargestHolders(minAmount?: number): Promise<any[]> {
+    const sdk = await this.sdkService.getSdk();
+    // Convert base58 to string for JSON serialization
+    const holders = await sdk.getLargestHolders(minAmount);
+    return holders.map((h) => ({
+      address: h.address.toBase58(),
+      amount: h.amount,
+      decimals: h.decimals,
+      uiAmount: h.uiAmount,
+      uiAmountString: h.uiAmountString,
+    }));
   }
 }
