@@ -345,6 +345,53 @@ export declare class SolanaStablecoin {
      */
     getTotalSupply(): Promise<number>;
     /**
+     * Get the maximum token supply in base units.
+     *
+     * Since the stablecoin does not enforce an on-chain maximum supply, this
+     * method always returns `null`.
+     *
+     * @returns Always returns `null`.
+     *
+     * @example
+     * ```ts
+     * const maxSupply = await sdk.getMaxSupply();
+     * // maxSupply → null
+     * ```
+     */
+    getMaxSupply(): Promise<number | null>;
+    /**
+     * Get the total number of unique token holders (accounts) for this mint.
+     * Note: This fetches all token accounts for the mint via RPC and may be slow for large tokens.
+     *
+     * @returns The total number of token accounts.
+     *
+     * @example
+     * ```ts
+     * const holdersCount = await sdk.getHoldersCount();
+     * // holdersCount → 1500
+     * ```
+     */
+    getHoldersCount(): Promise<number>;
+    /**
+     * Get the largest token holders for this mint.
+     *
+     * @param minAmount - Optional minimum balance in base units to filter the list.
+     * @returns An array of the top token holders.
+     *
+     * @example
+     * ```ts
+     * const largestHolders = await sdk.getLargestHolders(1000);
+     * // largestHolders → [{ address: PublicKey, amount: 50000, decimals: 6, uiAmount: 0.05 }]
+     * ```
+     */
+    getLargestHolders(minAmount?: number): Promise<Array<{
+        address: PublicKey;
+        amount: string;
+        decimals: number;
+        uiAmount: number | null;
+        uiAmountString?: string;
+    }>>;
+    /**
      * Check whether the stablecoin is currently paused.
      *
      * @returns `true` if paused, `false` otherwise.

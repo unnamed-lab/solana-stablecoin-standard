@@ -607,6 +607,71 @@ class SolanaStablecoin {
         return data.totalSupply.toNumber();
     }
     /**
+     * Get the maximum token supply in base units.
+     *
+     * Since the stablecoin does not enforce an on-chain maximum supply, this
+     * method always returns `null`.
+     *
+     * @returns Always returns `null`.
+     *
+     * @example
+     * ```ts
+     * const maxSupply = await sdk.getMaxSupply();
+     * // maxSupply → null
+     * ```
+     */
+    async getMaxSupply() {
+        return null;
+    }
+    /**
+     * Get the total number of unique token holders (accounts) for this mint.
+     * Note: This fetches all token accounts for the mint via RPC and may be slow for large tokens.
+     *
+     * @returns The total number of token accounts.
+     *
+     * @example
+     * ```ts
+     * const holdersCount = await sdk.getHoldersCount();
+     * // holdersCount → 1500
+     * ```
+     */
+    async getHoldersCount() {
+        // We use getProgramAccounts with a memcmp filter on the mint address (offset 0 in Token account layout).
+        // Since Token-2022 accounts can have variable sizes due to extensions, we cannot rely solely on dataSize.
+        // We use dataSlice to avoid fetching the actual account data, saving bandwidth.
+        const tokenHolders = await this.connection.getProgramAccounts(spl_token_1.TOKEN_2022_PROGRAM_ID, {
+            filters: [
+                { memcmp: { offset: 0, bytes: this.mintAddress.toBase58() } },
+            ],
+            dataSlice: { offset: 0, length: 0 }
+        });
+        return tokenHolders.length;
+    }
+    /**
+     * Get the largest token holders for this mint.
+     *
+     * @param minAmount - Optional minimum balance in base units to filter the list.
+     * @returns An array of the top token holders.
+     *
+     * @example
+     * ```ts
+     * const largestHolders = await sdk.getLargestHolders(1000);
+     * // largestHolders → [{ address: PublicKey, amount: 50000, decimals: 6, uiAmount: 0.05 }]
+     * ```
+     */
+    async getLargestHolders(minAmount = 0) {
+        const response = await this.connection.getTokenLargestAccounts(this.mintAddress);
+        return response.value
+            .filter((account) => Number(account.amount) >= minAmount)
+            .map((account) => ({
+            address: account.address,
+            amount: account.amount,
+            decimals: account.decimals,
+            uiAmount: account.uiAmount,
+            uiAmountString: account.uiAmountString,
+        }));
+    }
+    /**
      * Check whether the stablecoin is currently paused.
      *
      * @returns `true` if paused, `false` otherwise.
