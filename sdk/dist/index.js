@@ -36,7 +36,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransferHookIdl = exports.CoreIdl = void 0;
+exports.OracleIdl = exports.TransferHookIdl = exports.CoreIdl = void 0;
 __exportStar(require("./types"), exports);
 __exportStar(require("./errors"), exports);
 __exportStar(require("./SolanaStablecoin"), exports);
@@ -48,4 +48,6 @@ const CoreIdl = __importStar(require("./idl/sss_core.json"));
 exports.CoreIdl = CoreIdl;
 const TransferHookIdl = __importStar(require("./idl/sss_transfer_hook.json"));
 exports.TransferHookIdl = TransferHookIdl;
+const OracleIdl = __importStar(require("./idl/sss_oracle.json"));
+exports.OracleIdl = OracleIdl;
 //# sourceMappingURL=index.js.map
