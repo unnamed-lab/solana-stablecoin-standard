@@ -101,6 +101,10 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
+    "moduleDirectories": [
+      "node_modules",
+      "<rootDir>"
+    ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
     "roots": [
@@ -108,6 +112,8 @@
       "<rootDir>/libs/"
     ],
     "moduleNameMapper": {
+      "^@prisma/adapter-pg$": "<rootDir>/test-pg-mock.ts",
+      "^generated/prisma/client$": "<rootDir>/test-pg-mock.ts",
       "^@app/blockchain(|/.*)$": "<rootDir>/libs/blockchain/src/$1",
       "^@app/database(|/.*)$": "<rootDir>/libs/database/src/$1",
       "^@app/shared(|/.*)$": "<rootDir>/libs/shared/src/$1"
