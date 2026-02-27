@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PublicKey, Keypair } from '@solana/web3.js';
 import { SolanaStablecoin, SolanaNetwork } from '@stbr/sss-token';
-import * as bs58 from 'bs58';
+import bs58 from 'bs58';
 
 /**
  * Injectable wrapper around the SSS SDK.

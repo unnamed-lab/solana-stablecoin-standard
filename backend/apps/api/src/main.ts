@@ -3,6 +3,12 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ApiModule } from './api.module';
 
+// Prisma returns BigInt for fields like amount, onChainTimestamp, etc.
+// JSON.stringify cannot serialise BigInt natively, so convert to string.
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 async function bootstrap() {
   const app = await NestFactory.create(ApiModule);
 

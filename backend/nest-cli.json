@@ -6,13 +6,6 @@
     "deleteOutDir": true,
     "webpack": false,
     "tsConfigPath": "apps/api/tsconfig.app.json",
-    "assets": [
-      {
-        "include": "./generated",
-        "outDir": "dist/generated",
-        "watchAssets": true
-      }
-    ],
     "watchAssets": true
   },
   "monorepo": true,
