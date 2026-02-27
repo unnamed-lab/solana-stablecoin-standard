@@ -9,6 +9,7 @@ const anchor_1 = require("@coral-xyz/anchor");
 const types_1 = require("../types");
 const sss_oracle_json_1 = __importDefault(require("../idl/sss_oracle.json"));
 const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
+const errors_1 = require("../errors");
 // ─── Constants ────────────────────────────────────────────────────────────────
 exports.PRICE_SCALE = 1_000_000;
 exports.CPI_SCALE = 1_000_000;
@@ -133,16 +134,21 @@ class OracleModule {
     async initializeRegistry(authority, programId) {
         const program = this.buildProgram(authority, programId);
         const [registryPda] = OracleModule.findRegistryPda(programId);
-        return await program.methods
-            .initializeRegistry()
-            .accounts({
-            payer: authority.publicKey,
-            authority: authority.publicKey,
-            registry: registryPda,
-            systemProgram: web3_js_1.SystemProgram.programId,
-        })
-            .signers([authority])
-            .rpc();
+        try {
+            return await program.methods
+                .initializeRegistry()
+                .accounts({
+                payer: authority.publicKey,
+                authority: authority.publicKey,
+                registry: registryPda,
+                systemProgram: web3_js_1.SystemProgram.programId,
+            })
+                .signers([authority])
+                .rpc();
+        }
+        catch (e) {
+            throw (0, errors_1.parseProgramError)(e, true);
+        }
     }
     /**
      * Register a new price feed in the global registry.
@@ -162,23 +168,28 @@ class OracleModule {
     async registerFeed(authority, programId, params) {
         const program = this.buildProgram(authority, programId);
         const [registryPda] = OracleModule.findRegistryPda(programId);
-        return await program.methods
-            .registerFeed({
-            symbol: params.symbol,
-            feedType: this.encodeFeedType(params.feedType),
-            baseCurrency: params.baseCurrency,
-            quoteCurrency: params.quoteCurrency,
-            decimals: params.decimals,
-        })
-            .accounts({
-            payer: authority.publicKey,
-            authority: authority.publicKey,
-            registry: registryPda,
-            switchboardFeed: params.switchboardFeed,
-            systemProgram: web3_js_1.SystemProgram.programId,
-        })
-            .signers([authority])
-            .rpc();
+        try {
+            return await program.methods
+                .registerFeed({
+                symbol: params.symbol,
+                feedType: this.encodeFeedType(params.feedType),
+                baseCurrency: params.baseCurrency,
+                quoteCurrency: params.quoteCurrency,
+                decimals: params.decimals,
+            })
+                .accounts({
+                payer: authority.publicKey,
+                authority: authority.publicKey,
+                registry: registryPda,
+                switchboardFeed: params.switchboardFeed,
+                systemProgram: web3_js_1.SystemProgram.programId,
+            })
+                .signers([authority])
+                .rpc();
+        }
+        catch (e) {
+            throw (0, errors_1.parseProgramError)(e, true);
+        }
     }
     // ── Oracle config ─────────────────────────────────────────────────────────
     /**
@@ -205,29 +216,34 @@ class OracleModule {
         const program = this.buildProgram(authority, programId);
         const [oraclePda] = OracleModule.findOracleConfigPda(params.mint, programId);
         const [registryPda] = OracleModule.findRegistryPda(programId);
-        return await program.methods
-            .initializeOracle({
-            feedSymbol: params.feedSymbol,
-            description: params.description,
-            maxStalenessSecs: new anchor_1.BN(params.maxStalenessSecs),
-            mintFeeBps: params.mintFeeBps,
-            redeemFeeBps: params.redeemFeeBps,
-            maxConfidenceBps: params.maxConfidenceBps,
-            quoteValiditySecs: new anchor_1.BN(params.quoteValiditySecs),
-            cpiMultiplier: new anchor_1.BN(params.cpiMultiplier),
-            cpiMinUpdateInterval: new anchor_1.BN(params.cpiMinUpdateInterval),
-            cpiDataSource: params.cpiDataSource,
-        })
-            .accounts({
-            payer: authority.publicKey,
-            authority: authority.publicKey,
-            mint: params.mint,
-            oracleConfig: oraclePda,
-            registry: registryPda,
-            systemProgram: web3_js_1.SystemProgram.programId,
-        })
-            .signers([authority])
-            .rpc();
+        try {
+            return await program.methods
+                .initializeOracle({
+                feedSymbol: params.feedSymbol,
+                description: params.description,
+                maxStalenessSecs: new anchor_1.BN(params.maxStalenessSecs),
+                mintFeeBps: params.mintFeeBps,
+                redeemFeeBps: params.redeemFeeBps,
+                maxConfidenceBps: params.maxConfidenceBps,
+                quoteValiditySecs: new anchor_1.BN(params.quoteValiditySecs),
+                cpiMultiplier: new anchor_1.BN(params.cpiMultiplier),
+                cpiMinUpdateInterval: new anchor_1.BN(params.cpiMinUpdateInterval),
+                cpiDataSource: params.cpiDataSource,
+            })
+                .accounts({
+                payer: authority.publicKey,
+                authority: authority.publicKey,
+                mint: params.mint,
+                oracleConfig: oraclePda,
+                registry: registryPda,
+                systemProgram: web3_js_1.SystemProgram.programId,
+            })
+                .signers([authority])
+                .rpc();
+        }
+        catch (e) {
+            throw (0, errors_1.parseProgramError)(e, true);
+        }
     }
     // ── Quote operations ──────────────────────────────────────────────────────
     /**
@@ -252,22 +268,27 @@ class OracleModule {
         const [quotePda] = OracleModule.findQuotePda(mint, requester.publicKey, params.nonce, programId);
         const oracleInfo = await this.getOracleInfo(programId, mint);
         const feedAddress = await this.getFeedAddress(programId, oracleInfo.feedSymbol);
-        await program.methods
-            .getMintQuote({
-            inputAmount: new anchor_1.BN(params.inputAmount),
-            minOutput: new anchor_1.BN(params.minOutput),
-            nonce: new anchor_1.BN(params.nonce.toString()),
-        })
-            .accounts({
-            requester: requester.publicKey,
-            oracleConfig: oraclePda,
-            registry: registryPda,
-            switchboardFeed: feedAddress,
-            quote: quotePda,
-            systemProgram: web3_js_1.SystemProgram.programId,
-        })
-            .signers([requester])
-            .rpc();
+        try {
+            await program.methods
+                .getMintQuote({
+                inputAmount: new anchor_1.BN(params.inputAmount),
+                minOutput: new anchor_1.BN(params.minOutput),
+                nonce: new anchor_1.BN(params.nonce.toString()),
+            })
+                .accounts({
+                requester: requester.publicKey,
+                oracleConfig: oraclePda,
+                registry: registryPda,
+                switchboardFeed: feedAddress,
+                quote: quotePda,
+                systemProgram: web3_js_1.SystemProgram.programId,
+            })
+                .signers([requester])
+                .rpc();
+        }
+        catch (e) {
+            throw (0, errors_1.parseProgramError)(e, true);
+        }
         const quoteData = await program.account.pendingQuote.fetch(quotePda);
         return {
             outputAmount: quoteData.outputAmount.toNumber(),
@@ -298,22 +319,27 @@ class OracleModule {
         const [quotePda] = OracleModule.findQuotePda(mint, requester.publicKey, params.nonce, programId);
         const oracleInfo = await this.getOracleInfo(programId, mint);
         const feedAddress = await this.getFeedAddress(programId, oracleInfo.feedSymbol);
-        await program.methods
-            .getRedeemQuote({
-            inputAmount: new anchor_1.BN(params.inputAmount),
-            minOutput: new anchor_1.BN(params.minOutput),
-            nonce: new anchor_1.BN(params.nonce.toString()),
-        })
-            .accounts({
-            requester: requester.publicKey,
-            oracleConfig: oraclePda,
-            registry: registryPda,
-            switchboardFeed: feedAddress,
-            quote: quotePda,
-            systemProgram: web3_js_1.SystemProgram.programId,
-        })
-            .signers([requester])
-            .rpc();
+        try {
+            await program.methods
+                .getRedeemQuote({
+                inputAmount: new anchor_1.BN(params.inputAmount),
+                minOutput: new anchor_1.BN(params.minOutput),
+                nonce: new anchor_1.BN(params.nonce.toString()),
+            })
+                .accounts({
+                requester: requester.publicKey,
+                oracleConfig: oraclePda,
+                registry: registryPda,
+                switchboardFeed: feedAddress,
+                quote: quotePda,
+                systemProgram: web3_js_1.SystemProgram.programId,
+            })
+                .signers([requester])
+                .rpc();
+        }
+        catch (e) {
+            throw (0, errors_1.parseProgramError)(e, true);
+        }
         const quoteData = await program.account.pendingQuote.fetch(quotePda);
         return {
             outputAmount: quoteData.outputAmount.toNumber(),
