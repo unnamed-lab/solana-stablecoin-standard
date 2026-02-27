@@ -6,6 +6,8 @@ import {
 } from '@solana/web3.js';
 import { Program, BN, AnchorProvider } from '@coral-xyz/anchor';
 import { SolanaNetwork } from '../types';
+import oracleIdl from '../idl/sss_oracle.json';
+import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -706,20 +708,13 @@ export class OracleModule {
     // ── Private helpers ────────────────────────────────────────────────────────
 
     private buildProgram(signer: Keypair, _programId: PublicKey): any {
-        // After `anchor build` generates the IDL, uncomment:
-        // import oracleIdl from '../../target/idl/sss_oracle.json';
-        // const wallet   = new NodeWallet(signer);
-        // const provider = new AnchorProvider(this.connection, wallet, { commitment: 'confirmed' });
-        // return new Program(oracleIdl as any, provider);
-
-        // Placeholder — replace with real Program init after IDL generation
-        return { methods: {}, account: {} } as any;
+        const wallet   = new NodeWallet(signer);
+        const provider = new AnchorProvider(this.connection, wallet, { commitment: 'confirmed' });
+        return new Program(oracleIdl as any, provider);
     }
 
     private readProgram(_programId: PublicKey): any {
-        // After IDL generation:
-        // return new Program(oracleIdl as any, { connection: this.connection });
-        return { account: {} } as any;
+        return new Program(oracleIdl as any, { connection: this.connection });
     }
 
     private encodeFeedType(feedType: FeedType): any {
