@@ -85,6 +85,9 @@ export class ComplianceService {
 
   /**
    * Get the active blacklist from the database.
+   *
+   * Note: Requires the indexer service to be running to populate DB
+   * from on-chain events.
    */
   async getBlacklist(mint?: string) {
     return this.prisma.blacklistEntry.findMany({
@@ -97,16 +100,26 @@ export class ComplianceService {
   }
 
   /**
-   * Check if an address is currently blacklisted.
+   * Check if an address is currently blacklisted using the on-chain PDA.
+   * This is authoritative and works regardless of indexer state.
    */
-  async isBlacklisted(address: string, mint?: string): Promise<boolean> {
-    const entry = await this.prisma.blacklistEntry.findFirst({
-      where: {
-        address,
-        removed: false,
-        ...(mint ? { mint } : {}),
-      },
-    });
-    return entry !== null;
+  async isBlacklisted(address: string, _mint?: string): Promise<boolean> {
+    try {
+      const sdk = await this.sdkService.getSdk();
+      return await sdk.compliance.isBlacklisted(new PublicKey(address));
+    } catch (err) {
+      this.logger.warn(
+        `On-chain blacklist check failed, falling back to DB: ${err}`,
+      );
+      // Fallback to DB if SDK check fails
+      const entry = await this.prisma.blacklistEntry.findFirst({
+        where: {
+          address,
+          removed: false,
+        },
+      });
+      return entry !== null;
+    }
   }
 }
+

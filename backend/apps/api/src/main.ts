@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ApiModule } from './api.module';
+import { ResponseInterceptor } from './common/response.interceptor';
+import { SssExceptionFilter } from './common/sss-exception.filter';
 
 // Prisma returns BigInt for fields like amount, onChainTimestamp, etc.
 // JSON.stringify cannot serialise BigInt natively, so convert to string.
@@ -14,6 +16,10 @@ async function bootstrap() {
 
   // Global validation — rejects malformed DTOs automatically
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  // Standard API response envelope + SDK error handling
+  app.useGlobalInterceptors(new ResponseInterceptor());
+  app.useGlobalFilters(new SssExceptionFilter());
 
   // Enable CORS
   app.enableCors();
