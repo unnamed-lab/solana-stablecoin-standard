@@ -42,6 +42,7 @@ __exportStar(require("./errors"), exports);
 __exportStar(require("./SolanaStablecoin"), exports);
 __exportStar(require("./modules/compliance"), exports);
 __exportStar(require("./modules/transfer-hook"), exports);
+__exportStar(require("./modules/oracle"), exports);
 // Export IDLs for consumption by clients
 const CoreIdl = __importStar(require("./idl/sss_core.json"));
 exports.CoreIdl = CoreIdl;
