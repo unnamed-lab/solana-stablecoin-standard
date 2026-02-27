@@ -13,8 +13,10 @@ if (!fs.existsSync(sdkSrcIdlDir)) {
 
 const filesToCopy = [
     { name: 'sss_core.ts', source: targetTypesDir, dest: sdkSrcTypesDir },
+    { name: 'sss_oracle.ts', source: targetTypesDir, dest: sdkSrcTypesDir },
     { name: 'sss_transfer_hook.ts', source: targetTypesDir, dest: sdkSrcTypesDir },
     { name: 'sss_core.json', source: targetIdlDir, dest: sdkSrcIdlDir },
+    { name: 'sss_oracle.json', source: targetIdlDir, dest: sdkSrcIdlDir },
     { name: 'sss_transfer_hook.json', source: targetIdlDir, dest: sdkSrcIdlDir }
 ];
 

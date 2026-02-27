@@ -1,9 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OraclePresets = exports.OracleModule = exports.KNOWN_FEEDS = exports.FeedType = exports.TOKEN_SCALE = exports.CPI_SCALE = exports.PRICE_SCALE = void 0;
 const web3_js_1 = require("@solana/web3.js");
 const anchor_1 = require("@coral-xyz/anchor");
 const types_1 = require("../types");
+const sss_oracle_json_1 = __importDefault(require("../idl/sss_oracle.json"));
+const nodewallet_1 = __importDefault(require("@coral-xyz/anchor/dist/cjs/nodewallet"));
 // ─── Constants ────────────────────────────────────────────────────────────────
 exports.PRICE_SCALE = 1_000_000;
 exports.CPI_SCALE = 1_000_000;
@@ -515,18 +520,12 @@ class OracleModule {
     }
     // ── Private helpers ────────────────────────────────────────────────────────
     buildProgram(signer, _programId) {
-        // After `anchor build` generates the IDL, uncomment:
-        // import oracleIdl from '../../target/idl/sss_oracle.json';
-        // const wallet   = new NodeWallet(signer);
-        // const provider = new AnchorProvider(this.connection, wallet, { commitment: 'confirmed' });
-        // return new Program(oracleIdl as any, provider);
-        // Placeholder — replace with real Program init after IDL generation
-        return { methods: {}, account: {} };
+        const wallet = new nodewallet_1.default(signer);
+        const provider = new anchor_1.AnchorProvider(this.connection, wallet, { commitment: 'confirmed' });
+        return new anchor_1.Program(sss_oracle_json_1.default, provider);
     }
     readProgram(_programId) {
-        // After IDL generation:
-        // return new Program(oracleIdl as any, { connection: this.connection });
-        return { account: {} };
+        return new anchor_1.Program(sss_oracle_json_1.default, { connection: this.connection });
     }
     encodeFeedType(feedType) {
         switch (feedType) {
