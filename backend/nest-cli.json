@@ -28,40 +28,6 @@
         "watchAssets": true
       }
     },
-    "indexer": {
-      "type": "application",
-      "root": "apps/indexer",
-      "entryFile": "main",
-      "sourceRoot": "apps/indexer/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/indexer/tsconfig.app.json",
-        "assets": [
-          {
-            "include": "./generated",
-            "outDir": "dist/apps/indexer/generated",
-            "watchAssets": true
-          }
-        ],
-        "watchAssets": true
-      }
-    },
-    "webhook": {
-      "type": "application",
-      "root": "apps/webhook",
-      "entryFile": "main",
-      "sourceRoot": "apps/webhook/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/webhook/tsconfig.app.json",
-        "assets": [
-          {
-            "include": "./generated",
-            "outDir": "dist/apps/webhook/generated",
-            "watchAssets": true
-          }
-        ],
-        "watchAssets": true
-      }
-    },
     "blockchain": {
       "type": "library",
       "root": "libs/blockchain",
@@ -80,6 +46,32 @@
         "tsConfigPath": "libs/database/tsconfig.lib.json"
       }
     },
+    "indexer": {
+      "type": "application",
+      "root": "apps/indexer",
+      "entryFile": "main",
+      "sourceRoot": "apps/indexer/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/indexer/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "./generated",
+            "outDir": "dist/apps/indexer/generated",
+            "watchAssets": true
+          }
+        ],
+        "watchAssets": true
+      }
+    },
+    "oracle": {
+      "type": "application",
+      "root": "apps/oracle",
+      "entryFile": "main",
+      "sourceRoot": "apps/oracle/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oracle/tsconfig.app.json"
+      }
+    },
     "shared": {
       "type": "library",
       "root": "libs/shared",
@@ -87,6 +79,23 @@
       "sourceRoot": "libs/shared/src",
       "compilerOptions": {
         "tsConfigPath": "libs/shared/tsconfig.lib.json"
+      }
+    },
+    "webhook": {
+      "type": "application",
+      "root": "apps/webhook",
+      "entryFile": "main",
+      "sourceRoot": "apps/webhook/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/webhook/tsconfig.app.json",
+        "assets": [
+          {
+            "include": "./generated",
+            "outDir": "dist/apps/webhook/generated",
+            "watchAssets": true
+          }
+        ],
+        "watchAssets": true
       }
     }
   }
