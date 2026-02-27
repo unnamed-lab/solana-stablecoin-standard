@@ -313,7 +313,34 @@ console.log(config.blockedCount);    // 3
 
 ---
 
+## Oracle Module — `OracleModule`
+
+The Oracle module acts as the entry point to the price configuration layer, interacting directly with the `sss-oracle` program. It is independent of the SSS token presets and must be instantiated separately via its network configuration.
+
+### Instantiation
+```ts
+import { OracleModule, SolanaNetwork } from '@stbr/sss-token';
+
+const oracle = new OracleModule(SolanaNetwork.DEVNET);
+```
+
+### Feed Management
+- **`listFeeds(programId)`**: Returns all active and configured Switchboard Data Feeds.
+- **`registerFeed(authority, programId, params)`**: Add a new feed mapping.
+
+### Oracle Configuration
+- **`initializeOracle(authority, programId, config)`**: Create a unified `OracleConfig` mapping the external `sss-oracle` bounds for a given Mint token.
+- **`getOracleInfo(programId, mint)`**: Return configuration parameters including stallenness criteria and slippage.
+
+### Quotes & Calculations
+*Both methods calculate accurate price expectations taking the Switchboard feed and applying defined program fee bounds purely in Typescript math, bypassing RPC.*
+- **`simulateMintQuote(...)`**: Returns simulated Mint constraints converting `usdCents` to output stablecoin decimals.
+- **`simulateRedeemQuote(...)`**: Returns simulated Redeem constraints taking stablecoin base units and converting to `usdCents`.
+
+---
+
 ## Types Reference
+
 
 ### Enums
 
