@@ -1,5 +1,6 @@
 import { Controller, Post, Get, Body, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { TokenService } from './token.service';
 import { MintDto } from './dto/mint.dto';
 import { BurnDto } from './dto/burn.dto';
@@ -11,6 +12,7 @@ export class TokenController {
 
   @Post('mint')
   @HttpCode(200)
+  @Throttle({ strict: { ttl: 60000, limit: 10 } })
   @ApiOperation({ summary: 'Mint new stablecoin tokens to a recipient' })
   @ApiResponse({
     status: 200,
@@ -28,6 +30,7 @@ export class TokenController {
 
   @Post('burn')
   @HttpCode(200)
+  @Throttle({ strict: { ttl: 60000, limit: 10 } })
   @ApiOperation({ summary: 'Burn stablecoin tokens from an account' })
   @ApiResponse({
     status: 200,

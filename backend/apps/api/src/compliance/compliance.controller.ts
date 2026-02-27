@@ -9,6 +9,7 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { ComplianceService } from './compliance.service';
 import { BlacklistDto, CheckWalletBlacklistDto } from './dto/blacklist.dto';
 import { SeizeDto } from './dto/seize.dto';
@@ -20,6 +21,7 @@ export class ComplianceController {
 
   @Post('blacklist')
   @HttpCode(200)
+  @Throttle({ strict: { ttl: 60000, limit: 10 } })
   @ApiOperation({ summary: 'Add a wallet address to the blacklist (SSS-2)' })
   @ApiResponse({
     status: 200,
@@ -77,6 +79,7 @@ export class ComplianceController {
 
   @Post('seize')
   @HttpCode(200)
+  @Throttle({ strict: { ttl: 60000, limit: 10 } })
   @ApiOperation({
     summary:
       'Seize tokens from a frozen account (SSS-2, requires permanent delegate)',
