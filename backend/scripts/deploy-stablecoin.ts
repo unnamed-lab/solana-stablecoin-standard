@@ -1,6 +1,6 @@
 /**
  * deploy-stablecoin.ts
- *
+*
  * One-shot script that deploys a new stablecoin to localnet (or devnet)
  * using the SSS SDK, then prints the mint address + authority keypair in
  * base58 so you can paste them straight into .env and API requests.
@@ -15,6 +15,8 @@
 import { Keypair, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { SolanaStablecoin, SolanaNetwork, StablecoinPreset } from '@stbr/sss-token';
 import bs58 from 'bs58';
+import * as fs from 'fs';
+import * as path from 'path';
 
 async function main() {
   const network = SolanaNetwork.LOCALNET;
@@ -94,6 +96,29 @@ Next steps:
          "minterKeypair": "${authoritySecretB58}"
        }
   `);
+
+  // ── 6. Export data to text file ──────────────────────────────────────
+
+  // Replace the file writing section with:
+  const outputDir = path.join(__dirname, '..', 'output');
+  const outputFileName = path.join(outputDir, 'deployment-info.txt');
+
+  // Create directory if it doesn't exist
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  const fileContent = `
+Stablecoin Deployment Info
+==========================
+Network: ${network}
+Tx signature: ${txSig}
+Mint address: ${mintAddress.toBase58()}
+Authority public key: ${authority.publicKey.toBase58()}
+Authority secret (base58): ${authoritySecretB58}
+  `;
+  fs.writeFileSync(outputFileName, fileContent.trim());
+  console.log(`\n📄 Deployment info saved to ${outputFileName}\n`);
 }
 
 main().catch((err) => {
