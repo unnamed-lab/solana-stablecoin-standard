@@ -3,6 +3,7 @@ export * from './errors';
 export * from './SolanaStablecoin';
 export * from './modules/compliance';
 export * from './modules/transfer-hook';
+export * from './modules/oracle';
 
 // Export IDLs for consumption by clients
 import * as CoreIdl from './idl/sss_core.json';
