@@ -72,4 +72,11 @@ export class BlockchainService {
       '7H7fqqjASpTDCgYwDpp8EatKM4sSMwxaYvbhf6s3ThqM',
     );
   }
+
+  /**
+   * Get the singleton Solana RPC connection.
+   */
+  getConnection() {
+    return this.connectionFactory.getConnection();
+  }
 }

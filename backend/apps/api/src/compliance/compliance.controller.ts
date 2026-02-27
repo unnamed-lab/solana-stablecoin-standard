@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { ComplianceService } from './compliance.service';
-import { BlacklistDto } from './dto/blacklist.dto';
+import { BlacklistDto, CheckWalletBlacklistDto } from './dto/blacklist.dto';
 import { SeizeDto } from './dto/seize.dto';
 
 @ApiTags('Compliance')
@@ -66,11 +66,11 @@ export class ComplianceController {
   })
   async isBlacklisted(
     @Param('address') address: string,
-    @Query('mint') mint?: string,
+    @Query() queryDto?: CheckWalletBlacklistDto,
   ) {
     const blacklisted = await this.complianceService.isBlacklisted(
       address,
-      mint,
+      queryDto?.mint,
     );
     return { blacklisted };
   }

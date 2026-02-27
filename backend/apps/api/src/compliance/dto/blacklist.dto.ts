@@ -1,4 +1,4 @@
-import { IsString, MaxLength } from 'class-validator';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class BlacklistDto {
@@ -22,4 +22,16 @@ export class BlacklistDto {
   })
   @IsString()
   blacklisterKeypair: string;
+}
+
+
+export class CheckWalletBlacklistDto {
+  @ApiProperty({
+    example: 'Gx8f...',
+    description: 'Mint address to check blacklist (base58)',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  mint: string;
 }
