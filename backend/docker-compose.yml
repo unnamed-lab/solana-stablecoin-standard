@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Only Redis is containerized — Postgres runs on your host machine
   redis:
@@ -15,8 +13,8 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: apps/api/Dockerfile
+      context: ../
+      dockerfile: backend/apps/api/Dockerfile
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -33,15 +31,15 @@ services:
       NODE_ENV: production
       PORT: 3000
     healthcheck:
-      test: [ "CMD", "wget", "-qO-", "http://localhost:3000/health" ]
+      test: [ "CMD-SHELL", "node -e \"fetch('http://localhost:3000/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))\"" ]
       interval: 30s
       timeout: 10s
       retries: 3
 
   indexer:
     build:
-      context: .
-      dockerfile: apps/indexer/Dockerfile
+      context: ../
+      dockerfile: backend/apps/indexer/Dockerfile
     restart: unless-stopped
     depends_on:
       redis: { condition: service_healthy }
@@ -56,8 +54,8 @@ services:
 
   webhook:
     build:
-      context: .
-      dockerfile: apps/webhook/Dockerfile
+      context: ../
+      dockerfile: backend/apps/webhook/Dockerfile
     restart: unless-stopped
     depends_on:
       redis: { condition: service_healthy }
