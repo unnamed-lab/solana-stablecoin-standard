@@ -9,4 +9,4 @@ import { SdkService } from './sdk.service';
   providers: [BlockchainService, ConnectionFactory, SdkService],
   exports: [BlockchainService, ConnectionFactory, SdkService],
 })
-export class BlockchainModule { }
+export class BlockchainModule {}

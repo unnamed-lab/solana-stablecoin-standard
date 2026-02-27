@@ -4,8 +4,8 @@ import { ComplianceController } from './compliance.controller';
 import { ComplianceService } from './compliance.service';
 
 @Module({
-    imports: [BlockchainModule],
-    controllers: [ComplianceController],
-    providers: [ComplianceService],
+  imports: [BlockchainModule],
+  controllers: [ComplianceController],
+  providers: [ComplianceService],
 })
-export class ComplianceModule { }
+export class ComplianceModule {}

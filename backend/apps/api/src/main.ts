@@ -7,9 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(ApiModule);
 
   // Global validation — rejects malformed DTOs automatically
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, transform: true }),
-  );
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   // Enable CORS
   app.enableCors();
@@ -19,8 +17,8 @@ async function bootstrap() {
     .setTitle('SSS Token API')
     .setDescription(
       'Solana Stablecoin Standard — Backend Service API.\n\n' +
-      'Provides endpoints for token lifecycle (mint/burn), compliance operations ' +
-      '(blacklist/seize), audit logging, and webhook management.',
+        'Provides endpoints for token lifecycle (mint/burn), compliance operations ' +
+        '(blacklist/seize), audit logging, and webhook management.',
     )
     .setVersion('1.0')
     .addTag('Health', 'Service health checks')

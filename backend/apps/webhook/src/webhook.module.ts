@@ -19,4 +19,4 @@ import { WebhookProcessor } from './webhook.processor';
   ],
   providers: [WebhookProcessor],
 })
-export class WebhookModule { }
+export class WebhookModule {}

@@ -4,8 +4,8 @@ import { TokenController } from './token.controller';
 import { TokenService } from './token.service';
 
 @Module({
-    imports: [BlockchainModule],
-    controllers: [TokenController],
-    providers: [TokenService],
+  imports: [BlockchainModule],
+  controllers: [TokenController],
+  providers: [TokenService],
 })
-export class TokenModule { }
+export class TokenModule {}
