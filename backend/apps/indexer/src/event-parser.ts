@@ -3,8 +3,7 @@ import { BorshCoder, EventParser as AnchorEventParser } from '@coral-xyz/anchor'
 import { PublicKey } from '@solana/web3.js';
 import type { ParsedEvent } from '@app/shared';
 
-// Import the IDL from the build artifacts
-import * as idl from '../../../../target/idl/sss_core.json';
+import { CoreIdl as idl } from '@stbr/sss-token';
 
 /**
  * Parses Anchor program events from Solana transaction logs.
