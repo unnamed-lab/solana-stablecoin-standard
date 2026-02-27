@@ -6,8 +6,8 @@ import { SolanaHealthIndicator } from './solana.health';
 import { PrismaHealthIndicator } from './prisma.health';
 
 @Module({
-    imports: [TerminusModule, BlockchainModule],
-    controllers: [HealthController],
-    providers: [SolanaHealthIndicator, PrismaHealthIndicator],
+  imports: [TerminusModule, BlockchainModule],
+  controllers: [HealthController],
+  providers: [SolanaHealthIndicator, PrismaHealthIndicator],
 })
-export class HealthModule { }
+export class HealthModule {}

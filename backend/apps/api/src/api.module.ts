@@ -42,4 +42,4 @@ import { WebhookConfigModule } from './webhook-config/webhook-config.module';
     WebhookConfigModule,
   ],
 })
-export class ApiModule { }
+export class ApiModule {}
