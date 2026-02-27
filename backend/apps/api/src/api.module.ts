@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
 import { BullModule } from '@nestjs/bull';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { DatabaseModule } from '@app/database';
 import { BlockchainModule } from '@app/blockchain';
 import { WEBHOOK_QUEUE } from '@app/shared';
@@ -25,6 +27,14 @@ import { WebhookConfigModule } from './webhook-config/webhook-config.module';
     // Health checks
     TerminusModule,
 
+    // Rate limiting — applied globally via ThrottlerGuard
+    // "default" = 60 requests per 60 seconds (for GET endpoints)
+    // Controllers override with "strict" for write operations
+    ThrottlerModule.forRoot([
+      { name: 'default', ttl: 60000, limit: 60 },
+      { name: 'strict', ttl: 60000, limit: 10 },
+    ]),
+
     // Bull queue (shared with indexer/webhook apps)
     BullModule.forRoot({
       redis: {
@@ -41,5 +51,12 @@ import { WebhookConfigModule } from './webhook-config/webhook-config.module';
     AuditModule,
     WebhookConfigModule,
   ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class ApiModule {}
+

@@ -21,8 +21,18 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
   app.useGlobalFilters(new SssExceptionFilter());
 
-  // Enable CORS
-  app.enableCors();
+  // CORS — restrict to allowed origins (env-driven)
+  const allowedOrigins = process.env.CORS_ORIGINS?.split(',').map((o) =>
+    o.trim(),
+  ) ?? ['http://localhost:3000', 'http://localhost:5173'];
+
+  app.enableCors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    credentials: true,
+    maxAge: 3600,
+  });
 
   // Swagger auto-generated API docs
   const swaggerConfig = new DocumentBuilder()
