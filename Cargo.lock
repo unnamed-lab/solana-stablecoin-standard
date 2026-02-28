@@ -2670,6 +2670,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "sss-oracle"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+]
+
+[[package]]
 name = "sss-transfer-hook"
 version = "0.1.0"
 dependencies = [

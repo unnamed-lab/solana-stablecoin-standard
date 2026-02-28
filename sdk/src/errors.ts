@@ -21,9 +21,6 @@
  * the appropriate typed error class.
  */
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// Base
-// ═══════════════════════════════════════════════════════════════════════════════
 
 /**
  * Base error class for all SSS SDK errors.
@@ -310,6 +307,150 @@ export class InvalidAuthorityError extends SSSBaseError {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// sss-oracle — Feed Validity (6000 – 6003)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Price feed is stale. */
+export class PriceTooStaleError extends SSSBaseError {
+    constructor() {
+        super("Price feed is stale — last update exceeds max_staleness threshold", 6000);
+        this.name = 'PriceTooStaleError';
+    }
+}
+
+/** Price feed returned an invalid value. */
+export class InvalidPriceError extends SSSBaseError {
+    constructor() {
+        super("Price feed returned a negative or zero value", 6001);
+        this.name = 'InvalidPriceError';
+    }
+}
+
+/** Price confidence interval is too wide. */
+export class ConfidenceTooWideError extends SSSBaseError {
+    constructor() {
+        super("Price confidence interval is too wide — market is too volatile to price safely", 6002);
+        this.name = 'ConfidenceTooWideError';
+    }
+}
+
+/** Switchboard feed account invalid. */
+export class FeedNotReadyError extends SSSBaseError {
+    constructor() {
+        super("Switchboard aggregator account data is invalid or unreadable", 6003);
+        this.name = 'FeedNotReadyError';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// sss-oracle — Quote (6004 – 6008)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Quote has expired. */
+export class QuoteExpiredError extends SSSBaseError {
+    constructor() {
+        super("Quote has expired — please request a new quote", 6004);
+        this.name = 'QuoteExpiredError';
+    }
+}
+
+/** Quote has already been used. */
+export class QuoteAlreadyUsedError extends SSSBaseError {
+    constructor() {
+        super("Quote has already been used", 6005);
+        this.name = 'QuoteAlreadyUsedError';
+    }
+}
+
+/** Output amount below slippage threshold. */
+export class SlippageExceededError extends SSSBaseError {
+    constructor() {
+        super("Token amount is below slippage threshold (min_output)", 6006);
+        this.name = 'SlippageExceededError';
+    }
+}
+
+/** Oracle Input amount zero. */
+export class OracleZeroAmountError extends SSSBaseError {
+    constructor() {
+        super("Input amount must be greater than zero", 6007);
+        this.name = 'OracleZeroAmountError';
+    }
+}
+
+/** Output amount zero. */
+export class ZeroOutputError extends SSSBaseError {
+    constructor() {
+        super("Calculated output amount is zero after fee deduction", 6008);
+        this.name = 'ZeroOutputError';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// sss-oracle — Registry (6009 – 6012)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Feed symbol already exists. */
+export class FeedAlreadyRegisteredError extends SSSBaseError {
+    constructor() {
+        super("Feed with this symbol already exists in the registry", 6009);
+        this.name = 'FeedAlreadyRegisteredError';
+    }
+}
+
+/** Feed symbol not found. */
+export class FeedNotFoundError extends SSSBaseError {
+    constructor() {
+        super("Feed symbol not found in registry", 6010);
+        this.name = 'FeedNotFoundError';
+    }
+}
+
+/** Feed symbol exceeds max length. */
+export class FeedSymbolTooLongError extends SSSBaseError {
+    constructor() {
+        super("Feed symbol exceeds maximum length of 12 characters", 6011);
+        this.name = 'FeedSymbolTooLongError';
+    }
+}
+
+/** Feed registry is full. */
+export class RegistryFullError extends SSSBaseError {
+    constructor() {
+        super("Registry is at maximum capacity (64 feeds)", 6012);
+        this.name = 'RegistryFullError';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// sss-oracle — Oracle Config (6013 – 6015)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Oracle Paused. */
+export class OraclePausedError extends SSSBaseError {
+    constructor() {
+        super("Oracle is paused — mint and redeem operations are suspended", 6013);
+        this.name = 'OraclePausedError';
+    }
+}
+
+/** Unauthorized oracle operation. */
+export class OracleUnauthorizedError extends SSSBaseError {
+    constructor() {
+        super("Signer is not the oracle authority", 6014);
+        this.name = 'OracleUnauthorizedError';
+    }
+}
+
+/** No pending oracle transfer. */
+export class OracleNoPendingTransferError extends SSSBaseError {
+    constructor() {
+        super("No pending authority transfer exists", 6015);
+        this.name = 'OracleNoPendingTransferError';
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // SDK-only errors (not mapped to on-chain codes)
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -376,6 +517,26 @@ const ERROR_CODE_MAP: Record<number, new () => SSSBaseError> = {
     6104: InvalidAuthorityError,
 };
 
+/** @internal Map of Anchor error codes for the SSS Oracle program. */
+const ORACLE_ERROR_CODE_MAP: Record<number, new () => SSSBaseError> = {
+    6000: PriceTooStaleError,
+    6001: InvalidPriceError,
+    6002: ConfidenceTooWideError,
+    6003: FeedNotReadyError,
+    6004: QuoteExpiredError,
+    6005: QuoteAlreadyUsedError,
+    6006: SlippageExceededError,
+    6007: OracleZeroAmountError,
+    6008: ZeroOutputError,
+    6009: FeedAlreadyRegisteredError,
+    6010: FeedNotFoundError,
+    6011: FeedSymbolTooLongError,
+    6012: RegistryFullError,
+    6013: OraclePausedError,
+    6014: OracleUnauthorizedError,
+    6015: OracleNoPendingTransferError,
+};
+
 /**
  * Parse a raw Anchor / RPC error into the corresponding typed SDK error.
  *
@@ -384,40 +545,31 @@ const ERROR_CODE_MAP: Record<number, new () => SSSBaseError> = {
  * unchanged.
  *
  * @param err - The caught error (typically from an `.rpc()` call).
+ * @param isOracleInstruction - Optionally force parsing against the Oracle error map.
  * @returns A typed {@link SSSBaseError} subclass, or the original error.
- *
- * @example
- * ```ts
- * try {
- *   await sdk.mint(params);
- * } catch (err) {
- *   const parsed = parseProgramError(err);
- *   if (parsed instanceof PausedError) {
- *     console.log("Token is paused, try again later");
- *   }
- * }
- * ```
  */
-export function parseProgramError(err: unknown): Error {
+export function parseProgramError(err: unknown, isOracleInstruction: boolean = false): Error {
     if (err && typeof err === 'object') {
-        // Anchor `AnchorError` shape: { error: { errorCode: { number } } }
         const anchorErr = err as any;
         const code =
             anchorErr?.error?.errorCode?.number ??
             anchorErr?.code ??
             anchorErr?.errorCode?.number;
 
-        if (typeof code === 'number' && ERROR_CODE_MAP[code]) {
-            return new ERROR_CODE_MAP[code]();
+        if (typeof code === 'number') {
+            const map = isOracleInstruction ? ORACLE_ERROR_CODE_MAP : ERROR_CODE_MAP;
+            if (map[code]) {
+                return new map[code]();
+            }
         }
 
-        // Anchor ProgramError shape: "Program … failed: custom program error: 0x…"
         if (typeof anchorErr?.message === 'string') {
             const hexMatch = anchorErr.message.match(/custom program error: 0x([0-9a-fA-F]+)/);
             if (hexMatch) {
                 const numCode = parseInt(hexMatch[1], 16);
-                if (ERROR_CODE_MAP[numCode]) {
-                    return new ERROR_CODE_MAP[numCode]();
+                const map = isOracleInstruction ? ORACLE_ERROR_CODE_MAP : ERROR_CODE_MAP;
+                if (map[numCode]) {
+                    return new map[numCode]();
                 }
             }
         }

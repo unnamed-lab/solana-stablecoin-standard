@@ -25,6 +25,11 @@ A dedicated worker service that processes the `webhook-queue` populated by the I
 - **Security:** Secures outgoing HTTP POST requests with an HMAC-SHA256 signature calculated against a unique integration secret.
 - **Reliability:** Handles failed deliveries with exponential backoff and retries to ensure eventual delivery to external subscribers.
 
+### 4. Oracle Application (`oracle`)
+A specialized REST API service that wraps the `@stbr/sss-token` SDK for interaction with the SSS Oracle Anchor program.
+- **Pricing Simulations:** Provides pure-math REST endpoints to simulate `mint` and `redeem` quotes instantly without RPC latency (ideal for frontend pricing UIs).
+- **Feed Management:** List active Switchboard price feeds and fetch Oracle configurations specific to a given SSS stablecoin mint.
+
 ## Project Setup
 
 The applications are built using [NestJS](https://nestjs.com/) and require a local PostgreSQL database and Redis instance (e.g., via Docker Compose).
@@ -47,6 +52,9 @@ $ yarn start indexer --watch
 
 # Run Webhook processor
 $ yarn start webhook --watch
+
+# Run Oracle service (defaults to PORT 3003)
+$ yarn start oracle --watch
 ```
 
 ## Environment Variables

@@ -1,0 +1,2103 @@
+{
+    "address": "Brj7RU6jcmWXqCSfBa6o3v5bHS48Z6uDyKZUfG8ZbQoD",
+    "metadata": {
+        "name": "sss_oracle",
+        "version": "0.1.0",
+        "spec": "0.1.0",
+        "description": "Oracle Integration Module for Solana Stablecoin Standard"
+    },
+    "instructions": [
+        {
+            "name": "accept_authority_transfer",
+            "docs": [
+                "Accept a pending authority transfer (must be signed by new authority)"
+            ],
+            "discriminator": [
+                239,
+                248,
+                177,
+                2,
+                206,
+                97,
+                46,
+                255
+            ],
+            "accounts": [
+                {
+                    "name": "new_authority",
+                    "signer": true
+                },
+                {
+                    "name": "oracle_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    111,
+                                    114,
+                                    97,
+                                    99,
+                                    108,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "get_mint_quote",
+            "docs": [
+                "Get a mint quote — USD in → tokens out"
+            ],
+            "discriminator": [
+                161,
+                124,
+                87,
+                175,
+                98,
+                25,
+                175,
+                169
+            ],
+            "accounts": [
+                {
+                    "name": "requester",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "oracle_config",
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    111,
+                                    114,
+                                    97,
+                                    99,
+                                    108,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "registry",
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    102,
+                                    101,
+                                    101,
+                                    100,
+                                    45,
+                                    114,
+                                    101,
+                                    103,
+                                    105,
+                                    115,
+                                    116,
+                                    114,
+                                    121
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "switchboard_feed"
+                },
+                {
+                    "name": "quote",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    113,
+                                    117,
+                                    111,
+                                    116,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            },
+                            {
+                                "kind": "account",
+                                "path": "requester"
+                            },
+                            {
+                                "kind": "arg",
+                                "path": "params.nonce"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "params",
+                    "type": {
+                        "defined": {
+                            "name": "GetQuoteParams"
+                        }
+                    }
+                }
+            ],
+            "returns": {
+                "defined": {
+                    "name": "QuoteResult"
+                }
+            }
+        },
+        {
+            "name": "get_redeem_quote",
+            "docs": [
+                "Get a redeem quote — tokens in → USD out"
+            ],
+            "discriminator": [
+                104,
+                228,
+                76,
+                87,
+                172,
+                49,
+                183,
+                137
+            ],
+            "accounts": [
+                {
+                    "name": "requester",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "oracle_config",
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    111,
+                                    114,
+                                    97,
+                                    99,
+                                    108,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "registry",
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    102,
+                                    101,
+                                    101,
+                                    100,
+                                    45,
+                                    114,
+                                    101,
+                                    103,
+                                    105,
+                                    115,
+                                    116,
+                                    114,
+                                    121
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "switchboard_feed"
+                },
+                {
+                    "name": "quote",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    113,
+                                    117,
+                                    111,
+                                    116,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            },
+                            {
+                                "kind": "account",
+                                "path": "requester"
+                            },
+                            {
+                                "kind": "arg",
+                                "path": "params.nonce"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "params",
+                    "type": {
+                        "defined": {
+                            "name": "GetQuoteParams"
+                        }
+                    }
+                }
+            ],
+            "returns": {
+                "defined": {
+                    "name": "QuoteResult"
+                }
+            }
+        },
+        {
+            "name": "initialize_oracle",
+            "docs": [
+                "Initialize an oracle config for a specific SSS token mint"
+            ],
+            "discriminator": [
+                144,
+                223,
+                131,
+                120,
+                196,
+                253,
+                181,
+                99
+            ],
+            "accounts": [
+                {
+                    "name": "payer",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "authority",
+                    "signer": true
+                },
+                {
+                    "name": "mint"
+                },
+                {
+                    "name": "oracle_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    111,
+                                    114,
+                                    97,
+                                    99,
+                                    108,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "mint"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "registry",
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    102,
+                                    101,
+                                    101,
+                                    100,
+                                    45,
+                                    114,
+                                    101,
+                                    103,
+                                    105,
+                                    115,
+                                    116,
+                                    114,
+                                    121
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "params",
+                    "type": {
+                        "defined": {
+                            "name": "InitializeOracleParams"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "initialize_registry",
+            "docs": [
+                "Initialize the global feed registry (one-time, admin only)"
+            ],
+            "discriminator": [
+                189,
+                181,
+                20,
+                17,
+                174,
+                57,
+                249,
+                59
+            ],
+            "accounts": [
+                {
+                    "name": "payer",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "authority",
+                    "signer": true
+                },
+                {
+                    "name": "registry",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    102,
+                                    101,
+                                    101,
+                                    100,
+                                    45,
+                                    114,
+                                    101,
+                                    103,
+                                    105,
+                                    115,
+                                    116,
+                                    114,
+                                    121
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "mint_with_oracle",
+            "docs": [
+                "Execute a stored mint quote — validates + emits event atomically"
+            ],
+            "discriminator": [
+                59,
+                36,
+                162,
+                197,
+                12,
+                79,
+                194,
+                72
+            ],
+            "accounts": [
+                {
+                    "name": "requester",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "oracle_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    111,
+                                    114,
+                                    97,
+                                    99,
+                                    108,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "quote",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    113,
+                                    117,
+                                    111,
+                                    116,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            },
+                            {
+                                "kind": "account",
+                                "path": "requester"
+                            },
+                            {
+                                "kind": "account",
+                                "path": "quote.nonce",
+                                "account": "PendingQuote"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "pause_oracle",
+            "docs": [
+                "Pause oracle mint/redeem operations (emergencies)"
+            ],
+            "discriminator": [
+                170,
+                116,
+                3,
+                121,
+                247,
+                109,
+                147,
+                191
+            ],
+            "accounts": [
+                {
+                    "name": "authority",
+                    "signer": true
+                },
+                {
+                    "name": "oracle_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    111,
+                                    114,
+                                    97,
+                                    99,
+                                    108,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "args": [
+                {
+                    "name": "reason",
+                    "type": "string"
+                }
+            ]
+        },
+        {
+            "name": "propose_authority_transfer",
+            "docs": [
+                "Propose a two-step authority transfer"
+            ],
+            "discriminator": [
+                57,
+                206,
+                225,
+                129,
+                35,
+                111,
+                174,
+                145
+            ],
+            "accounts": [
+                {
+                    "name": "authority",
+                    "signer": true
+                },
+                {
+                    "name": "oracle_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    111,
+                                    114,
+                                    97,
+                                    99,
+                                    108,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "args": [
+                {
+                    "name": "new_authority",
+                    "type": "pubkey"
+                }
+            ]
+        },
+        {
+            "name": "register_feed",
+            "docs": [
+                "Register a new price feed (e.g. BRLUSD, EURUSD, JPYUSD)"
+            ],
+            "discriminator": [
+                138,
+                181,
+                114,
+                65,
+                71,
+                145,
+                61,
+                111
+            ],
+            "accounts": [
+                {
+                    "name": "payer",
+                    "writable": true,
+                    "signer": true
+                },
+                {
+                    "name": "authority",
+                    "signer": true
+                },
+                {
+                    "name": "registry",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    102,
+                                    101,
+                                    101,
+                                    100,
+                                    45,
+                                    114,
+                                    101,
+                                    103,
+                                    105,
+                                    115,
+                                    116,
+                                    114,
+                                    121
+                                ]
+                            }
+                        ]
+                    }
+                },
+                {
+                    "name": "switchboard_feed"
+                },
+                {
+                    "name": "system_program",
+                    "address": "11111111111111111111111111111111"
+                }
+            ],
+            "args": [
+                {
+                    "name": "params",
+                    "type": {
+                        "defined": {
+                            "name": "RegisterFeedParams"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "unpause_oracle",
+            "docs": [
+                "Unpause oracle operations"
+            ],
+            "discriminator": [
+                187,
+                113,
+                244,
+                174,
+                46,
+                2,
+                129,
+                215
+            ],
+            "accounts": [
+                {
+                    "name": "authority",
+                    "signer": true
+                },
+                {
+                    "name": "oracle_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    111,
+                                    114,
+                                    97,
+                                    99,
+                                    108,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "args": []
+        },
+        {
+            "name": "update_cpi_multiplier",
+            "docs": [
+                "Update CPI multiplier (monthly admin operation for CpiIndexed tokens)"
+            ],
+            "discriminator": [
+                173,
+                77,
+                84,
+                2,
+                36,
+                149,
+                224,
+                110
+            ],
+            "accounts": [
+                {
+                    "name": "authority",
+                    "signer": true
+                },
+                {
+                    "name": "oracle_config",
+                    "writable": true,
+                    "pda": {
+                        "seeds": [
+                            {
+                                "kind": "const",
+                                "value": [
+                                    115,
+                                    115,
+                                    115,
+                                    45,
+                                    111,
+                                    114,
+                                    97,
+                                    99,
+                                    108,
+                                    101
+                                ]
+                            },
+                            {
+                                "kind": "account",
+                                "path": "oracle_config.mint",
+                                "account": "OracleConfig"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "args": [
+                {
+                    "name": "params",
+                    "type": {
+                        "defined": {
+                            "name": "UpdateCpiParams"
+                        }
+                    }
+                }
+            ]
+        }
+    ],
+    "accounts": [
+        {
+            "name": "FeedRegistry",
+            "discriminator": [
+                165,
+                19,
+                142,
+                137,
+                18,
+                194,
+                61,
+                247
+            ]
+        },
+        {
+            "name": "OracleConfig",
+            "discriminator": [
+                133,
+                196,
+                152,
+                50,
+                27,
+                21,
+                145,
+                254
+            ]
+        },
+        {
+            "name": "PendingQuote",
+            "discriminator": [
+                205,
+                143,
+                177,
+                236,
+                152,
+                2,
+                209,
+                153
+            ]
+        }
+    ],
+    "events": [
+        {
+            "name": "AuthorityTransferProposed",
+            "discriminator": [
+                103,
+                244,
+                27,
+                116,
+                177,
+                4,
+                100,
+                119
+            ]
+        },
+        {
+            "name": "AuthorityTransferred",
+            "discriminator": [
+                245,
+                109,
+                179,
+                54,
+                135,
+                92,
+                22,
+                64
+            ]
+        },
+        {
+            "name": "CpiMultiplierUpdated",
+            "discriminator": [
+                188,
+                2,
+                169,
+                182,
+                6,
+                143,
+                242,
+                65
+            ]
+        },
+        {
+            "name": "FeedRegistered",
+            "discriminator": [
+                96,
+                127,
+                205,
+                247,
+                125,
+                203,
+                93,
+                60
+            ]
+        },
+        {
+            "name": "OracleInitialized",
+            "discriminator": [
+                42,
+                87,
+                109,
+                208,
+                1,
+                105,
+                101,
+                142
+            ]
+        },
+        {
+            "name": "OracleMint",
+            "discriminator": [
+                143,
+                237,
+                105,
+                171,
+                54,
+                159,
+                225,
+                132
+            ]
+        },
+        {
+            "name": "OraclePaused",
+            "discriminator": [
+                58,
+                194,
+                226,
+                171,
+                90,
+                95,
+                183,
+                83
+            ]
+        },
+        {
+            "name": "OracleRedeem",
+            "discriminator": [
+                245,
+                239,
+                154,
+                129,
+                214,
+                88,
+                130,
+                236
+            ]
+        },
+        {
+            "name": "QuoteGenerated",
+            "discriminator": [
+                48,
+                44,
+                96,
+                174,
+                113,
+                177,
+                104,
+                197
+            ]
+        }
+    ],
+    "errors": [
+        {
+            "code": 6000,
+            "name": "PriceTooStale",
+            "msg": "Price feed is stale — last update exceeds max_staleness threshold"
+        },
+        {
+            "code": 6001,
+            "name": "InvalidPrice",
+            "msg": "Price feed returned a negative or zero value"
+        },
+        {
+            "code": 6002,
+            "name": "ConfidenceTooWide",
+            "msg": "Price confidence interval is too wide — market is too volatile to price safely"
+        },
+        {
+            "code": 6003,
+            "name": "FeedNotReady",
+            "msg": "Switchboard aggregator account data is invalid or unreadable"
+        },
+        {
+            "code": 6004,
+            "name": "QuoteExpired",
+            "msg": "Quote has expired — please request a new quote"
+        },
+        {
+            "code": 6005,
+            "name": "QuoteAlreadyUsed",
+            "msg": "Quote has already been used"
+        },
+        {
+            "code": 6006,
+            "name": "SlippageExceeded",
+            "msg": "Token amount is below slippage threshold (min_output)"
+        },
+        {
+            "code": 6007,
+            "name": "ZeroAmount",
+            "msg": "Input amount must be greater than zero"
+        },
+        {
+            "code": 6008,
+            "name": "ZeroOutput",
+            "msg": "Calculated output amount is zero after fee deduction"
+        },
+        {
+            "code": 6009,
+            "name": "FeedAlreadyRegistered",
+            "msg": "Feed with this symbol already exists in the registry"
+        },
+        {
+            "code": 6010,
+            "name": "FeedNotFound",
+            "msg": "Feed symbol not found in registry"
+        },
+        {
+            "code": 6011,
+            "name": "SymbolTooLong",
+            "msg": "Feed symbol exceeds maximum length of 12 characters"
+        },
+        {
+            "code": 6012,
+            "name": "RegistryFull",
+            "msg": "Registry is at maximum capacity (64 feeds)"
+        },
+        {
+            "code": 6013,
+            "name": "OraclePaused",
+            "msg": "Oracle is paused — mint and redeem operations are suspended"
+        },
+        {
+            "code": 6014,
+            "name": "Unauthorized",
+            "msg": "Signer is not the oracle authority"
+        },
+        {
+            "code": 6015,
+            "name": "NoPendingTransfer",
+            "msg": "No pending authority transfer exists"
+        },
+        {
+            "code": 6016,
+            "name": "InvalidCpiMultiplier",
+            "msg": "CPI multiplier cannot be zero"
+        },
+        {
+            "code": 6017,
+            "name": "CpiUpdateTooSoon",
+            "msg": "CPI multiplier update too soon — minimum interval not reached"
+        },
+        {
+            "code": 6018,
+            "name": "MathOverflow",
+            "msg": "Arithmetic overflow in calculation"
+        },
+        {
+            "code": 6019,
+            "name": "DivisionByZero",
+            "msg": "Division by zero in price calculation"
+        },
+        {
+            "code": 6020,
+            "name": "FeedMismatch",
+            "msg": "Switchboard feed account mismatch — wrong feed passed"
+        }
+    ],
+    "types": [
+        {
+            "name": "AuthorityTransferProposed",
+            "docs": [
+                "Emitted when oracle authority transfer is proposed"
+            ],
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "current",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "proposed",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "AuthorityTransferred",
+            "docs": [
+                "Emitted when oracle authority transfer is accepted"
+            ],
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "from",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "to",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "CpiMultiplierUpdated",
+            "docs": [
+                "Emitted when CPI multiplier is updated"
+            ],
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "old_multiplier",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "new_multiplier",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "reference_month",
+                        "type": "string"
+                    },
+                    {
+                        "name": "data_source",
+                        "type": "string"
+                    },
+                    {
+                        "name": "updated_by",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "FeedEntry",
+            "docs": [
+                "A single registered price feed entry"
+            ],
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "symbol",
+                        "docs": [
+                            "Feed symbol, max 12 chars: \"BRLUSD\", \"EURUSD\""
+                        ],
+                        "type": "string"
+                    },
+                    {
+                        "name": "switchboard_feed",
+                        "docs": [
+                            "Switchboard aggregator account address"
+                        ],
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "feed_type",
+                        "docs": [
+                            "How to interpret the price value"
+                        ],
+                        "type": {
+                            "defined": {
+                                "name": "FeedType"
+                            }
+                        }
+                    },
+                    {
+                        "name": "base_currency",
+                        "docs": [
+                            "Base currency code, max 8 chars: \"BRL\", \"EUR\""
+                        ],
+                        "type": "string"
+                    },
+                    {
+                        "name": "quote_currency",
+                        "docs": [
+                            "Quote currency code, max 8 chars: \"USD\""
+                        ],
+                        "type": "string"
+                    },
+                    {
+                        "name": "decimals",
+                        "docs": [
+                            "Price decimals from the feed"
+                        ],
+                        "type": "u8"
+                    },
+                    {
+                        "name": "active",
+                        "docs": [
+                            "Whether this feed is currently active"
+                        ],
+                        "type": "bool"
+                    },
+                    {
+                        "name": "registered_at",
+                        "docs": [
+                            "When was this feed registered"
+                        ],
+                        "type": "i64"
+                    },
+                    {
+                        "name": "registered_by",
+                        "docs": [
+                            "Who registered it"
+                        ],
+                        "type": "pubkey"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "FeedRegistered",
+            "docs": [
+                "Emitted when a new price feed is registered globally"
+            ],
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "symbol",
+                        "type": "string"
+                    },
+                    {
+                        "name": "switchboard_feed",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "feed_type",
+                        "type": "string"
+                    },
+                    {
+                        "name": "base_currency",
+                        "type": "string"
+                    },
+                    {
+                        "name": "quote_currency",
+                        "type": "string"
+                    },
+                    {
+                        "name": "registered_by",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "FeedRegistry",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "authority",
+                        "docs": [
+                            "Authority who can register new feeds"
+                        ],
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "feed_count",
+                        "docs": [
+                            "Current number of registered feeds"
+                        ],
+                        "type": "u8"
+                    },
+                    {
+                        "name": "feeds",
+                        "docs": [
+                            "All registered feeds"
+                        ],
+                        "type": {
+                            "vec": {
+                                "defined": {
+                                    "name": "FeedEntry"
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "name": "bump",
+                        "docs": [
+                            "PDA bump"
+                        ],
+                        "type": "u8"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "FeedType",
+            "type": {
+                "kind": "enum",
+                "variants": [
+                    {
+                        "name": "Direct"
+                    },
+                    {
+                        "name": "Inverse"
+                    },
+                    {
+                        "name": "CpiIndexed"
+                    },
+                    {
+                        "name": "Custom",
+                        "fields": [
+                            {
+                                "name": "numerator",
+                                "type": "u64"
+                            },
+                            {
+                                "name": "denominator",
+                                "type": "u64"
+                            },
+                            {
+                                "name": "base_type",
+                                "docs": [
+                                    "0 = Direct after scaling, 1 = Inverse after scaling"
+                                ],
+                                "type": "u8"
+                            }
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            "name": "GetQuoteParams",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "input_amount",
+                        "docs": [
+                            "Input amount: USD cents for mint, token base units for redeem"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "min_output",
+                        "docs": [
+                            "Minimum acceptable output (slippage floor)"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "nonce",
+                        "docs": [
+                            "Caller-provided nonce to avoid PDA collision between quotes"
+                        ],
+                        "type": "u64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "InitializeOracleParams",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "feed_symbol",
+                        "type": "string"
+                    },
+                    {
+                        "name": "description",
+                        "type": "string"
+                    },
+                    {
+                        "name": "max_staleness_secs",
+                        "type": "i64"
+                    },
+                    {
+                        "name": "mint_fee_bps",
+                        "type": "u16"
+                    },
+                    {
+                        "name": "redeem_fee_bps",
+                        "type": "u16"
+                    },
+                    {
+                        "name": "max_confidence_bps",
+                        "type": "u16"
+                    },
+                    {
+                        "name": "quote_validity_secs",
+                        "type": "i64"
+                    },
+                    {
+                        "name": "cpi_multiplier",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "cpi_min_update_interval",
+                        "type": "i64"
+                    },
+                    {
+                        "name": "cpi_data_source",
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "OracleConfig",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "version",
+                        "docs": [
+                            "Schema version for future migrations"
+                        ],
+                        "type": "u8"
+                    },
+                    {
+                        "name": "mint",
+                        "docs": [
+                            "The SSS token mint this oracle prices"
+                        ],
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "authority",
+                        "docs": [
+                            "Authority that can update config, update CPI, pause/unpause"
+                        ],
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "pending_authority",
+                        "docs": [
+                            "Two-step authority transfer target"
+                        ],
+                        "type": {
+                            "option": "pubkey"
+                        }
+                    },
+                    {
+                        "name": "feed_symbol",
+                        "docs": [
+                            "Symbol of the registered feed to use (must exist in FeedRegistry)"
+                        ],
+                        "type": "string"
+                    },
+                    {
+                        "name": "description",
+                        "docs": [
+                            "Human-readable description"
+                        ],
+                        "type": "string"
+                    },
+                    {
+                        "name": "max_staleness_secs",
+                        "docs": [
+                            "Maximum seconds since last feed update before price is rejected"
+                        ],
+                        "type": "i64"
+                    },
+                    {
+                        "name": "mint_fee_bps",
+                        "docs": [
+                            "Mint fee in basis points (100 bps = 1%)"
+                        ],
+                        "type": "u16"
+                    },
+                    {
+                        "name": "redeem_fee_bps",
+                        "docs": [
+                            "Redeem fee in basis points"
+                        ],
+                        "type": "u16"
+                    },
+                    {
+                        "name": "max_confidence_bps",
+                        "docs": [
+                            "Max allowed confidence interval as % of price (in bps)"
+                        ],
+                        "type": "u16"
+                    },
+                    {
+                        "name": "quote_validity_secs",
+                        "docs": [
+                            "Quote validity window in seconds"
+                        ],
+                        "type": "i64"
+                    },
+                    {
+                        "name": "cpi_multiplier",
+                        "docs": [
+                            "CPI multiplier (fixed-point * 1_000_000). 1.083 = 1_083_000"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "cpi_last_updated",
+                        "docs": [
+                            "Timestamp of last CPI update"
+                        ],
+                        "type": "i64"
+                    },
+                    {
+                        "name": "cpi_min_update_interval",
+                        "docs": [
+                            "Minimum seconds between CPI updates"
+                        ],
+                        "type": "i64"
+                    },
+                    {
+                        "name": "cpi_data_source",
+                        "docs": [
+                            "Source description for CPI data audit trail"
+                        ],
+                        "type": "string"
+                    },
+                    {
+                        "name": "paused",
+                        "docs": [
+                            "Whether minting/redeeming is suspended"
+                        ],
+                        "type": "bool"
+                    },
+                    {
+                        "name": "pause_reason",
+                        "docs": [
+                            "Reason for current pause"
+                        ],
+                        "type": "string"
+                    },
+                    {
+                        "name": "total_minted_usd",
+                        "docs": [
+                            "Lifetime stats: total USD value minted through oracle"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "total_redeemed_usd",
+                        "docs": [
+                            "Lifetime stats: total USD value redeemed through oracle"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "total_fees_collected",
+                        "docs": [
+                            "Lifetime stats: total fees collected in token base units"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "created_at",
+                        "docs": [
+                            "Creation timestamp"
+                        ],
+                        "type": "i64"
+                    },
+                    {
+                        "name": "last_updated_at",
+                        "docs": [
+                            "Last modification timestamp"
+                        ],
+                        "type": "i64"
+                    },
+                    {
+                        "name": "bump",
+                        "docs": [
+                            "PDA bump"
+                        ],
+                        "type": "u8"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "OracleInitialized",
+            "docs": [
+                "Emitted when a new oracle config is initialized for a mint"
+            ],
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "authority",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "feed_symbol",
+                        "type": "string"
+                    },
+                    {
+                        "name": "mint_fee_bps",
+                        "type": "u16"
+                    },
+                    {
+                        "name": "redeem_fee_bps",
+                        "type": "u16"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "OracleMint",
+            "docs": [
+                "Emitted on a successful oracle-priced mint execution"
+            ],
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "recipient",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "usd_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "token_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "fee_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "price_used",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "feed_symbol",
+                        "type": "string"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "OraclePaused",
+            "docs": [
+                "Emitted when oracle is paused/unpaused"
+            ],
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "paused",
+                        "type": "bool"
+                    },
+                    {
+                        "name": "reason",
+                        "type": "string"
+                    },
+                    {
+                        "name": "by",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "OracleRedeem",
+            "docs": [
+                "Emitted on a successful oracle-priced redemption"
+            ],
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "redeemer",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "token_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "usd_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "fee_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "price_used",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "feed_symbol",
+                        "type": "string"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "PendingQuote",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "mint",
+                        "docs": [
+                            "The SSS token mint"
+                        ],
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "requester",
+                        "docs": [
+                            "Who requested the quote"
+                        ],
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "direction",
+                        "docs": [
+                            "Mint or Redeem"
+                        ],
+                        "type": {
+                            "defined": {
+                                "name": "QuoteDirection"
+                            }
+                        }
+                    },
+                    {
+                        "name": "feed_symbol",
+                        "docs": [
+                            "Feed symbol used"
+                        ],
+                        "type": "string"
+                    },
+                    {
+                        "name": "input_amount",
+                        "docs": [
+                            "Input amount (USD cents for mint, token units for redeem)"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "output_amount",
+                        "docs": [
+                            "Output amount (token units for mint, USD cents for redeem)"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "fee_amount",
+                        "docs": [
+                            "Fee amount in output units"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "price_snapshot",
+                        "docs": [
+                            "Exact price snapshot (fixed-point * 1_000_000)"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "valid_until",
+                        "docs": [
+                            "Unix timestamp after which this quote is invalid"
+                        ],
+                        "type": "i64"
+                    },
+                    {
+                        "name": "min_output",
+                        "docs": [
+                            "Minimum acceptable output (slippage protection)"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "used",
+                        "docs": [
+                            "Whether consumed"
+                        ],
+                        "type": "bool"
+                    },
+                    {
+                        "name": "created_at",
+                        "docs": [
+                            "Creation timestamp"
+                        ],
+                        "type": "i64"
+                    },
+                    {
+                        "name": "nonce",
+                        "docs": [
+                            "Caller nonce to prevent PDA collision"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "bump",
+                        "docs": [
+                            "PDA bump"
+                        ],
+                        "type": "u8"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "QuoteDirection",
+            "type": {
+                "kind": "enum",
+                "variants": [
+                    {
+                        "name": "Mint"
+                    },
+                    {
+                        "name": "Redeem"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "QuoteGenerated",
+            "docs": [
+                "Emitted every time a quote is requested"
+            ],
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "quote_id",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "mint",
+                        "type": "pubkey"
+                    },
+                    {
+                        "name": "feed_symbol",
+                        "type": "string"
+                    },
+                    {
+                        "name": "direction",
+                        "type": "string"
+                    },
+                    {
+                        "name": "input_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "output_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "fee_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "price_used",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "valid_until",
+                        "type": "i64"
+                    },
+                    {
+                        "name": "timestamp",
+                        "type": "i64"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "QuoteResult",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "output_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "fee_amount",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "price_used",
+                        "type": "u64"
+                    },
+                    {
+                        "name": "valid_until",
+                        "type": "i64"
+                    },
+                    {
+                        "name": "quote_account",
+                        "type": "pubkey"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "RegisterFeedParams",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "symbol",
+                        "type": "string"
+                    },
+                    {
+                        "name": "feed_type",
+                        "type": {
+                            "defined": {
+                                "name": "FeedType"
+                            }
+                        }
+                    },
+                    {
+                        "name": "base_currency",
+                        "type": "string"
+                    },
+                    {
+                        "name": "quote_currency",
+                        "type": "string"
+                    },
+                    {
+                        "name": "decimals",
+                        "type": "u8"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "UpdateCpiParams",
+            "type": {
+                "kind": "struct",
+                "fields": [
+                    {
+                        "name": "new_multiplier",
+                        "docs": [
+                            "New CPI multiplier (fixed-point * 1_000_000). 1.083 = 1_083_000"
+                        ],
+                        "type": "u64"
+                    },
+                    {
+                        "name": "reference_month",
+                        "docs": [
+                            "Reference month string, e.g. \"2026-01\""
+                        ],
+                        "type": "string"
+                    },
+                    {
+                        "name": "data_source",
+                        "docs": [
+                            "Data source URL/description for audit trail"
+                        ],
+                        "type": "string"
+                    }
+                ]
+            }
+        }
+    ]
+}

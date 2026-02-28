@@ -154,6 +154,70 @@ export declare class InvalidMintError extends SSSBaseError {
 export declare class InvalidAuthorityError extends SSSBaseError {
     constructor();
 }
+/** Price feed is stale. */
+export declare class PriceTooStaleError extends SSSBaseError {
+    constructor();
+}
+/** Price feed returned an invalid value. */
+export declare class InvalidPriceError extends SSSBaseError {
+    constructor();
+}
+/** Price confidence interval is too wide. */
+export declare class ConfidenceTooWideError extends SSSBaseError {
+    constructor();
+}
+/** Switchboard feed account invalid. */
+export declare class FeedNotReadyError extends SSSBaseError {
+    constructor();
+}
+/** Quote has expired. */
+export declare class QuoteExpiredError extends SSSBaseError {
+    constructor();
+}
+/** Quote has already been used. */
+export declare class QuoteAlreadyUsedError extends SSSBaseError {
+    constructor();
+}
+/** Output amount below slippage threshold. */
+export declare class SlippageExceededError extends SSSBaseError {
+    constructor();
+}
+/** Oracle Input amount zero. */
+export declare class OracleZeroAmountError extends SSSBaseError {
+    constructor();
+}
+/** Output amount zero. */
+export declare class ZeroOutputError extends SSSBaseError {
+    constructor();
+}
+/** Feed symbol already exists. */
+export declare class FeedAlreadyRegisteredError extends SSSBaseError {
+    constructor();
+}
+/** Feed symbol not found. */
+export declare class FeedNotFoundError extends SSSBaseError {
+    constructor();
+}
+/** Feed symbol exceeds max length. */
+export declare class FeedSymbolTooLongError extends SSSBaseError {
+    constructor();
+}
+/** Feed registry is full. */
+export declare class RegistryFullError extends SSSBaseError {
+    constructor();
+}
+/** Oracle Paused. */
+export declare class OraclePausedError extends SSSBaseError {
+    constructor();
+}
+/** Unauthorized oracle operation. */
+export declare class OracleUnauthorizedError extends SSSBaseError {
+    constructor();
+}
+/** No pending oracle transfer. */
+export declare class OracleNoPendingTransferError extends SSSBaseError {
+    constructor();
+}
 /** Thrown when accessing the transfer hook module on a non-SSS-2 instance. */
 export declare class TransferHookNotAvailableError extends SSSBaseError {
     constructor();
@@ -174,18 +238,7 @@ export declare class InvalidNetworkError extends SSSBaseError {
  * unchanged.
  *
  * @param err - The caught error (typically from an `.rpc()` call).
+ * @param isOracleInstruction - Optionally force parsing against the Oracle error map.
  * @returns A typed {@link SSSBaseError} subclass, or the original error.
- *
- * @example
- * ```ts
- * try {
- *   await sdk.mint(params);
- * } catch (err) {
- *   const parsed = parseProgramError(err);
- *   if (parsed instanceof PausedError) {
- *     console.log("Token is paused, try again later");
- *   }
- * }
- * ```
  */
-export declare function parseProgramError(err: unknown): Error;
+export declare function parseProgramError(err: unknown, isOracleInstruction?: boolean): Error;
