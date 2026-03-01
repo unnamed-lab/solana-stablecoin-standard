@@ -535,6 +535,9 @@ const ORACLE_ERROR_CODE_MAP = {
  * @returns A typed {@link SSSBaseError} subclass, or the original error.
  */
 function parseProgramError(err, isOracleInstruction = false) {
+    if (err instanceof SSSBaseError) {
+        return err;
+    }
     if (err && typeof err === 'object') {
         const anchorErr = err;
         const code = anchorErr?.error?.errorCode?.number ??

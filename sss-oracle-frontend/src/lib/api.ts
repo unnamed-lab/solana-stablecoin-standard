@@ -62,6 +62,10 @@ export const configApi = {
             method: 'POST',
             body: JSON.stringify(payload),
         }),
+    initializeRegistry: () =>
+        fetchApi<any>('/config/initialize-registry', {
+            method: 'POST',
+        }),
 };
 
 // Quotes

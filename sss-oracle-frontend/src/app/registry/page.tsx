@@ -1,9 +1,29 @@
 'use client';
 
+import { useState } from 'react';
 import { useFeeds } from '@/hooks/use-oracle';
+import { configApi } from '@/lib/api';
 
 export default function RegistryPage() {
-    const { feeds, loading, error } = useFeeds();
+    const { feeds, loading, error, refetch } = useFeeds();
+    const [initializing, setInitializing] = useState(false);
+
+    const isUninitializedError = error && (
+        (error as any).message?.includes('Account does not exist') ||
+        (error as any).message?.includes('AccountNotInitialized')
+    );
+
+    const handleInitialize = async () => {
+        setInitializing(true);
+        try {
+            await configApi.initializeRegistry();
+            await refetch();
+        } catch (err: any) {
+            alert(`Failed to initialize registry: ${err.message || String(err)}`);
+        } finally {
+            setInitializing(false);
+        }
+    };
 
     return (
         <div className="flex flex-col gap-8">
@@ -15,9 +35,22 @@ export default function RegistryPage() {
             <div className="overflow-hidden rounded-lg border border-[#2A2A2A] bg-[#111111]">
                 {loading && <div className="p-8 text-center text-[#94A3B8]">Loading registry...</div>}
 
-                {error && (
+                {error && !isUninitializedError && (
                     <div className="p-8 text-center text-[#EF4444]">
                         Error fetching feed registry: {(error as any).message || 'Connection failed'}
+                    </div>
+                )}
+
+                {error && isUninitializedError && (
+                    <div className="flex flex-col items-center justify-center gap-4 p-12 text-center text-[#94A3B8]">
+                        <p>The global feed registry has not been initialized for this network.</p>
+                        <button
+                            onClick={handleInitialize}
+                            disabled={initializing}
+                            className="rounded bg-[#A855F7] px-6 py-3 font-bold text-white transition-colors hover:bg-[#9333EA] disabled:opacity-50"
+                        >
+                            {initializing ? 'INITIALIZING...' : 'INITIALIZE REGISTRY'}
+                        </button>
                     </div>
                 )}
 

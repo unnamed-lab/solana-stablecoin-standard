@@ -39,8 +39,8 @@ async function bootstrap() {
     .setTitle('SSS Token API')
     .setDescription(
       'Solana Stablecoin Standard — Backend Service API.\n\n' +
-        'Provides endpoints for token lifecycle (mint/burn), compliance operations ' +
-        '(blacklist/seize), audit logging, and webhook management.',
+      'Provides endpoints for token lifecycle (mint/burn), compliance operations ' +
+      '(blacklist/seize), audit logging, and webhook management.',
     )
     .setVersion('1.0')
     .addTag('Health', 'Service health checks')
@@ -56,7 +56,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);
 
-  const port = process.env.PORT ?? 3000;
+  const port = process.env.PORT ?? 4000;
   await app.listen(port);
 
   console.log(`🚀 SSS API running on http://localhost:${port}`);
