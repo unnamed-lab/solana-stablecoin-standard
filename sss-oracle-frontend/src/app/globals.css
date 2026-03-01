@@ -1,0 +1,166 @@
+@import "tailwindcss";
+
+@theme {
+  --color-super-bg: #030303;
+  --color-super-surface-0: #0a0a0a;
+  --color-super-surface-1: #111111;
+  --color-super-surface-2: #1a1a1a;
+  --color-super-brand: #a855f7;
+  --color-super-brand-dim: rgba(168, 85, 247, 0.15);
+  --color-super-border: #2a2a2a;
+}
+
+@layer base {
+  :root {
+    /* Colors - Superteam Theme */
+    --bg-color: #030303;
+    --surface-0: #0a0a0a;
+    --surface-1: #111111;
+    --surface-2: #1a1a1a;
+
+    --amber: #a855f7;
+    /* Superteam Purple glow/accent */
+    --amber-dim: rgba(168, 85, 247, 0.15);
+
+    --green: #10b981;
+    --green-dim: rgba(16, 185, 129, 0.15);
+
+    --red: #ef4444;
+    --red-dim: rgba(239, 68, 68, 0.15);
+
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border-color: #2a2a2a;
+
+    --border-focus: var(--amber);
+  }
+
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    font-family: var(--font-ibm-plex-mono), monospace;
+    overflow-x: hidden;
+  }
+
+  /* Headings */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-syne), sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+
+  /* Scan-line overlay effect */
+  .scanlines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to bottom,
+        rgba(255, 255, 255, 0),
+        rgba(255, 255, 255, 0) 50%,
+        rgba(0, 0, 0, 0.1) 50%,
+        rgba(0, 0, 0, 0.1));
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.3;
+  }
+
+  .label,
+  .badge {
+    font-family: var(--font-space-mono), monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-color);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--surface-2);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-color);
+  }
+
+  /* Inputs and Buttons */
+  input,
+  select,
+  button {
+    font-family: inherit;
+    background: var(--surface-1);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  input:focus,
+  select:focus {
+    border-color: var(--amber);
+    box-shadow: 0 0 0 1px var(--amber-dim);
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button.primary {
+    background: var(--amber);
+    color: #000;
+    font-weight: 600;
+    border-color: var(--amber);
+  }
+
+  button.primary:hover {
+    background: #d8b4fe;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .live-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--amber);
+    animation: pulse-amber 2s infinite;
+  }
+}
+
+@keyframes pulse-amber {
+  0% {
+    box-shadow: 0 0 0 0 var(--amber-dim);
+  }
+
+  70% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
