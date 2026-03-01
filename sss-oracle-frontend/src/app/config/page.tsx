@@ -12,10 +12,10 @@ export default function ConfigPage() {
     const [feedSymbol, setFeedSymbol] = useState('');
     const [description, setDescription] = useState('');
     const [maxStalenessSecs, setMaxStalenessSecs] = useState('120');
-    const [mintFeeBps, setMintFeeBps] = useState('0');
-    const [redeemFeeBps, setRedeemFeeBps] = useState('0');
+    const [mintFeeBps, setMintFeeBps] = useState('30');
+    const [redeemFeeBps, setRedeemFeeBps] = useState('30');
     const [maxConfidenceBps, setMaxConfidenceBps] = useState('50');
-    const [quoteValiditySecs, setQuoteValiditySecs] = useState('30');
+    const [quoteValiditySecs, setQuoteValiditySecs] = useState('60');
     const [cpiMultiplier, setCpiMultiplier] = useState('');
     const [cpiMinUpdateInterval, setCpiMinUpdateInterval] = useState('');
     const [cpiDataSource, setCpiDataSource] = useState('');

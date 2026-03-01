@@ -17,10 +17,11 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
 
     if (!response.ok) {
         let body;
+        const text = await response.text();
         try {
-            body = await response.json();
+            body = JSON.parse(text);
         } catch {
-            body = await response.text();
+            body = text;
         }
         throw new ApiError(
             response.status,
@@ -29,13 +30,17 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
         );
     }
 
-    return response.json();
+    const result = await response.json();
+    if (result && typeof result === 'object' && 'status' in result && 'data' in result) {
+        return result.data;
+    }
+    return result;
 }
 
 // Feeds
 export const feedsApi = {
     list: () => fetchApi<any[]>('/feeds'),
-    register: (payload: { symbol: string; feedType: number; baseCurrency: string; quoteCurrency: string; decimals: number; switchboardFeed: string }) =>
+    register: (payload: { symbol: string; feedType: string; baseCurrency: string; quoteCurrency: string; decimals: number; switchboardFeed: string }) =>
         fetchApi<any>('/feeds/register', {
             method: 'POST',
             body: JSON.stringify(payload),
