@@ -11,7 +11,7 @@ export default function PriceFeedsPage() {
     const { connected } = useWallet();
 
     const [symbol, setSymbol] = useState('');
-    const [feedType, setFeedType] = useState('0');
+    const [feedType, setFeedType] = useState('direct');
     const [baseCurrency, setBaseCurrency] = useState('USD');
     const [quoteCurrency, setQuoteCurrency] = useState('USD');
     const [decimals, setDecimals] = useState('8');
@@ -36,7 +36,7 @@ export default function PriceFeedsPage() {
         try {
             await feedsApi.register({
                 symbol,
-                feedType: parseInt(feedType, 10),
+                feedType,
                 baseCurrency,
                 quoteCurrency,
                 decimals: parseInt(decimals, 10),
@@ -93,8 +93,10 @@ export default function PriceFeedsPage() {
                             <div>
                                 <label className="label mb-2 block text-xs text-[#94A3B8]">FEED TYPE</label>
                                 <select className="w-full bg-[#1A1A1A] border border-[#2A2A2A] text-white p-2 rounded" value={feedType} onChange={e => setFeedType(e.target.value)}>
-                                    <option value="0">Pull Oracle</option>
-                                    <option value="1">Push Oracle</option>
+                                    <option value="direct">Direct</option>
+                                    <option value="inverse">Inverse</option>
+                                    <option value="cpiIndexed">CPI Indexed</option>
+                                    <option value="custom">Custom</option>
                                 </select>
                             </div>
                             <div>
