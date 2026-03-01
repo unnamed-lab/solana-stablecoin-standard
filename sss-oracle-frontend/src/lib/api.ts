@@ -35,7 +35,7 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
 // Feeds
 export const feedsApi = {
     list: () => fetchApi<any[]>('/feeds'),
-    register: (payload: { symbol: string; feedAddress: string; maxStaleness: number; confidenceInterval: number }) =>
+    register: (payload: { symbol: string; feedType: number; baseCurrency: string; quoteCurrency: string; decimals: number; switchboardFeed: string }) =>
         fetchApi<any>('/feeds/register', {
             method: 'POST',
             body: JSON.stringify(payload),
@@ -45,7 +45,19 @@ export const feedsApi = {
 // Config
 export const configApi = {
     get: (mint: string) => fetchApi<any>(`/config/${mint}`),
-    initialize: (payload: { mint: string; authority: string; collateralRatio: number }) =>
+    initialize: (payload: {
+        mint: string;
+        feedSymbol: string;
+        description?: string;
+        maxStalenessSecs: number;
+        mintFeeBps: number;
+        redeemFeeBps: number;
+        maxConfidenceBps: number;
+        quoteValiditySecs: number;
+        cpiMultiplier?: number;
+        cpiMinUpdateInterval?: number;
+        cpiDataSource?: string;
+    }) =>
         fetchApi<any>('/config/initialize', {
             method: 'POST',
             body: JSON.stringify(payload),

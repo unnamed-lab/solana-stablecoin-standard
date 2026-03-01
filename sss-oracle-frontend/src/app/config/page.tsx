@@ -3,12 +3,23 @@
 import { useState } from 'react';
 import { configApi, ApiError } from '@/lib/api';
 import { useOracleConfig } from '@/hooks/use-oracle';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 export default function ConfigPage() {
     // Config Init State
-    const [initMint, setInitMint] = useState('');
-    const [authority, setAuthority] = useState('');
-    const [collateralRatio, setCollateralRatio] = useState('100');
+    const { connected } = useWallet();
+    const [mint, setMint] = useState('');
+    const [feedSymbol, setFeedSymbol] = useState('');
+    const [description, setDescription] = useState('');
+    const [maxStalenessSecs, setMaxStalenessSecs] = useState('120');
+    const [mintFeeBps, setMintFeeBps] = useState('0');
+    const [redeemFeeBps, setRedeemFeeBps] = useState('0');
+    const [maxConfidenceBps, setMaxConfidenceBps] = useState('50');
+    const [quoteValiditySecs, setQuoteValiditySecs] = useState('30');
+    const [cpiMultiplier, setCpiMultiplier] = useState('');
+    const [cpiMinUpdateInterval, setCpiMinUpdateInterval] = useState('');
+    const [cpiDataSource, setCpiDataSource] = useState('');
+
     const [initSubmitting, setInitSubmitting] = useState(false);
     const [initError, setInitError] = useState<string | null>(null);
     const [initSuccess, setInitSuccess] = useState<string | null>(null);
@@ -21,19 +32,33 @@ export default function ConfigPage() {
 
     const handleInitSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!connected) {
+            setInitError('Please connect your wallet to initialize config.');
+            return;
+        }
+
         setInitSubmitting(true);
         setInitError(null);
         setInitSuccess(null);
 
         try {
             await configApi.initialize({
-                mint: initMint,
-                authority,
-                collateralRatio: parseFloat(collateralRatio),
+                mint,
+                feedSymbol,
+                description: description || undefined,
+                maxStalenessSecs: parseInt(maxStalenessSecs, 10),
+                mintFeeBps: parseInt(mintFeeBps, 10),
+                redeemFeeBps: parseInt(redeemFeeBps, 10),
+                maxConfidenceBps: parseInt(maxConfidenceBps, 10),
+                quoteValiditySecs: parseInt(quoteValiditySecs, 10),
+                cpiMultiplier: cpiMultiplier ? parseInt(cpiMultiplier, 10) : undefined,
+                cpiMinUpdateInterval: cpiMinUpdateInterval ? parseInt(cpiMinUpdateInterval, 10) : undefined,
+                cpiDataSource: cpiDataSource || undefined,
             });
-            setInitSuccess(`Config initialized for mint ${initMint}`);
-            setInitMint('');
-            setAuthority('');
+            setInitSuccess(`Config initialized for mint ${mint}`);
+            setMint('');
+            setFeedSymbol('');
+            setDescription('');
         } catch (err: any) {
             if (err instanceof ApiError) {
                 setInitError(`Error ${err.status}: ${err.message}`);
@@ -66,20 +91,61 @@ export default function ConfigPage() {
                     {initSuccess && <div className="mb-4 rounded bg-[#10B981]/15 p-3 text-sm text-[#10B981]">{initSuccess}</div>}
 
                     <form onSubmit={handleInitSubmit} className="flex flex-col gap-4">
-                        <div>
-                            <label className="label mb-2 block text-xs text-[#94A3B8]">MINT ADDRESS</label>
-                            <input type="text" className="w-full font-mono" value={initMint} onChange={e => setInitMint(e.target.value)} required />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="col-span-2">
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">MINT ADDRESS</label>
+                                <input type="text" className="w-full font-mono" value={mint} onChange={e => setMint(e.target.value)} required />
+                            </div>
+                            <div>
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">FEED SYMBOL</label>
+                                <input type="text" className="w-full" value={feedSymbol} onChange={e => setFeedSymbol(e.target.value)} required />
+                            </div>
+                            <div>
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">DESCRIPTION</label>
+                                <input type="text" className="w-full" value={description} onChange={e => setDescription(e.target.value)} />
+                            </div>
+                            <div>
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">MAX STALENESS (s)</label>
+                                <input type="number" className="w-full" value={maxStalenessSecs} onChange={e => setMaxStalenessSecs(e.target.value)} required min="1" />
+                            </div>
+                            <div>
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">VALIDITY (s)</label>
+                                <input type="number" className="w-full" value={quoteValiditySecs} onChange={e => setQuoteValiditySecs(e.target.value)} required min="1" />
+                            </div>
+                            <div>
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">MINT FEE (BPS)</label>
+                                <input type="number" className="w-full" value={mintFeeBps} onChange={e => setMintFeeBps(e.target.value)} required min="0" />
+                            </div>
+                            <div>
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">REDEEM FEE (BPS)</label>
+                                <input type="number" className="w-full" value={redeemFeeBps} onChange={e => setRedeemFeeBps(e.target.value)} required min="0" />
+                            </div>
+                            <div className="col-span-2">
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">MAX CONFIDENCE (BPS)</label>
+                                <input type="number" className="w-full" value={maxConfidenceBps} onChange={e => setMaxConfidenceBps(e.target.value)} required min="0" />
+                            </div>
                         </div>
-                        <div>
-                            <label className="label mb-2 block text-xs text-[#94A3B8]">AUTHORITY</label>
-                            <input type="text" className="w-full font-mono" value={authority} onChange={e => setAuthority(e.target.value)} required />
+
+                        <div className="border-t border-[#2A2A2A] pt-4 mt-2">
+                            <h4 className="text-sm font-semibold text-[#F8FAFC] mb-4">OPTIONAL CPI SETTINGS</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="label mb-2 block text-xs text-[#94A3B8]">MULTIPLIER (* 10^6)</label>
+                                    <input type="number" className="w-full" value={cpiMultiplier} onChange={e => setCpiMultiplier(e.target.value)} />
+                                </div>
+                                <div>
+                                    <label className="label mb-2 block text-xs text-[#94A3B8]">MIN UPDATE INT. (s)</label>
+                                    <input type="number" className="w-full" value={cpiMinUpdateInterval} onChange={e => setCpiMinUpdateInterval(e.target.value)} />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="label mb-2 block text-xs text-[#94A3B8]">DATA SOURCE</label>
+                                    <input type="text" className="w-full" value={cpiDataSource} onChange={e => setCpiDataSource(e.target.value)} />
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label className="label mb-2 block text-xs text-[#94A3B8]">COLLATERAL RATIO (%)</label>
-                            <input type="number" className="w-full" value={collateralRatio} onChange={e => setCollateralRatio(e.target.value)} required min="1" />
-                        </div>
-                        <button type="submit" className="primary mt-4" disabled={initSubmitting}>
-                            {initSubmitting ? 'INITIALIZING...' : 'INITIALIZE CONFIG'}
+
+                        <button type="submit" className="primary mt-4" disabled={initSubmitting || !connected}>
+                            {!connected ? 'CONNECT WALLET TO INIT' : initSubmitting ? 'INITIALIZING...' : 'INITIALIZE CONFIG'}
                         </button>
                     </form>
                 </div>

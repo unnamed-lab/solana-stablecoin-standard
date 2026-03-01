@@ -4,6 +4,7 @@ import './globals.css';
 import Sidebar from '@/components/layout/sidebar';
 import TopBar from '@/components/layout/top-bar';
 import StatusTicker from '@/components/layout/status-ticker';
+import WalletContextProvider from '@/components/wallet/wallet-provider';
 
 const syne = Syne({
   subsets: ['latin'],
@@ -35,19 +36,21 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${syne.variable} ${ibmPlexMono.variable} ${spaceMono.variable}`}>
-        <div className="scanlines"></div>
-        <div className="flex h-screen flex-col bg-super-bg">
-          <StatusTicker />
-          <div className="flex flex-1 overflow-hidden">
-            <Sidebar />
-            <div className="flex flex-1 flex-col overflow-hidden">
-              <TopBar />
-              <main className="flex-1 overflow-y-auto p-8">
-                {children}
-              </main>
+        <WalletContextProvider>
+          <div className="scanlines"></div>
+          <div className="flex h-screen flex-col bg-super-bg">
+            <StatusTicker />
+            <div className="flex flex-1 overflow-hidden">
+              <Sidebar />
+              <div className="flex flex-1 flex-col overflow-hidden">
+                <TopBar />
+                <main className="flex-1 overflow-y-auto p-8">
+                  {children}
+                </main>
+              </div>
             </div>
           </div>
-        </div>
+        </WalletContextProvider>
       </body>
     </html>
   );
