@@ -12,12 +12,12 @@ export class ConfigService {
   constructor(
     private readonly oracleSdk: OracleSdkService,
     private readonly nestConfig: NestConfigService,
-  ) {}
+  ) { }
 
   async getOracleInfo(mintAddress: string) {
     this.logger.log(`Fetching oracle info for mint: ${mintAddress}`);
     const mintPubkey = new PublicKey(mintAddress);
-    
+
     // The SDK method returns a snapshot of the OracleConfig parsing the BN units
     return await this.oracleSdk.oracle.getOracleInfo(
       this.oracleSdk.programId,
@@ -27,7 +27,7 @@ export class ConfigService {
 
   async initializeOracle(dto: InitializeConfigDto) {
     this.logger.log(`Initializing oracle config for mint: ${dto.mint.toBase58()}`);
-    
+
     // Using admin wallet from env to sign the transaction.
     const secretKeyString = this.nestConfig.get<string>('ADMIN_WALLET_SECRET_KEY');
     if (!secretKeyString) {
@@ -51,6 +51,24 @@ export class ConfigService {
         cpiMinUpdateInterval: dto.cpiMinUpdateInterval || 0,
         cpiDataSource: dto.cpiDataSource || '',
       }
+    );
+
+    return { success: true, txSig };
+  }
+
+  async initializeRegistry() {
+    this.logger.log(`Initializing global feed registry`);
+
+    // Using admin wallet from env to sign the transaction.
+    const secretKeyString = this.nestConfig.get<string>('ADMIN_WALLET_SECRET_KEY');
+    if (!secretKeyString) {
+      throw new Error('ADMIN_WALLET_SECRET_KEY is not configured');
+    }
+    const adminKeypair = Keypair.fromSecretKey(bs58.decode(secretKeyString));
+
+    const txSig = await this.oracleSdk.oracle.initializeRegistry(
+      adminKeypair,
+      this.oracleSdk.programId
     );
 
     return { success: true, txSig };

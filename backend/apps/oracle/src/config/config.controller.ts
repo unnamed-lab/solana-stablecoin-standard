@@ -6,7 +6,7 @@ import { InitializeConfigDto } from './dto/initialize-config.dto';
 @ApiTags('Config')
 @Controller('config')
 export class ConfigController {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(private readonly configService: ConfigService) { }
 
   @Get(':mint')
   @ApiOperation({ summary: 'Get Oracle configuration for a specific mint' })
@@ -21,5 +21,12 @@ export class ConfigController {
   @ApiResponse({ status: 201, description: 'Oracle configuration initialized successfully.' })
   async initializeOracle(@Body() dto: InitializeConfigDto) {
     return this.configService.initializeOracle(dto);
+  }
+
+  @Post('initialize-registry')
+  @ApiOperation({ summary: 'Initialize Global Feed Registry (Admin only)' })
+  @ApiResponse({ status: 201, description: 'Feed registry initialized successfully.' })
+  async initializeRegistry() {
+    return this.configService.initializeRegistry();
   }
 }
