@@ -4,7 +4,7 @@
     "description": "CLI for the Solana Stablecoin Standard (SSS)",
     "main": "dist/index.js",
     "bin": {
-        "sss": "./dist/index.js"
+        "sss-token": "./dist/index.js"
     },
     "scripts": {
         "build": "tsc",

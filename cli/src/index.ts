@@ -23,7 +23,7 @@ import {
 const program = new Command();
 
 program
-    .name('sss')
+    .name('sss-token')
     .description(
         chalk.bold('Solana Stablecoin Standard CLI') +
         '\n  Deploy, manage, and govern stablecoins on Solana.\n'

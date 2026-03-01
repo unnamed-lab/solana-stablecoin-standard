@@ -17,12 +17,12 @@ function registerComplianceCommands(program) {
     compliance
         .command('blacklist-add')
         .description('Add a wallet to the on-chain blacklist')
+        .argument('<address>', 'Wallet address to blacklist')
         .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
-        .requiredOption('--address <pubkey>', 'Wallet address to blacklist')
         .requiredOption('--reason <reason>', 'Reason for blacklisting')
         .option('--keypair <path>', 'Path to blacklister keypair JSON', (0, utils_1.getDefaultKeypairPath)())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
-        .action(async (opts) => {
+        .action(async (address, opts) => {
         const spinner = (0, ora_1.default)('Adding to blacklist...').start();
         try {
             const mintPubkey = new web3_js_1.PublicKey(opts.mint);
@@ -30,11 +30,11 @@ function registerComplianceCommands(program) {
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const authority = (0, utils_1.loadKeypair)(opts.keypair);
             const txSig = await sdk.compliance.blacklistAdd(authority, {
-                address: new web3_js_1.PublicKey(opts.address),
+                address: new web3_js_1.PublicKey(address),
                 reason: opts.reason,
             });
             spinner.stop();
-            (0, utils_1.printSuccess)(`Blacklisted: ${opts.address}`, txSig);
+            (0, utils_1.printSuccess)(`Blacklisted: ${address}`, txSig);
         }
         catch (err) {
             spinner.fail('Blacklist add failed');
@@ -46,20 +46,20 @@ function registerComplianceCommands(program) {
     compliance
         .command('blacklist-remove')
         .description('Remove a wallet from the on-chain blacklist')
+        .argument('<address>', 'Wallet address to un-blacklist')
         .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
-        .requiredOption('--address <pubkey>', 'Wallet address to un-blacklist')
         .option('--keypair <path>', 'Path to blacklister keypair JSON', (0, utils_1.getDefaultKeypairPath)())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
-        .action(async (opts) => {
+        .action(async (address, opts) => {
         const spinner = (0, ora_1.default)('Removing from blacklist...').start();
         try {
             const mintPubkey = new web3_js_1.PublicKey(opts.mint);
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const authority = (0, utils_1.loadKeypair)(opts.keypair);
-            const txSig = await sdk.compliance.blacklistRemove(authority, new web3_js_1.PublicKey(opts.address));
+            const txSig = await sdk.compliance.blacklistRemove(authority, new web3_js_1.PublicKey(address));
             spinner.stop();
-            (0, utils_1.printSuccess)(`Removed from blacklist: ${opts.address}`, txSig);
+            (0, utils_1.printSuccess)(`Removed from blacklist: ${address}`, txSig);
         }
         catch (err) {
             spinner.fail('Blacklist remove failed');
@@ -131,21 +131,21 @@ function registerComplianceCommands(program) {
     compliance
         .command('seize')
         .description('Seize tokens from a frozen account (SSS-2, permanent delegate)')
+        .argument('<address>', 'Source token account (must be frozen)')
         .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
-        .requiredOption('--from <pubkey>', 'Source token account (must be frozen)')
         .requiredOption('--to <pubkey>', 'Destination token account')
         .requiredOption('--amount <number>', 'Amount to seize (base units)')
         .requiredOption('--reason <reason>', 'Reason for seizure')
         .option('--keypair <path>', 'Path to seizer keypair JSON', (0, utils_1.getDefaultKeypairPath)())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
-        .action(async (opts) => {
+        .action(async (address, opts) => {
         const spinner = (0, ora_1.default)('Seizing tokens...').start();
         try {
             const mintPubkey = new web3_js_1.PublicKey(opts.mint);
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const authority = (0, utils_1.loadKeypair)(opts.keypair);
-            const txSig = await sdk.compliance.seize(authority, new web3_js_1.PublicKey(opts.from), new web3_js_1.PublicKey(opts.to), parseInt(opts.amount), opts.reason);
+            const txSig = await sdk.compliance.seize(authority, new web3_js_1.PublicKey(address), new web3_js_1.PublicKey(opts.to), parseInt(opts.amount), opts.reason);
             spinner.stop();
             (0, utils_1.printSuccess)(`Seized ${opts.amount} tokens`, txSig);
         }

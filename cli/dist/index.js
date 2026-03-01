@@ -9,7 +9,7 @@ const chalk_1 = __importDefault(require("chalk"));
 const commands_1 = require("./commands");
 const program = new commander_1.Command();
 program
-    .name('sss')
+    .name('sss-token')
     .description(chalk_1.default.bold('Solana Stablecoin Standard CLI') +
     '\n  Deploy, manage, and govern stablecoins on Solana.\n')
     .version('0.1.0');

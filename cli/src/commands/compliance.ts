@@ -21,12 +21,12 @@ export function registerComplianceCommands(program: Command): void {
     compliance
         .command('blacklist-add')
         .description('Add a wallet to the on-chain blacklist')
+        .argument('<address>', 'Wallet address to blacklist')
         .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
-        .requiredOption('--address <pubkey>', 'Wallet address to blacklist')
         .requiredOption('--reason <reason>', 'Reason for blacklisting')
         .option('--keypair <path>', 'Path to blacklister keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
-        .action(async (opts) => {
+        .action(async (address, opts) => {
             const spinner = ora('Adding to blacklist...').start();
 
             try {
@@ -37,12 +37,12 @@ export function registerComplianceCommands(program: Command): void {
                 const authority = loadKeypair(opts.keypair);
 
                 const txSig = await sdk.compliance.blacklistAdd(authority, {
-                    address: new PublicKey(opts.address),
+                    address: new PublicKey(address),
                     reason: opts.reason,
                 });
 
                 spinner.stop();
-                printSuccess(`Blacklisted: ${opts.address}`, txSig);
+                printSuccess(`Blacklisted: ${address}`, txSig);
             } catch (err) {
                 spinner.fail('Blacklist add failed');
                 printError('Failed to add to blacklist', err);
@@ -54,11 +54,11 @@ export function registerComplianceCommands(program: Command): void {
     compliance
         .command('blacklist-remove')
         .description('Remove a wallet from the on-chain blacklist')
+        .argument('<address>', 'Wallet address to un-blacklist')
         .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
-        .requiredOption('--address <pubkey>', 'Wallet address to un-blacklist')
         .option('--keypair <path>', 'Path to blacklister keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
-        .action(async (opts) => {
+        .action(async (address, opts) => {
             const spinner = ora('Removing from blacklist...').start();
 
             try {
@@ -70,11 +70,11 @@ export function registerComplianceCommands(program: Command): void {
 
                 const txSig = await sdk.compliance.blacklistRemove(
                     authority,
-                    new PublicKey(opts.address),
+                    new PublicKey(address),
                 );
 
                 spinner.stop();
-                printSuccess(`Removed from blacklist: ${opts.address}`, txSig);
+                printSuccess(`Removed from blacklist: ${address}`, txSig);
             } catch (err) {
                 spinner.fail('Blacklist remove failed');
                 printError('Failed to remove from blacklist', err);
@@ -154,14 +154,14 @@ export function registerComplianceCommands(program: Command): void {
     compliance
         .command('seize')
         .description('Seize tokens from a frozen account (SSS-2, permanent delegate)')
+        .argument('<address>', 'Source token account (must be frozen)')
         .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
-        .requiredOption('--from <pubkey>', 'Source token account (must be frozen)')
         .requiredOption('--to <pubkey>', 'Destination token account')
         .requiredOption('--amount <number>', 'Amount to seize (base units)')
         .requiredOption('--reason <reason>', 'Reason for seizure')
         .option('--keypair <path>', 'Path to seizer keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
-        .action(async (opts) => {
+        .action(async (address, opts) => {
             const spinner = ora('Seizing tokens...').start();
 
             try {
@@ -173,7 +173,7 @@ export function registerComplianceCommands(program: Command): void {
 
                 const txSig = await sdk.compliance.seize(
                     authority,
-                    new PublicKey(opts.from),
+                    new PublicKey(address),
                     new PublicKey(opts.to),
                     parseInt(opts.amount),
                     opts.reason,
