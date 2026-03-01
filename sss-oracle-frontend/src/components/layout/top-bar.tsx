@@ -1,6 +1,12 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const WalletMultiButtonDynamic = dynamic(
+    async () => (await import('@solana/wallet-adapter-react-ui')).WalletMultiButton,
+    { ssr: false }
+);
 
 export default function TopBar() {
     const pathname = usePathname();
@@ -25,9 +31,7 @@ export default function TopBar() {
             </div>
 
             <div>
-                <button className="border-[#2A2A2A] bg-[#1A1A1A] text-[#F8FAFC] hover:border-[#A855F7] rounded border px-4 py-2 transition-colors">
-                    Connect Wallet
-                </button>
+                <WalletMultiButtonDynamic className="!bg-[#1A1A1A] !text-[#F8FAFC] !border !border-[#2A2A2A] hover:!border-[#A855F7] !transition-colors !rounded !px-4 !py-2 !h-auto !font-normal" />
             </div>
         </div>
     );

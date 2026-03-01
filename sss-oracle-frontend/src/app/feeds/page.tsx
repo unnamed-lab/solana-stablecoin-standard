@@ -4,19 +4,31 @@ import { useState } from 'react';
 import { feedsApi, ApiError } from '@/lib/api';
 import { useFeeds } from '@/hooks/use-oracle';
 import { FeedCard } from '@/components/oracle/feed-card';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 export default function PriceFeedsPage() {
     const { feeds, loading, error: fetchError, refetch } = useFeeds();
+    const { connected } = useWallet();
+
     const [symbol, setSymbol] = useState('');
-    const [feedAddress, setFeedAddress] = useState('');
-    const [maxStaleness, setMaxStaleness] = useState('60');
-    const [confidenceInterval, setConfidenceInterval] = useState('0.1');
+    const [feedType, setFeedType] = useState('0');
+    const [baseCurrency, setBaseCurrency] = useState('USD');
+    const [quoteCurrency, setQuoteCurrency] = useState('USD');
+    const [decimals, setDecimals] = useState('8');
+    const [switchboardFeed, setSwitchboardFeed] = useState('');
+
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!connected) {
+            setError('Please connect your wallet to perform admin actions.');
+            return;
+        }
+
         setSubmitting(true);
         setError(null);
         setSuccess(null);
@@ -24,13 +36,15 @@ export default function PriceFeedsPage() {
         try {
             await feedsApi.register({
                 symbol,
-                feedAddress,
-                maxStaleness: parseInt(maxStaleness, 10),
-                confidenceInterval: parseFloat(confidenceInterval),
+                feedType: parseInt(feedType, 10),
+                baseCurrency,
+                quoteCurrency,
+                decimals: parseInt(decimals, 10),
+                switchboardFeed,
             });
             setSuccess(`Feed ${symbol} registered successfully!`);
             setSymbol('');
-            setFeedAddress('');
+            setSwitchboardFeed('');
             refetch();
         } catch (err: any) {
             if (err instanceof ApiError) {
@@ -60,25 +74,36 @@ export default function PriceFeedsPage() {
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                         <div>
-                            <label className="label mb-2 block text-xs text-[#94A3B8]">SYMBOL (e.g. SOL/USD)</label>
+                            <label className="label mb-2 block text-xs text-[#94A3B8]">SYMBOL (e.g. BRLUSD)</label>
                             <input type="text" className="w-full" value={symbol} onChange={e => setSymbol(e.target.value)} required />
                         </div>
                         <div>
                             <label className="label mb-2 block text-xs text-[#94A3B8]">SWITCHBOARD FEED ADDRESS</label>
-                            <input type="text" className="w-full font-mono" value={feedAddress} onChange={e => setFeedAddress(e.target.value)} required />
+                            <input type="text" className="w-full font-mono" value={switchboardFeed} onChange={e => setSwitchboardFeed(e.target.value)} required />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="label mb-2 block text-xs text-[#94A3B8]">MAX STALENESS (s)</label>
-                                <input type="number" className="w-full" value={maxStaleness} onChange={e => setMaxStaleness(e.target.value)} required min="1" />
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">BASE CURRENCY</label>
+                                <input type="text" className="w-full" value={baseCurrency} onChange={e => setBaseCurrency(e.target.value)} required />
                             </div>
                             <div>
-                                <label className="label mb-2 block text-xs text-[#94A3B8]">CONFIDENCE INT. ($)</label>
-                                <input type="number" className="w-full" value={confidenceInterval} onChange={e => setConfidenceInterval(e.target.value)} required min="0" step="0.01" />
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">QUOTE CURRENCY</label>
+                                <input type="text" className="w-full" value={quoteCurrency} onChange={e => setQuoteCurrency(e.target.value)} required />
+                            </div>
+                            <div>
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">FEED TYPE</label>
+                                <select className="w-full bg-[#1A1A1A] border border-[#2A2A2A] text-white p-2 rounded" value={feedType} onChange={e => setFeedType(e.target.value)}>
+                                    <option value="0">Pull Oracle</option>
+                                    <option value="1">Push Oracle</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="label mb-2 block text-xs text-[#94A3B8]">DECIMALS</label>
+                                <input type="number" className="w-full" value={decimals} onChange={e => setDecimals(e.target.value)} required min="0" />
                             </div>
                         </div>
-                        <button type="submit" className="primary mt-4" disabled={submitting}>
-                            {submitting ? 'REGISTERING...' : 'REGISTER FEED'}
+                        <button type="submit" className="primary mt-4" disabled={submitting || !connected}>
+                            {!connected ? 'CONNECT WALLET TO REGISTER' : submitting ? 'REGISTERING...' : 'REGISTER FEED'}
                         </button>
                     </form>
                 </div>
