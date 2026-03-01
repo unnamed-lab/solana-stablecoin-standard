@@ -17,23 +17,59 @@ import { SolanaStablecoin, SolanaNetwork, StablecoinPreset } from '@stbr/sss-tok
 import bs58 from 'bs58';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
+
+// Attempt to load .env file if running locally
+try {
+  require('dotenv').config();
+} catch (e) { }
 
 async function main() {
-  const network = SolanaNetwork.LOCALNET;
-  const connection = new Connection('http://127.0.0.1:8899', 'confirmed');
+  const network = process.env.SOLANA_NETWORK === 'localnet' ? SolanaNetwork.LOCALNET : SolanaNetwork.DEVNET;
+  const rpcUrl = process.env.RPC_URL || 'https://api.devnet.solana.com';
+  const connection = new Connection(rpcUrl, 'confirmed');
+
+  console.log(`🔌 Network: ${network} | RPC: ${rpcUrl}`);
 
   // ── 1. Generate (or load) the authority keypair ──────────────────────
-  const authority = Keypair.generate();
+  let authority: Keypair;
+  const keypairPath = path.join(os.homedir(), '.config', 'solana', 'id.json');
+
+  if (fs.existsSync(keypairPath)) {
+    console.log(`🔑 Loading authority from ${keypairPath}`);
+    const keyData = JSON.parse(fs.readFileSync(keypairPath, 'utf-8'));
+    authority = Keypair.fromSecretKey(new Uint8Array(keyData));
+  } else if (process.env.ADMIN_WALLET_SECRET_KEY) {
+    console.log('🔑 Loading authority from process.env.ADMIN_WALLET_SECRET_KEY');
+    authority = Keypair.fromSecretKey(bs58.decode(process.env.ADMIN_WALLET_SECRET_KEY));
+  } else {
+    console.log('🔑 Generating new authority keypair (Not recommended for devnet without airdrop!)');
+    authority = Keypair.generate();
+  }
+
   console.log('🔑 Authority public key:', authority.publicKey.toBase58());
 
   // ── 2. Airdrop SOL to authority (localnet only) ──────────────────────
-  console.log('💧 Requesting airdrop...');
-  const airdropSig = await connection.requestAirdrop(
-    authority.publicKey,
-    2 * LAMPORTS_PER_SOL,
-  );
-  await connection.confirmTransaction(airdropSig, 'confirmed');
-  console.log('✅ Airdrop confirmed');
+  if (network === SolanaNetwork.LOCALNET || rpcUrl.includes('127.0.0.1') || rpcUrl.includes('localhost')) {
+    console.log('💧 Requesting airdrop for localnet...');
+    try {
+      const airdropSig = await connection.requestAirdrop(
+        authority.publicKey,
+        2 * LAMPORTS_PER_SOL,
+      );
+      await connection.confirmTransaction(airdropSig, 'confirmed');
+      console.log('✅ Airdrop confirmed');
+    } catch (e) {
+      console.log('⚠️ Airdrop failed (might already have funds or RPC issue):', e);
+    }
+  } else {
+    console.log('⏭️ Skipping airdrop on devnet/mainnet. Checking balance...');
+    const balance = await connection.getBalance(authority.publicKey);
+    console.log(`💰 Authority balance: ${balance / LAMPORTS_PER_SOL} SOL`);
+    if (balance === 0) {
+      throw new Error('❌ Authority wallet has 0 SOL. Please fund it before deploying on devnet.');
+    }
+  }
 
   // ── 3. Deploy the stablecoin ─────────────────────────────────────────
   console.log('🚀 Deploying stablecoin...');
@@ -89,7 +125,7 @@ Next steps:
   2. Restart the backend:  npm run start:dev
 
   3. Mint tokens via API:
-       POST http://localhost:3000/api/v1/mint
+       POST http://localhost:4000/api/v1/mint
        {
          "recipient": "<any wallet address>",
          "amount": 1000000,

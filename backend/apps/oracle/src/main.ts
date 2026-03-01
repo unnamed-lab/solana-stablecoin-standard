@@ -39,7 +39,7 @@ async function bootstrap() {
     .setTitle('SSS Oracle API')
     .setDescription(
       'Solana Stablecoin Standard — Oracle Backend Service API.\n\n' +
-        'Provides endpoints for interacting with the SSS Oracle program: listing price feeds, fetching config, and simulating math-only price quotes (USD to token and vice versa).',
+      'Provides endpoints for interacting with the SSS Oracle program: listing price feeds, fetching config, and simulating math-only price quotes (USD to token and vice versa).',
     )
     .setVersion('1.0')
     .addTag('Health', 'Service health checks')
@@ -51,8 +51,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);
 
-  // Oracle typically runs on a different port than the main API (3000)
-  const port = process.env.ORACLE_PORT ?? 3003;
+  // Oracle typically runs on a different port than the main API (4000)
+  const port = process.env.ORACLE_PORT ?? 4001;
   await app.listen(port);
 
   console.log(`🚀 SSS Oracle Backend running on http://localhost:${port}`);

@@ -10,6 +10,11 @@ export default function Dashboard() {
   const activeFeedsCount = feeds.filter(f => f.healthy !== false).length;
   const totalFeedsCount = feeds.length;
 
+  const isUninitializedError = error && (
+    (error as any).message?.includes('Account does not exist') ||
+    (error as any).message?.includes('AccountNotInitialized')
+  );
+
   return (
     <div className="flex flex-col gap-8">
       <header>
@@ -17,9 +22,17 @@ export default function Dashboard() {
         <p className="m-0 text-[#94A3B8]">Real-time status of the SSS Oracle Infrastructure</p>
       </header>
 
-      {error && (
+      {error && !isUninitializedError && (
         <div className="rounded border-l-4 border-l-[#EF4444] bg-[#EF4444]/15 p-4 text-[#EF4444]">
           <strong>Error connecting to backend:</strong> {error.message}
+        </div>
+      )}
+
+      {error && isUninitializedError && (
+        <div className="rounded border-l-4 border-l-[#A855F7] bg-[#A855F7]/15 p-4 text-[#A855F7]">
+          <strong>Registry Not Initialized:</strong> The global feed registry must be initialized before the oracle can operate.
+          <br /><br />
+          <a href="/registry" className="underline hover:text-white">Go to Registry to Initialize</a>
         </div>
       )}
 
