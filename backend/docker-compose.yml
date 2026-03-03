@@ -17,7 +17,7 @@ services:
       dockerfile: backend/apps/api/Dockerfile
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "4000:4000"
     depends_on:
       redis: { condition: service_healthy }
     extra_hosts:
@@ -29,9 +29,9 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       NODE_ENV: production
-      PORT: 3000
+      PORT: 4000
     healthcheck:
-      test: [ "CMD-SHELL", "node -e \"fetch('http://localhost:3000/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))\"" ]
+      test: [ "CMD-SHELL", "node -e \"fetch('http://localhost:4000/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))\"" ]
       interval: 30s
       timeout: 10s
       retries: 3
