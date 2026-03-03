@@ -11,6 +11,7 @@ import {
     printSuccess,
     printError,
 } from '../utils';
+import { saveToken, setActiveToken, loadConfig, type TokenEntry } from '../config';
 
 export function registerCreateCommand(program: Command): void {
     program
@@ -66,6 +67,22 @@ export function registerCreateCommand(program: Command): void {
                 printField('Decimals', opts.decimals);
                 printField('Network', network);
                 printSuccess('Stablecoin deployed successfully', txSig);
+
+                // ── Persist to ~/.sss/config.json ──
+                const mint58 = mintAddress.toBase58();
+                const entry: TokenEntry = {
+                    name: opts.name,
+                    symbol: opts.symbol,
+                    preset: opts.preset,
+                    network,
+                    createdAt: new Date().toISOString(),
+                    keypairPath: opts.keypair,
+                    mintAddress: mint58,
+                    decimals: parseInt(opts.decimals),
+                };
+                saveToken(mint58, entry);
+                setActiveToken(mint58);
+                console.log(chalk.gray(`\n  Saved to config & set as active token.`));
             } catch (err) {
                 spinner.fail('Failed to create stablecoin');
                 printError('Deployment failed', err);
@@ -106,5 +123,53 @@ export function registerInfoCommand(program: Command): void {
                 printError('Could not load stablecoin', err);
                 process.exit(1);
             }
+        });
+}
+
+export function registerListCommand(program: Command): void {
+    program
+        .command('list')
+        .description('List all locally stored tokens')
+        .action(() => {
+            const config = loadConfig();
+            const mints = Object.keys(config.tokens);
+
+            printHeader('Stored Tokens');
+
+            if (mints.length === 0) {
+                console.log(chalk.gray('  No tokens stored yet. Run sss-token create to get started.'));
+                console.log();
+                return;
+            }
+
+            for (const mint of mints) {
+                const t = config.tokens[mint];
+                const active = mint === config.activeToken ? chalk.green(' (active)') : '';
+                console.log(`  ${chalk.cyan(t.symbol)} — ${t.name}${active}`);
+                console.log(chalk.gray(`    Mint:    ${mint}`));
+                console.log(chalk.gray(`    Network: ${t.network}  |  Preset: ${t.preset}  |  Decimals: ${t.decimals}`));
+                console.log(chalk.gray(`    Created: ${t.createdAt}`));
+                console.log();
+            }
+        });
+}
+
+export function registerUseCommand(program: Command): void {
+    program
+        .command('use')
+        .description('Set a stored token as the active token')
+        .argument('<mint>', 'Mint address of the token to activate')
+        .action((mint: string) => {
+            const config = loadConfig();
+            if (!config.tokens[mint]) {
+                printError(
+                    'Token not found',
+                    new Error(`No stored token with mint ${mint}.\nRun sss-token list to see available tokens.`),
+                );
+                process.exit(1);
+            }
+            setActiveToken(mint);
+            const t = config.tokens[mint];
+            printSuccess(`Active token set to ${t.symbol} (${mint})`);
         });
 }

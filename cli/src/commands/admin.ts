@@ -8,19 +8,20 @@ import {
     printSuccess,
     printError,
 } from '../utils';
+import { resolveMint } from '../config';
 
 export function registerPauseCommand(program: Command): void {
     program
         .command('pause')
         .description('Pause the stablecoin (blocks minting & burning)')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to pauser keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
             const spinner = ora('Pausing stablecoin...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -41,14 +42,14 @@ export function registerUnpauseCommand(program: Command): void {
     program
         .command('unpause')
         .description('Unpause the stablecoin (resumes operations)')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to pauser keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
             const spinner = ora('Unpausing stablecoin...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -69,7 +70,7 @@ export function registerAddMinterCommand(program: Command): void {
     program
         .command('add-minter')
         .description('Authorise a new minter with an optional quota')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .requiredOption('--minter <pubkey>', 'Public key of the new minter')
         .option('--quota <number>', 'Max tokens this minter can mint per period')
         .option('--keypair <path>', 'Path to minter-authority keypair JSON', getDefaultKeypairPath())
@@ -78,7 +79,7 @@ export function registerAddMinterCommand(program: Command): void {
             const spinner = ora('Adding minter...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -105,7 +106,7 @@ export function registerRemoveMinterCommand(program: Command): void {
     program
         .command('remove-minter')
         .description('Revoke minting rights from a minter')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .requiredOption('--minter <pubkey>', 'Public key of the minter to remove')
         .option('--keypair <path>', 'Path to minter-authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
@@ -113,7 +114,7 @@ export function registerRemoveMinterCommand(program: Command): void {
             const spinner = ora('Removing minter...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -138,7 +139,7 @@ export function registerUpdateRolesCommand(program: Command): void {
     program
         .command('update-roles')
         .description('Update role assignments on the stablecoin')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--new-pauser <pubkey>', 'New pauser public key')
         .option('--new-minter-authority <pubkey>', 'New minter authority public key')
         .option('--new-burner <pubkey>', 'New burner public key')
@@ -150,7 +151,7 @@ export function registerUpdateRolesCommand(program: Command): void {
             const spinner = ora('Updating roles...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -178,7 +179,7 @@ export function registerProposeTransferCommand(program: Command): void {
     program
         .command('propose-transfer')
         .description('Propose master authority transfer to a new key')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .requiredOption('--new-authority <pubkey>', 'Public key of the proposed new authority')
         .option('--keypair <path>', 'Path to current authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
@@ -186,7 +187,7 @@ export function registerProposeTransferCommand(program: Command): void {
             const spinner = ora('Proposing authority transfer...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -211,14 +212,14 @@ export function registerAcceptTransferCommand(program: Command): void {
     program
         .command('accept-transfer')
         .description('Accept a pending master authority transfer')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to pending authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
             const spinner = ora('Accepting authority transfer...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 

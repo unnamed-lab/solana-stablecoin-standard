@@ -5,7 +5,7 @@ import fs from "fs";
 const CONFIG_DIR = path.join(os.homedir(), ".sss");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
-interface TokenEntry{
+export interface TokenEntry{
     name: string;
     symbol: string;
     preset: string;
@@ -56,4 +56,23 @@ export function setActiveToken(mintAddress: string){
     const config = loadConfig();
     config.activeToken = mintAddress;
     fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+}
+
+/**
+ * Resolve the mint address: use explicit --mint flag if provided,
+ * otherwise fall back to the active token from ~/.sss/config.json.
+ */
+export function resolveMint(optsMint?: string): string {
+    if (optsMint) return optsMint;
+    try {
+        const token = getActiveToken();
+        return token.mintAddress;
+    } catch {
+        throw new Error(
+            'No --mint flag provided and no active token set.\n' +
+            '  Either pass --mint <pubkey> or run:\n' +
+            '    sss-token create ...   (auto-sets active token)\n' +
+            '    sss-token use <mint>   (sets an existing token as active)'
+        );
+    }
 }

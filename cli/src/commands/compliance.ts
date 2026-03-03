@@ -11,6 +11,7 @@ import {
     printSuccess,
     printError,
 } from '../utils';
+import { resolveMint } from '../config';
 
 export function registerComplianceCommands(program: Command): void {
     const compliance = program
@@ -22,7 +23,7 @@ export function registerComplianceCommands(program: Command): void {
         .command('blacklist-add')
         .description('Add a wallet to the on-chain blacklist')
         .argument('<address>', 'Wallet address to blacklist')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .requiredOption('--reason <reason>', 'Reason for blacklisting')
         .option('--keypair <path>', 'Path to blacklister keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
@@ -30,7 +31,7 @@ export function registerComplianceCommands(program: Command): void {
             const spinner = ora('Adding to blacklist...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -55,14 +56,14 @@ export function registerComplianceCommands(program: Command): void {
         .command('blacklist-remove')
         .description('Remove a wallet from the on-chain blacklist')
         .argument('<address>', 'Wallet address to un-blacklist')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to blacklister keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (address, opts) => {
             const spinner = ora('Removing from blacklist...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -86,14 +87,14 @@ export function registerComplianceCommands(program: Command): void {
     compliance
         .command('check')
         .description('Check if a wallet is blacklisted')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .requiredOption('--address <pubkey>', 'Wallet address to check')
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
             const spinner = ora('Checking blacklist status...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -117,13 +118,13 @@ export function registerComplianceCommands(program: Command): void {
     compliance
         .command('list')
         .description('List all active blacklist entries')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
             const spinner = ora('Fetching blacklist...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -155,7 +156,7 @@ export function registerComplianceCommands(program: Command): void {
         .command('seize')
         .description('Seize tokens from a frozen account (SSS-2, permanent delegate)')
         .argument('<address>', 'Source token account (must be frozen)')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .requiredOption('--to <pubkey>', 'Destination token account')
         .requiredOption('--amount <number>', 'Amount to seize (base units)')
         .requiredOption('--reason <reason>', 'Reason for seizure')
@@ -165,7 +166,7 @@ export function registerComplianceCommands(program: Command): void {
             const spinner = ora('Seizing tokens...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 

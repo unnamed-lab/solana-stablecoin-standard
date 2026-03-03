@@ -8,6 +8,7 @@ import {
     printSuccess,
     printError,
 } from '../utils';
+import { resolveMint } from '../config';
 
 export function registerMintCommand(program: Command): void {
     program
@@ -15,14 +16,14 @@ export function registerMintCommand(program: Command): void {
         .description('Mint new tokens to a recipient')
         .argument('<recipient>', 'Recipient token account (ATA)')
         .argument('<amount>', 'Amount to mint (base units)')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--minter <path>', 'Path to minter keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (recipient, amount, opts) => {
             const spinner = ora('Minting tokens...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -48,7 +49,7 @@ export function registerBurnCommand(program: Command): void {
     program
         .command('burn')
         .description('Burn tokens from a token account')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .argument('<amount>', 'Amount to burn (base units)')
         .option('--source <pubkey>', 'Source token account (defaults to burner ATA)')
         .option('--burner <path>', 'Path to burner keypair JSON', getDefaultKeypairPath())
@@ -57,7 +58,7 @@ export function registerBurnCommand(program: Command): void {
             const spinner = ora('Burning tokens...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -84,14 +85,14 @@ export function registerFreezeCommand(program: Command): void {
         .command('freeze')
         .description('Freeze a token account')
         .argument('<address>', 'Token account to freeze')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (address, opts) => {
             const spinner = ora('Freezing account...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 
@@ -114,14 +115,14 @@ export function registerThawCommand(program: Command): void {
         .command('thaw')
         .description('Thaw (unfreeze) a token account')
         .argument('<address>', 'Token account to thaw')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (address, opts) => {
             const spinner = ora('Thawing account...').start();
 
             try {
-                const mintPubkey = new PublicKey(opts.mint);
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
 

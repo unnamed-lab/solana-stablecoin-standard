@@ -5,6 +5,8 @@ import chalk from 'chalk';
 import {
     registerCreateCommand,
     registerInfoCommand,
+    registerListCommand,
+    registerUseCommand,
     registerMintCommand,
     registerBurnCommand,
     registerFreezeCommand,
@@ -33,6 +35,8 @@ program
 // ── Token Lifecycle ─────────────────────────────────────────────────────
 registerCreateCommand(program);
 registerInfoCommand(program);
+registerListCommand(program);
+registerUseCommand(program);
 
 // ── Token Operations ────────────────────────────────────────────────────
 registerMintCommand(program);
