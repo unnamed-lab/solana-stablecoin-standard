@@ -1,4 +1,4 @@
-interface TokenEntry {
+export interface TokenEntry {
     name: string;
     symbol: string;
     preset: string;
@@ -16,4 +16,9 @@ export declare function loadConfig(): SSSConfig;
 export declare function saveToken(mintAddress: string, metadata: TokenEntry): void;
 export declare function getActiveToken(): TokenEntry;
 export declare function setActiveToken(mintAddress: string): void;
+/**
+ * Resolve the mint address: use explicit --mint flag if provided,
+ * otherwise fall back to the active token from ~/.sss/config.json.
+ */
+export declare function resolveMint(optsMint?: string): string;
 export {};

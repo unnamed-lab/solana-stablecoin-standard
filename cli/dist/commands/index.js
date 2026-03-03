@@ -1,9 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerHookCommands = exports.registerComplianceCommands = exports.registerAcceptTransferCommand = exports.registerProposeTransferCommand = exports.registerUpdateRolesCommand = exports.registerRemoveMinterCommand = exports.registerAddMinterCommand = exports.registerUnpauseCommand = exports.registerPauseCommand = exports.registerThawCommand = exports.registerFreezeCommand = exports.registerBurnCommand = exports.registerMintCommand = exports.registerInfoCommand = exports.registerCreateCommand = void 0;
+exports.registerHookCommands = exports.registerComplianceCommands = exports.registerAcceptTransferCommand = exports.registerProposeTransferCommand = exports.registerUpdateRolesCommand = exports.registerRemoveMinterCommand = exports.registerAddMinterCommand = exports.registerUnpauseCommand = exports.registerPauseCommand = exports.registerThawCommand = exports.registerFreezeCommand = exports.registerBurnCommand = exports.registerMintCommand = exports.registerUseCommand = exports.registerListCommand = exports.registerInfoCommand = exports.registerCreateCommand = void 0;
 var token_1 = require("./token");
 Object.defineProperty(exports, "registerCreateCommand", { enumerable: true, get: function () { return token_1.registerCreateCommand; } });
 Object.defineProperty(exports, "registerInfoCommand", { enumerable: true, get: function () { return token_1.registerInfoCommand; } });
+Object.defineProperty(exports, "registerListCommand", { enumerable: true, get: function () { return token_1.registerListCommand; } });
+Object.defineProperty(exports, "registerUseCommand", { enumerable: true, get: function () { return token_1.registerUseCommand; } });
 var operations_1 = require("./operations");
 Object.defineProperty(exports, "registerMintCommand", { enumerable: true, get: function () { return operations_1.registerMintCommand; } });
 Object.defineProperty(exports, "registerBurnCommand", { enumerable: true, get: function () { return operations_1.registerBurnCommand; } });

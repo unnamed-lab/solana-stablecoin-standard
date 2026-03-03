@@ -7,6 +7,7 @@ exports.loadConfig = loadConfig;
 exports.saveToken = saveToken;
 exports.getActiveToken = getActiveToken;
 exports.setActiveToken = setActiveToken;
+exports.resolveMint = resolveMint;
 const path_1 = __importDefault(require("path"));
 const os_1 = __importDefault(require("os"));
 const fs_1 = __importDefault(require("fs"));
@@ -44,5 +45,23 @@ function setActiveToken(mintAddress) {
     const config = loadConfig();
     config.activeToken = mintAddress;
     fs_1.default.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
+}
+/**
+ * Resolve the mint address: use explicit --mint flag if provided,
+ * otherwise fall back to the active token from ~/.sss/config.json.
+ */
+function resolveMint(optsMint) {
+    if (optsMint)
+        return optsMint;
+    try {
+        const token = getActiveToken();
+        return token.mintAddress;
+    }
+    catch {
+        throw new Error('No --mint flag provided and no active token set.\n' +
+            '  Either pass --mint <pubkey> or run:\n' +
+            '    sss-token create ...   (auto-sets active token)\n' +
+            '    sss-token use <mint>   (sets an existing token as active)');
+    }
 }
 //# sourceMappingURL=config.js.map

@@ -9,6 +9,7 @@ const sss_token_1 = require("@stbr/sss-token");
 const ora_1 = __importDefault(require("ora"));
 const chalk_1 = __importDefault(require("chalk"));
 const utils_1 = require("../utils");
+const config_1 = require("../config");
 function registerComplianceCommands(program) {
     const compliance = program
         .command('compliance')
@@ -18,14 +19,14 @@ function registerComplianceCommands(program) {
         .command('blacklist-add')
         .description('Add a wallet to the on-chain blacklist')
         .argument('<address>', 'Wallet address to blacklist')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .requiredOption('--reason <reason>', 'Reason for blacklisting')
         .option('--keypair <path>', 'Path to blacklister keypair JSON', (0, utils_1.getDefaultKeypairPath)())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (address, opts) => {
         const spinner = (0, ora_1.default)('Adding to blacklist...').start();
         try {
-            const mintPubkey = new web3_js_1.PublicKey(opts.mint);
+            const mintPubkey = new web3_js_1.PublicKey((0, config_1.resolveMint)(opts.mint));
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const authority = (0, utils_1.loadKeypair)(opts.keypair);
@@ -47,13 +48,13 @@ function registerComplianceCommands(program) {
         .command('blacklist-remove')
         .description('Remove a wallet from the on-chain blacklist')
         .argument('<address>', 'Wallet address to un-blacklist')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to blacklister keypair JSON', (0, utils_1.getDefaultKeypairPath)())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (address, opts) => {
         const spinner = (0, ora_1.default)('Removing from blacklist...').start();
         try {
-            const mintPubkey = new web3_js_1.PublicKey(opts.mint);
+            const mintPubkey = new web3_js_1.PublicKey((0, config_1.resolveMint)(opts.mint));
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const authority = (0, utils_1.loadKeypair)(opts.keypair);
@@ -71,13 +72,13 @@ function registerComplianceCommands(program) {
     compliance
         .command('check')
         .description('Check if a wallet is blacklisted')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .requiredOption('--address <pubkey>', 'Wallet address to check')
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
         const spinner = (0, ora_1.default)('Checking blacklist status...').start();
         try {
-            const mintPubkey = new web3_js_1.PublicKey(opts.mint);
+            const mintPubkey = new web3_js_1.PublicKey((0, config_1.resolveMint)(opts.mint));
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const isBlacklisted = await sdk.compliance.isBlacklisted(new web3_js_1.PublicKey(opts.address));
@@ -97,12 +98,12 @@ function registerComplianceCommands(program) {
     compliance
         .command('list')
         .description('List all active blacklist entries')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
         const spinner = (0, ora_1.default)('Fetching blacklist...').start();
         try {
-            const mintPubkey = new web3_js_1.PublicKey(opts.mint);
+            const mintPubkey = new web3_js_1.PublicKey((0, config_1.resolveMint)(opts.mint));
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const entries = await sdk.compliance.getBlacklist();
@@ -132,7 +133,7 @@ function registerComplianceCommands(program) {
         .command('seize')
         .description('Seize tokens from a frozen account (SSS-2, permanent delegate)')
         .argument('<address>', 'Source token account (must be frozen)')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .requiredOption('--to <pubkey>', 'Destination token account')
         .requiredOption('--amount <number>', 'Amount to seize (base units)')
         .requiredOption('--reason <reason>', 'Reason for seizure')
@@ -141,7 +142,7 @@ function registerComplianceCommands(program) {
         .action(async (address, opts) => {
         const spinner = (0, ora_1.default)('Seizing tokens...').start();
         try {
-            const mintPubkey = new web3_js_1.PublicKey(opts.mint);
+            const mintPubkey = new web3_js_1.PublicKey((0, config_1.resolveMint)(opts.mint));
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const authority = (0, utils_1.loadKeypair)(opts.keypair);

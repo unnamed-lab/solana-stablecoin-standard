@@ -11,19 +11,20 @@ const web3_js_1 = require("@solana/web3.js");
 const sss_token_1 = require("@stbr/sss-token");
 const ora_1 = __importDefault(require("ora"));
 const utils_1 = require("../utils");
+const config_1 = require("../config");
 function registerMintCommand(program) {
     program
         .command('mint')
         .description('Mint new tokens to a recipient')
         .argument('<recipient>', 'Recipient token account (ATA)')
         .argument('<amount>', 'Amount to mint (base units)')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--minter <path>', 'Path to minter keypair JSON', (0, utils_1.getDefaultKeypairPath)())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (recipient, amount, opts) => {
         const spinner = (0, ora_1.default)('Minting tokens...').start();
         try {
-            const mintPubkey = new web3_js_1.PublicKey(opts.mint);
+            const mintPubkey = new web3_js_1.PublicKey((0, config_1.resolveMint)(opts.mint));
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const minter = (0, utils_1.loadKeypair)(opts.minter);
@@ -46,7 +47,7 @@ function registerBurnCommand(program) {
     program
         .command('burn')
         .description('Burn tokens from a token account')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .argument('<amount>', 'Amount to burn (base units)')
         .option('--source <pubkey>', 'Source token account (defaults to burner ATA)')
         .option('--burner <path>', 'Path to burner keypair JSON', (0, utils_1.getDefaultKeypairPath)())
@@ -54,7 +55,7 @@ function registerBurnCommand(program) {
         .action(async (amount, opts) => {
         const spinner = (0, ora_1.default)('Burning tokens...').start();
         try {
-            const mintPubkey = new web3_js_1.PublicKey(opts.mint);
+            const mintPubkey = new web3_js_1.PublicKey((0, config_1.resolveMint)(opts.mint));
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const burner = (0, utils_1.loadKeypair)(opts.burner);
@@ -78,13 +79,13 @@ function registerFreezeCommand(program) {
         .command('freeze')
         .description('Freeze a token account')
         .argument('<address>', 'Token account to freeze')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to authority keypair JSON', (0, utils_1.getDefaultKeypairPath)())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (address, opts) => {
         const spinner = (0, ora_1.default)('Freezing account...').start();
         try {
-            const mintPubkey = new web3_js_1.PublicKey(opts.mint);
+            const mintPubkey = new web3_js_1.PublicKey((0, config_1.resolveMint)(opts.mint));
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const authority = (0, utils_1.loadKeypair)(opts.keypair);
@@ -104,13 +105,13 @@ function registerThawCommand(program) {
         .command('thaw')
         .description('Thaw (unfreeze) a token account')
         .argument('<address>', 'Token account to thaw')
-        .requiredOption('--mint <pubkey>', 'Stablecoin mint address')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to authority keypair JSON', (0, utils_1.getDefaultKeypairPath)())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (address, opts) => {
         const spinner = (0, ora_1.default)('Thawing account...').start();
         try {
-            const mintPubkey = new web3_js_1.PublicKey(opts.mint);
+            const mintPubkey = new web3_js_1.PublicKey((0, config_1.resolveMint)(opts.mint));
             const network = opts.network;
             const sdk = await sss_token_1.SolanaStablecoin.load(network, mintPubkey);
             const authority = (0, utils_1.loadKeypair)(opts.keypair);

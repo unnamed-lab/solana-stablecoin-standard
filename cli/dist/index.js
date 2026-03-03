@@ -16,6 +16,8 @@ program
 // ── Token Lifecycle ─────────────────────────────────────────────────────
 (0, commands_1.registerCreateCommand)(program);
 (0, commands_1.registerInfoCommand)(program);
+(0, commands_1.registerListCommand)(program);
+(0, commands_1.registerUseCommand)(program);
 // ── Token Operations ────────────────────────────────────────────────────
 (0, commands_1.registerMintCommand)(program);
 (0, commands_1.registerBurnCommand)(program);

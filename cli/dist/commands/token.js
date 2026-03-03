@@ -5,10 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.registerCreateCommand = registerCreateCommand;
 exports.registerInfoCommand = registerInfoCommand;
+exports.registerListCommand = registerListCommand;
+exports.registerUseCommand = registerUseCommand;
 const web3_js_1 = require("@solana/web3.js");
 const sss_token_1 = require("@stbr/sss-token");
 const ora_1 = __importDefault(require("ora"));
+const chalk_1 = __importDefault(require("chalk"));
 const utils_1 = require("../utils");
+const config_1 = require("../config");
 function registerCreateCommand(program) {
     program
         .command('create')
@@ -56,6 +60,21 @@ function registerCreateCommand(program) {
             (0, utils_1.printField)('Decimals', opts.decimals);
             (0, utils_1.printField)('Network', network);
             (0, utils_1.printSuccess)('Stablecoin deployed successfully', txSig);
+            // ── Persist to ~/.sss/config.json ──
+            const mint58 = mintAddress.toBase58();
+            const entry = {
+                name: opts.name,
+                symbol: opts.symbol,
+                preset: opts.preset,
+                network,
+                createdAt: new Date().toISOString(),
+                keypairPath: opts.keypair,
+                mintAddress: mint58,
+                decimals: parseInt(opts.decimals),
+            };
+            (0, config_1.saveToken)(mint58, entry);
+            (0, config_1.setActiveToken)(mint58);
+            console.log(chalk_1.default.gray(`\n  Saved to config & set as active token.`));
         }
         catch (err) {
             spinner.fail('Failed to create stablecoin');
@@ -95,6 +114,46 @@ function registerInfoCommand(program) {
             (0, utils_1.printError)('Could not load stablecoin', err);
             process.exit(1);
         }
+    });
+}
+function registerListCommand(program) {
+    program
+        .command('list')
+        .description('List all locally stored tokens')
+        .action(() => {
+        const config = (0, config_1.loadConfig)();
+        const mints = Object.keys(config.tokens);
+        (0, utils_1.printHeader)('Stored Tokens');
+        if (mints.length === 0) {
+            console.log(chalk_1.default.gray('  No tokens stored yet. Run sss-token create to get started.'));
+            console.log();
+            return;
+        }
+        for (const mint of mints) {
+            const t = config.tokens[mint];
+            const active = mint === config.activeToken ? chalk_1.default.green(' (active)') : '';
+            console.log(`  ${chalk_1.default.cyan(t.symbol)} — ${t.name}${active}`);
+            console.log(chalk_1.default.gray(`    Mint:    ${mint}`));
+            console.log(chalk_1.default.gray(`    Network: ${t.network}  |  Preset: ${t.preset}  |  Decimals: ${t.decimals}`));
+            console.log(chalk_1.default.gray(`    Created: ${t.createdAt}`));
+            console.log();
+        }
+    });
+}
+function registerUseCommand(program) {
+    program
+        .command('use')
+        .description('Set a stored token as the active token')
+        .argument('<mint>', 'Mint address of the token to activate')
+        .action((mint) => {
+        const config = (0, config_1.loadConfig)();
+        if (!config.tokens[mint]) {
+            (0, utils_1.printError)('Token not found', new Error(`No stored token with mint ${mint}.\nRun sss-token list to see available tokens.`));
+            process.exit(1);
+        }
+        (0, config_1.setActiveToken)(mint);
+        const t = config.tokens[mint];
+        (0, utils_1.printSuccess)(`Active token set to ${t.symbol} (${mint})`);
     });
 }
 //# sourceMappingURL=token.js.map
