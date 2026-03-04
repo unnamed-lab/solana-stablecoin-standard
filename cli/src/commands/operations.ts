@@ -139,3 +139,41 @@ export function registerThawCommand(program: Command): void {
             }
         });
 }
+// export function registerHoldersCommand(program: Command): void {
+//     program
+//         .command('holders')
+//         .description('List the largest token holders')
+//         .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
+//         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
+//         .option('--min-balance <amount>', 'Minimum balance filter (base units)', '0')
+//         .action(async (opts) => {
+//             const spinner = ora('Fetching holders...').start();
+
+//             try {
+//                 const mintPubkey = new PublicKey(resolveMint(opts.mint));
+//                 const network = opts.network as SolanaNetwork;
+//                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
+
+//                 const minBalance = parseInt(opts.minBalance ?? '0');
+//                 const holders = await sdk.getLargestHolders(minBalance);
+
+//                 spinner.stop();
+
+//                 if (holders.length === 0) {
+//                     console.log('\n  No holders found.\n');
+//                     return;
+//                 }
+
+//                 console.log('\n  ── Largest Holders ────────────────────────────────────\n');
+//                 holders.forEach((h: { address: { toBase58: () => string }; uiAmountString: string; amount: string }, i: number) => {
+//                     console.log(`  ${i + 1}. ${h.address.toBase58()}`);
+//                     console.log(`     Balance: ${h.uiAmountString} (${h.amount} base units)`);
+//                     console.log();
+//                 });
+//             } catch (err) {
+//                 spinner.fail('Failed to fetch holders');
+//                 printError('Could not retrieve holders', err);
+//                 process.exit(1);
+//             }
+//         });
+// }

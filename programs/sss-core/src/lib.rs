@@ -9,7 +9,7 @@ pub mod prelude;
 
 use instructions::*;
 
-declare_id!("7H7fqqjASpTDCgYwDpp8EatKM4sSMwxaYvbhf6s3ThqM");
+declare_id!("95amrxQxUB4eRKHrUmDfJtBehTHTdzpTUg5jQEQDHV9Z");
 
 #[program]
 pub mod sss_core {

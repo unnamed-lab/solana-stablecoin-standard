@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/sss_transfer_hook.json`.
  */
 export type SssTransferHook = {
-    "address": "DZojximE3yABxkNAuyRGpuTGPpAdxrUtdocg3Kam3r6A";
+    "address": "AM6AsCpvGKxfHp2LoFL4iGimtkzYutvFXAuQMy8s9a6";
     "metadata": {
         "name": "sssTransferHook";
         "version": "0.1.0";
@@ -366,38 +366,38 @@ export type SssTransferHook = {
                         "program": {
                             "kind": "const";
                             "value": [
-                                93,
-                                70,
-                                244,
+                                120,
+                                10,
+                                1,
+                                165,
+                                137,
+                                239,
+                                14,
+                                239,
+                                227,
+                                174,
+                                252,
+                                249,
                                 184,
-                                238,
-                                138,
-                                30,
-                                232,
-                                245,
-                                87,
-                                58,
-                                141,
-                                2,
-                                242,
-                                158,
-                                195,
-                                163,
-                                145,
-                                92,
-                                208,
-                                158,
-                                81,
-                                50,
-                                230,
+                                105,
+                                85,
+                                190,
+                                3,
+                                24,
+                                61,
+                                78,
+                                147,
+                                239,
+                                168,
+                                23,
+                                47,
+                                18,
                                 101,
-                                215,
-                                99,
-                                32,
-                                229,
-                                88,
-                                122,
-                                68
+                                40,
+                                144,
+                                142,
+                                11,
+                                64
                             ];
                         };
                     };

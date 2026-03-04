@@ -12,7 +12,7 @@ pub mod errors;
 use state::*;
 use errors::*;
 
-declare_id!("DZojximE3yABxkNAuyRGpuTGPpAdxrUtdocg3Kam3r6A");
+declare_id!("AM6AsCpvGKxfHp2LoFL4iGimtkzYutvFXAuQMy8s9a6");
 
 #[program]
 pub mod sss_transfer_hook {
