@@ -5,6 +5,8 @@ import chalk from 'chalk';
 import {
     registerCreateCommand,
     registerInfoCommand,
+    registerListCommand,
+    registerUseCommand,
     registerMintCommand,
     registerBurnCommand,
     registerFreezeCommand,
@@ -23,7 +25,7 @@ import {
 const program = new Command();
 
 program
-    .name('sss')
+    .name('sss-token')
     .description(
         chalk.bold('Solana Stablecoin Standard CLI') +
         '\n  Deploy, manage, and govern stablecoins on Solana.\n'
@@ -33,6 +35,8 @@ program
 // ── Token Lifecycle ─────────────────────────────────────────────────────
 registerCreateCommand(program);
 registerInfoCommand(program);
+registerListCommand(program);
+registerUseCommand(program);
 
 // ── Token Operations ────────────────────────────────────────────────────
 registerMintCommand(program);
