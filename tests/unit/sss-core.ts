@@ -258,34 +258,50 @@ describe("SolanaStablecoin SDK via anchor test", () => {
   });
 
   // ─── 8. Seize ────────────────────────────────────────────────────────────
-  // NOTE: The sss-core `seize` instruction requires the source account to be
-  // frozen (AccountState::Frozen), but SPL Token-2022's `transfer_checked`
-  // rejects transfers FROM frozen accounts. The program needs an atomic
-  // thaw → transfer → re-freeze flow. Skipping until the program is updated.
-  it.skip("Can seize tokens from a frozen account (blocked by program fix needed)", async () => {
+  // The sss-core `seize` instruction requires source account to be FROZEN.
+  // The transfer succeeds because the `config` PDA is the permanent delegate,
+  // which is exempt from the frozen check on the source account.
+  it("Can seize from a frozen account via permanent delegate (config PDA)", async () => {
     expect(sdk, "SDK not initialized").to.exist;
 
-    // user1Ata still has 100_000 tokens
-    // Freeze user1Ata before seizing
+    const program = anchor.workspace.SssCore as Program<SssCore>;
+    const [configPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("sss-config"), mintAddress.toBuffer()],
+      program.programId
+    );
+
+    // Derive seizure record PDA  
+    const [seizureRecordPda] = PublicKey.findProgramAddressSync(
+      [Buffer.from("sss-seizure"), mintAddress.toBuffer(), user1Ata.toBuffer()],
+      program.programId
+    );
+
+    // user1Ata still has 100_000 tokens — ensure it has tokens
+    // Freeze user1Ata before seizing (seize requires frozen source)
     const freezeTx = await sdk.freeze(authority, user1Ata);
     expect(freezeTx).to.be.a("string");
     console.log("  → Pre-seize freeze tx:", freezeTx);
 
-    // Ensure destination (user2Ata) is NOT frozen
+    // Ensure destination (user2Ata) is NOT frozen and can receive
     try { await sdk.thaw(authority, user2Ata); } catch { /* already thawed */ }
 
+    const seizeAmount = 10_000;
+
+    // Call seize via direct program CPI (SDK wraps this as sdk.compliance.seize)
     const seizeTx = await sdk.compliance.seize(
       authority,
       user1Ata,
       user2Ata,
-      10_000,
+      seizeAmount,
       "court order #1234"
     );
     expect(seizeTx).to.be.a("string");
     console.log("  → Seize tx:", seizeTx);
 
+    // Total supply must not change (seize moves tokens, doesn't burn)
     const supply = await sdk.getTotalSupply();
     expect(supply).to.equal(100_000);
+    console.log("  → Supply unchanged after seize:", supply);
   });
 
   // ─── 9. Pause / Unpause ──────────────────────────────────────────────────

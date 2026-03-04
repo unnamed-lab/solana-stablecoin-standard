@@ -1,0 +1,16 @@
+[fuzz.metrics]
+enabled = true
+
+
+[[fuzz.programs]]
+address = "2Vh56aB6CX2SsHyLVwGQpt8Z9jWqYKNzjf5BXjgM2F5y"
+program = "../target/deploy/sss_core.so"
+
+[[fuzz.programs]]
+address = "Brj7RU6jcmWXqCSfBa6o3v5bHS48Z6uDyKZUfG8ZbQoD"
+program = "../target/deploy/sss_oracle.so"
+
+[[fuzz.programs]]
+address = "9Vu21Cy4yShn7SukayuArDRy36fVzXMjsnJiTG2ZZDxF"
+program = "../target/deploy/sss_transfer_hook.so"
+ 
