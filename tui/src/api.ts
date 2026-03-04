@@ -29,10 +29,10 @@ export const getSupply = () =>
   api.get<SupplyMetrics>("/supply").then((r) => r.data);
 
 export const mint = (recipient: string, amount: number) =>
-  api.post<{ success: boolean; txSignature: string }>("/mint", { recipient, amount }).then((r) => r.data);
+  api.post<{ success: boolean; txSignature: string }>("/mint", { recipient, amount, minterKeypair: process.env.MINTER_KEYPAIR }).then((r) => r.data);
 
 export const burn = (amount: number) =>
-  api.post<{ success: boolean; txSignature: string }>("/burn", { amount }).then((r) => r.data);
+  api.post<{ success: boolean; txSignature: string }>("/burn", { amount, burnerKeypair: process.env.BURNER_KEYPAIR }).then((r) => r.data);
 
 export const getLargestHolders = (minAmount?: number) =>
   api.get<Holder[]>("/holders/largest", { params: { minAmount } }).then((r) => r.data);
