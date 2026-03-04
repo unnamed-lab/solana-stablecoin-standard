@@ -13,13 +13,13 @@ import { parseProgramError } from '../errors';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 export const PRICE_SCALE = 1_000_000;
-export const CPI_SCALE   = 1_000_000;
-export const TOKEN_SCALE  = 1_000_000;
+export const CPI_SCALE = 1_000_000;
+export const TOKEN_SCALE = 1_000_000;
 
 const NETWORK_RPC: Record<SolanaNetwork, string> = {
-    [SolanaNetwork.DEVNET]:   "https://api.devnet.solana.com",
-    [SolanaNetwork.MAINNET]:  "https://api.mainnet-beta.solana.com",
-    [SolanaNetwork.TESTNET]:  "https://api.testnet.solana.com",
+    [SolanaNetwork.DEVNET]: "https://api.devnet.solana.com",
+    [SolanaNetwork.MAINNET]: "https://api.mainnet-beta.solana.com",
+    [SolanaNetwork.TESTNET]: "https://api.testnet.solana.com",
     [SolanaNetwork.LOCALNET]: "http://127.0.0.1:8899",
 };
 
@@ -34,50 +34,50 @@ const NETWORK_RPC: Record<SolanaNetwork, string> = {
  * - `Custom`: arbitrary scaling for exotic pegs.
  */
 export enum FeedType {
-    Direct      = 'direct',
-    Inverse     = 'inverse',
-    CpiIndexed  = 'cpiIndexed',
-    Custom      = 'custom',
+    Direct = 'direct',
+    Inverse = 'inverse',
+    CpiIndexed = 'cpiIndexed',
+    Custom = 'custom',
 }
 
 // ─── Known Switchboard feed addresses on devnet ──────────────────────────────
 
 export const KNOWN_FEEDS: Record<string, { devnet: string; mainnet: string; type: FeedType }> = {
     BRLUSD: {
-        devnet:  "8GWTTbNiXdmyZREXbjsZBmCRuzdPrW55dnZGDkTRjWvb",
+        devnet: "BwBLNEuTnqQVhzgx3557szSgz1PEHEvj2RRoPiFWR8YB", // Switchboard On-Demand (BRLUSD)
         mainnet: "",
-        type:    FeedType.Inverse,
+        type: FeedType.Inverse,
     },
     EURUSD: {
-        devnet:  "9VADNiXpGFhQaMGV8dfXBnmhbX2LHVW3FRGpYMH4vW8q",
+        devnet: "9VADNiXpGFhQaMGV8dfXBnmhbX2LHVW3FRGpYMH4vW8q",
         mainnet: "",
-        type:    FeedType.Direct,
+        type: FeedType.Direct,
     },
 };
 
 /** Parameters for registering a new price feed. */
 export interface RegisterFeedParams {
-    symbol:          string;
-    feedType:        FeedType;
-    baseCurrency:    string;
-    quoteCurrency:   string;
-    decimals:        number;
+    symbol: string;
+    feedType: FeedType;
+    baseCurrency: string;
+    quoteCurrency: string;
+    decimals: number;
     switchboardFeed: PublicKey;
 }
 
 /** Parameters for initializing oracle config for a mint. */
 export interface InitializeOracleParams {
-    mint:                   PublicKey;
-    feedSymbol:             string;
-    description:            string;
-    maxStalenessSecs:       number;
-    mintFeeBps:             number;
-    redeemFeeBps:           number;
-    maxConfidenceBps:       number;
-    quoteValiditySecs:      number;
-    cpiMultiplier:          number;
-    cpiMinUpdateInterval:   number;
-    cpiDataSource:          string;
+    mint: PublicKey;
+    feedSymbol: string;
+    description: string;
+    maxStalenessSecs: number;
+    mintFeeBps: number;
+    redeemFeeBps: number;
+    maxConfidenceBps: number;
+    quoteValiditySecs: number;
+    cpiMultiplier: number;
+    cpiMinUpdateInterval: number;
+    cpiDataSource: string;
 }
 
 /** Parameters for requesting a quote. */
@@ -85,46 +85,46 @@ export interface QuoteRequest {
     /** Input amount: USD cents for mint, token base units for redeem. */
     inputAmount: number;
     /** Minimum acceptable output (slippage floor). */
-    minOutput:   number;
+    minOutput: number;
     /** Unique nonce per quote — use Date.now() or random. */
-    nonce:       bigint;
+    nonce: bigint;
 }
 
 /** Result of a quote request. */
 export interface QuoteResult {
-    outputAmount:  number;
-    feeAmount:     number;
-    priceUsed:     number;
-    priceHuman:    number;
-    validUntil:    Date;
-    quoteAccount:  PublicKey;
+    outputAmount: number;
+    feeAmount: number;
+    priceUsed: number;
+    priceHuman: number;
+    validUntil: Date;
+    quoteAccount: PublicKey;
 }
 
 /** Read-only snapshot of an oracle config. */
 export interface OracleInfo {
-    mint:              PublicKey;
-    feedSymbol:        string;
-    description:       string;
-    mintFeeBps:        number;
-    redeemFeeBps:      number;
-    cpiMultiplier:     number;
-    cpiLastUpdated:    Date;
-    paused:            boolean;
-    pauseReason:       string;
-    totalMintedUsd:    bigint;
-    totalRedeemedUsd:  bigint;
-    totalFees:         bigint;
+    mint: PublicKey;
+    feedSymbol: string;
+    description: string;
+    mintFeeBps: number;
+    redeemFeeBps: number;
+    cpiMultiplier: number;
+    cpiLastUpdated: Date;
+    paused: boolean;
+    pauseReason: string;
+    totalMintedUsd: bigint;
+    totalRedeemedUsd: bigint;
+    totalFees: bigint;
 }
 
 /** Read-only snapshot of a registered feed. */
 export interface FeedInfo {
-    symbol:          string;
+    symbol: string;
     switchboardFeed: PublicKey;
-    feedType:        string;
-    baseCurrency:    string;
-    quoteCurrency:   string;
-    active:          boolean;
-    registeredAt:    Date;
+    feedType: string;
+    baseCurrency: string;
+    quoteCurrency: string;
+    active: boolean;
+    registeredAt: Date;
 }
 
 // ─── OracleModule ─────────────────────────────────────────────────────────────
@@ -156,7 +156,7 @@ export class OracleModule {
     private network: SolanaNetwork;
 
     constructor(network: SolanaNetwork = SolanaNetwork.DEVNET) {
-        this.network    = network;
+        this.network = network;
         this.connection = new Connection(NETWORK_RPC[network], 'confirmed');
     }
 
@@ -202,10 +202,10 @@ export class OracleModule {
      * ```
      */
     static findQuotePda(
-        mint:       PublicKey,
-        requester:  PublicKey,
-        nonce:      bigint,
-        programId:  PublicKey,
+        mint: PublicKey,
+        requester: PublicKey,
+        nonce: bigint,
+        programId: PublicKey,
     ): [PublicKey, number] {
         const nonceBuffer = Buffer.alloc(8);
         nonceBuffer.writeBigUInt64LE(nonce);
@@ -239,9 +239,9 @@ export class OracleModule {
             return await program.methods
                 .initializeRegistry()
                 .accounts({
-                    payer:         authority.publicKey,
-                    authority:     authority.publicKey,
-                    registry:      registryPda,
+                    payer: authority.publicKey,
+                    authority: authority.publicKey,
+                    registry: registryPda,
                     systemProgram: SystemProgram.programId,
                 } as any)
                 .signers([authority])
@@ -267,9 +267,9 @@ export class OracleModule {
      * ```
      */
     async registerFeed(
-        authority:  Keypair,
-        programId:  PublicKey,
-        params:     RegisterFeedParams,
+        authority: Keypair,
+        programId: PublicKey,
+        params: RegisterFeedParams,
     ): Promise<string> {
         const program = this.buildProgram(authority, programId);
         const [registryPda] = OracleModule.findRegistryPda(programId);
@@ -277,18 +277,18 @@ export class OracleModule {
         try {
             return await program.methods
                 .registerFeed({
-                    symbol:         params.symbol,
-                    feedType:       this.encodeFeedType(params.feedType),
-                    baseCurrency:   params.baseCurrency,
-                    quoteCurrency:  params.quoteCurrency,
-                    decimals:       params.decimals,
+                    symbol: params.symbol,
+                    feedType: this.encodeFeedType(params.feedType),
+                    baseCurrency: params.baseCurrency,
+                    quoteCurrency: params.quoteCurrency,
+                    decimals: params.decimals,
                 })
                 .accounts({
-                    payer:           authority.publicKey,
-                    authority:       authority.publicKey,
-                    registry:        registryPda,
+                    payer: authority.publicKey,
+                    authority: authority.publicKey,
+                    registry: registryPda,
                     switchboardFeed: params.switchboardFeed,
-                    systemProgram:   SystemProgram.programId,
+                    systemProgram: SystemProgram.programId,
                 } as any)
                 .signers([authority])
                 .rpc();
@@ -320,34 +320,34 @@ export class OracleModule {
      * ```
      */
     async initializeOracle(
-        authority:  Keypair,
-        programId:  PublicKey,
-        params:     InitializeOracleParams,
+        authority: Keypair,
+        programId: PublicKey,
+        params: InitializeOracleParams,
     ): Promise<string> {
         const program = this.buildProgram(authority, programId);
-        const [oraclePda]   = OracleModule.findOracleConfigPda(params.mint, programId);
+        const [oraclePda] = OracleModule.findOracleConfigPda(params.mint, programId);
         const [registryPda] = OracleModule.findRegistryPda(programId);
 
         try {
             return await program.methods
                 .initializeOracle({
-                    feedSymbol:            params.feedSymbol,
-                    description:           params.description,
-                    maxStalenessSecs:      new BN(params.maxStalenessSecs),
-                    mintFeeBps:            params.mintFeeBps,
-                    redeemFeeBps:          params.redeemFeeBps,
-                    maxConfidenceBps:      params.maxConfidenceBps,
-                    quoteValiditySecs:     new BN(params.quoteValiditySecs),
-                    cpiMultiplier:         new BN(params.cpiMultiplier),
-                    cpiMinUpdateInterval:  new BN(params.cpiMinUpdateInterval),
-                    cpiDataSource:         params.cpiDataSource,
+                    feedSymbol: params.feedSymbol,
+                    description: params.description,
+                    maxStalenessSecs: new BN(params.maxStalenessSecs),
+                    mintFeeBps: params.mintFeeBps,
+                    redeemFeeBps: params.redeemFeeBps,
+                    maxConfidenceBps: params.maxConfidenceBps,
+                    quoteValiditySecs: new BN(params.quoteValiditySecs),
+                    cpiMultiplier: new BN(params.cpiMultiplier),
+                    cpiMinUpdateInterval: new BN(params.cpiMinUpdateInterval),
+                    cpiDataSource: params.cpiDataSource,
                 })
                 .accounts({
-                    payer:         authority.publicKey,
-                    authority:     authority.publicKey,
-                    mint:          params.mint,
-                    oracleConfig:  oraclePda,
-                    registry:      registryPda,
+                    payer: authority.publicKey,
+                    authority: authority.publicKey,
+                    mint: params.mint,
+                    oracleConfig: oraclePda,
+                    registry: registryPda,
                     systemProgram: SystemProgram.programId,
                 } as any)
                 .signers([authority])
@@ -375,33 +375,33 @@ export class OracleModule {
      * ```
      */
     async getMintQuote(
-        requester:  Keypair,
-        programId:  PublicKey,
-        mint:       PublicKey,
-        params:     QuoteRequest,
+        requester: Keypair,
+        programId: PublicKey,
+        mint: PublicKey,
+        params: QuoteRequest,
     ): Promise<QuoteResult> {
         const program = this.buildProgram(requester, programId);
-        const [oraclePda]   = OracleModule.findOracleConfigPda(mint, programId);
+        const [oraclePda] = OracleModule.findOracleConfigPda(mint, programId);
         const [registryPda] = OracleModule.findRegistryPda(programId);
-        const [quotePda]    = OracleModule.findQuotePda(mint, requester.publicKey, params.nonce, programId);
+        const [quotePda] = OracleModule.findQuotePda(mint, requester.publicKey, params.nonce, programId);
 
-        const oracleInfo  = await this.getOracleInfo(programId, mint);
+        const oracleInfo = await this.getOracleInfo(programId, mint);
         const feedAddress = await this.getFeedAddress(programId, oracleInfo.feedSymbol);
 
         try {
             await program.methods
                 .getMintQuote({
                     inputAmount: new BN(params.inputAmount),
-                    minOutput:   new BN(params.minOutput),
-                    nonce:       new BN(params.nonce.toString()),
+                    minOutput: new BN(params.minOutput),
+                    nonce: new BN(params.nonce.toString()),
                 })
                 .accounts({
-                    requester:       requester.publicKey,
-                    oracleConfig:    oraclePda,
-                    registry:        registryPda,
+                    requester: requester.publicKey,
+                    oracleConfig: oraclePda,
+                    registry: registryPda,
                     switchboardFeed: feedAddress,
-                    quote:           quotePda,
-                    systemProgram:   SystemProgram.programId,
+                    quote: quotePda,
+                    systemProgram: SystemProgram.programId,
                 } as any)
                 .signers([requester])
                 .rpc();
@@ -413,10 +413,10 @@ export class OracleModule {
 
         return {
             outputAmount: quoteData.outputAmount.toNumber(),
-            feeAmount:    quoteData.feeAmount.toNumber(),
-            priceUsed:    quoteData.priceSnapshot.toNumber(),
-            priceHuman:   quoteData.priceSnapshot.toNumber() / PRICE_SCALE,
-            validUntil:   new Date(quoteData.validUntil.toNumber() * 1000),
+            feeAmount: quoteData.feeAmount.toNumber(),
+            priceUsed: quoteData.priceSnapshot.toNumber(),
+            priceHuman: quoteData.priceSnapshot.toNumber() / PRICE_SCALE,
+            validUntil: new Date(quoteData.validUntil.toNumber() * 1000),
             quoteAccount: quotePda,
         };
     }
@@ -435,33 +435,33 @@ export class OracleModule {
      * ```
      */
     async getRedeemQuote(
-        requester:  Keypair,
-        programId:  PublicKey,
-        mint:       PublicKey,
-        params:     QuoteRequest,
+        requester: Keypair,
+        programId: PublicKey,
+        mint: PublicKey,
+        params: QuoteRequest,
     ): Promise<QuoteResult> {
         const program = this.buildProgram(requester, programId);
-        const [oraclePda]   = OracleModule.findOracleConfigPda(mint, programId);
+        const [oraclePda] = OracleModule.findOracleConfigPda(mint, programId);
         const [registryPda] = OracleModule.findRegistryPda(programId);
-        const [quotePda]    = OracleModule.findQuotePda(mint, requester.publicKey, params.nonce, programId);
+        const [quotePda] = OracleModule.findQuotePda(mint, requester.publicKey, params.nonce, programId);
 
-        const oracleInfo  = await this.getOracleInfo(programId, mint);
+        const oracleInfo = await this.getOracleInfo(programId, mint);
         const feedAddress = await this.getFeedAddress(programId, oracleInfo.feedSymbol);
 
         try {
             await program.methods
                 .getRedeemQuote({
                     inputAmount: new BN(params.inputAmount),
-                    minOutput:   new BN(params.minOutput),
-                    nonce:       new BN(params.nonce.toString()),
+                    minOutput: new BN(params.minOutput),
+                    nonce: new BN(params.nonce.toString()),
                 })
                 .accounts({
-                    requester:       requester.publicKey,
-                    oracleConfig:    oraclePda,
-                    registry:        registryPda,
+                    requester: requester.publicKey,
+                    oracleConfig: oraclePda,
+                    registry: registryPda,
                     switchboardFeed: feedAddress,
-                    quote:           quotePda,
-                    systemProgram:   SystemProgram.programId,
+                    quote: quotePda,
+                    systemProgram: SystemProgram.programId,
                 } as any)
                 .signers([requester])
                 .rpc();
@@ -473,10 +473,10 @@ export class OracleModule {
 
         return {
             outputAmount: quoteData.outputAmount.toNumber(),
-            feeAmount:    quoteData.feeAmount.toNumber(),
-            priceUsed:    quoteData.priceSnapshot.toNumber(),
-            priceHuman:   quoteData.priceSnapshot.toNumber() / PRICE_SCALE,
-            validUntil:   new Date(quoteData.validUntil.toNumber() * 1000),
+            feeAmount: quoteData.feeAmount.toNumber(),
+            priceUsed: quoteData.priceSnapshot.toNumber(),
+            priceHuman: quoteData.priceSnapshot.toNumber() / PRICE_SCALE,
+            validUntil: new Date(quoteData.validUntil.toNumber() * 1000),
             quoteAccount: quotePda,
         };
     }
@@ -494,21 +494,21 @@ export class OracleModule {
      * ```
      */
     async mintWithOracle(
-        requester:  Keypair,
-        programId:  PublicKey,
-        mint:       PublicKey,
-        nonce:      bigint,
+        requester: Keypair,
+        programId: PublicKey,
+        mint: PublicKey,
+        nonce: bigint,
     ): Promise<string> {
         const program = this.buildProgram(requester, programId);
         const [oraclePda] = OracleModule.findOracleConfigPda(mint, programId);
-        const [quotePda]  = OracleModule.findQuotePda(mint, requester.publicKey, nonce, programId);
+        const [quotePda] = OracleModule.findQuotePda(mint, requester.publicKey, nonce, programId);
 
         return await program.methods
             .mintWithOracle()
             .accounts({
-                requester:    requester.publicKey,
+                requester: requester.publicKey,
                 oracleConfig: oraclePda,
-                quote:        quotePda,
+                quote: quotePda,
             } as any)
             .signers([requester])
             .rpc();
@@ -530,13 +530,13 @@ export class OracleModule {
      * ```
      */
     async updateCpiMultiplier(
-        authority:  Keypair,
-        programId:  PublicKey,
-        mint:       PublicKey,
+        authority: Keypair,
+        programId: PublicKey,
+        mint: PublicKey,
         params: {
-            newMultiplier:   number;
-            referenceMonth:  string;
-            dataSource:      string;
+            newMultiplier: number;
+            referenceMonth: string;
+            dataSource: string;
         },
     ): Promise<string> {
         const program = this.buildProgram(authority, programId);
@@ -544,12 +544,12 @@ export class OracleModule {
 
         return await program.methods
             .updateCpiMultiplier({
-                newMultiplier:   new BN(params.newMultiplier),
-                referenceMonth:  params.referenceMonth,
-                dataSource:      params.dataSource,
+                newMultiplier: new BN(params.newMultiplier),
+                referenceMonth: params.referenceMonth,
+                dataSource: params.dataSource,
             })
             .accounts({
-                authority:    authority.publicKey,
+                authority: authority.publicKey,
                 oracleConfig: oraclePda,
             } as any)
             .signers([authority])
@@ -573,18 +573,18 @@ export class OracleModule {
         const data = await (program.account as any).oracleConfig.fetch(oraclePda);
 
         return {
-            mint:             data.mint,
-            feedSymbol:       data.feedSymbol,
-            description:      data.description,
-            mintFeeBps:       data.mintFeeBps,
-            redeemFeeBps:     data.redeemFeeBps,
-            cpiMultiplier:    data.cpiMultiplier.toNumber(),
-            cpiLastUpdated:   new Date(data.cpiLastUpdated.toNumber() * 1000),
-            paused:           data.paused,
-            pauseReason:      data.pauseReason,
-            totalMintedUsd:   BigInt(data.totalMintedUsd.toString()),
+            mint: data.mint,
+            feedSymbol: data.feedSymbol,
+            description: data.description,
+            mintFeeBps: data.mintFeeBps,
+            redeemFeeBps: data.redeemFeeBps,
+            cpiMultiplier: data.cpiMultiplier.toNumber(),
+            cpiLastUpdated: new Date(data.cpiLastUpdated.toNumber() * 1000),
+            paused: data.paused,
+            pauseReason: data.pauseReason,
+            totalMintedUsd: BigInt(data.totalMintedUsd.toString()),
             totalRedeemedUsd: BigInt(data.totalRedeemedUsd.toString()),
-            totalFees:        BigInt(data.totalFeesCollected.toString()),
+            totalFees: BigInt(data.totalFeesCollected.toString()),
         };
     }
 
@@ -605,13 +605,13 @@ export class OracleModule {
         return registry.feeds
             .filter((f: any) => f.active)
             .map((f: any) => ({
-                symbol:          f.symbol,
+                symbol: f.symbol,
                 switchboardFeed: f.switchboardFeed,
-                feedType:        Object.keys(f.feedType)[0],
-                baseCurrency:    f.baseCurrency,
-                quoteCurrency:   f.quoteCurrency,
-                active:          f.active,
-                registeredAt:    new Date(f.registeredAt.toNumber() * 1000),
+                feedType: Object.keys(f.feedType)[0],
+                baseCurrency: f.baseCurrency,
+                quoteCurrency: f.quoteCurrency,
+                active: f.active,
+                registeredAt: new Date(f.registeredAt.toNumber() * 1000),
             }));
     }
 
@@ -638,11 +638,11 @@ export class OracleModule {
      * ```
      */
     simulateMintQuote(
-        usdCents:       number,
-        priceScaled:    number,
-        feedType:       FeedType,
-        mintFeeBps:     number,
-        cpiMultiplier:  number = CPI_SCALE,
+        usdCents: number,
+        priceScaled: number,
+        feedType: FeedType,
+        mintFeeBps: number,
+        cpiMultiplier: number = CPI_SCALE,
     ): { gross: number; fee: number; net: number; priceHuman: number } {
         let gross: number;
 
@@ -690,11 +690,11 @@ export class OracleModule {
      * ```
      */
     simulateRedeemQuote(
-        tokenAmount:    number,
-        priceScaled:    number,
-        feedType:       FeedType,
-        redeemFeeBps:   number,
-        cpiMultiplier:  number = CPI_SCALE,
+        tokenAmount: number,
+        priceScaled: number,
+        feedType: FeedType,
+        redeemFeeBps: number,
+        cpiMultiplier: number = CPI_SCALE,
     ): { gross: number; fee: number; net: number; priceHuman: number } {
         let gross: number;
 
@@ -729,7 +729,7 @@ export class OracleModule {
     // ── Private helpers ────────────────────────────────────────────────────────
 
     private buildProgram(signer: Keypair, _programId: PublicKey): any {
-        const wallet   = new NodeWallet(signer);
+        const wallet = new NodeWallet(signer);
         const provider = new AnchorProvider(this.connection, wallet, { commitment: 'confirmed' });
         return new Program(oracleIdl as any, provider);
     }
@@ -740,17 +740,17 @@ export class OracleModule {
 
     private encodeFeedType(feedType: FeedType): any {
         switch (feedType) {
-            case FeedType.Direct:     return { direct: {} };
-            case FeedType.Inverse:    return { inverse: {} };
+            case FeedType.Direct: return { direct: {} };
+            case FeedType.Inverse: return { inverse: {} };
             case FeedType.CpiIndexed: return { cpiIndexed: {} };
-            case FeedType.Custom:     return { custom: { numerator: new BN(1), denominator: new BN(1), baseType: 0 } };
-            default:                  return { direct: {} };
+            case FeedType.Custom: return { custom: { numerator: new BN(1), denominator: new BN(1), baseType: 0 } };
+            default: return { direct: {} };
         }
     }
 
     private async getFeedAddress(programId: PublicKey, symbol: string): Promise<PublicKey> {
         const feeds = await this.listFeeds(programId);
-        const feed  = feeds.find(f => f.symbol === symbol);
+        const feed = feeds.find(f => f.symbol === symbol);
         if (!feed) throw new Error(`Feed not found in registry: ${symbol}`);
         return feed.switchboardFeed;
     }

@@ -28,7 +28,7 @@ export class RegisterFeedDto {
   @IsNumber()
   decimals: number;
 
-  @ApiProperty({ example: '8GWTTbNiXdmyZREXbjsZBmCRuzdPrW55dnZGDkTRjWvb' })
+  @ApiProperty({ example: 'BwBLNEuTnqQVhzgx3557szSgz1PEHEvj2RRoPiFWR8YB' })
   @IsNotEmpty()
   @Transform(({ value }) => {
     try {

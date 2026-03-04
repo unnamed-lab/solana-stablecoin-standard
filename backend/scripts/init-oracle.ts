@@ -1,48 +1,60 @@
 import 'dotenv/config';
-import { Connection, Keypair, SystemProgram, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Keypair, PublicKey, LAMPORTS_PER_SOL, Connection } from '@solana/web3.js';
 import bs58 from 'bs58';
-import { Program, AnchorProvider, Wallet } from '@coral-xyz/anchor';
-import { OracleIdl as idl } from '@stbr/sss-token';
+import { OracleModule, SolanaNetwork } from '@stbr/sss-token';
 
 async function run() {
-    const connection = new Connection('http://127.0.0.1:8899', 'confirmed');
-    // Using the secret key from the backend .env
-    const secret = bs58.decode(process.env.ADMIN_WALLET_SECRET_KEY!);
-    const authority = Keypair.fromSecretKey(secret);
+    // 1. Setup Connection & Network
+    const network = (process.env.SOLANA_NETWORK as SolanaNetwork) || SolanaNetwork.LOCALNET;
+    const rpcUrl = network === SolanaNetwork.LOCALNET ? 'http://127.0.0.1:8899' : 'https://api.devnet.solana.com';
+    const connection = new Connection(rpcUrl, 'confirmed');
 
-    // Airdrop SOL
-    console.log('Airdropping 10 SOL to authority...');
-    const sig = await connection.requestAirdrop(authority.publicKey, 10 * LAMPORTS_PER_SOL);
-    await connection.confirmTransaction(sig);
+    // 2. Load Authority from .env
+    const secretKey = process.env.ADMIN_WALLET_SECRET_KEY;
+    if (!secretKey) {
+        throw new Error('ADMIN_WALLET_SECRET_KEY not found in .env');
+    }
+    const authority = Keypair.fromSecretKey(bs58.decode(secretKey));
 
-    // Load Program
-    const provider = new AnchorProvider(connection, new Wallet(authority), { commitment: 'confirmed' });
-    const programId = new PublicKey('Brj7RU6jcmWXqCSfBa6o3v5bHS48Z6uDyKZUfG8ZbQoD');
-    const program = new Program(idl as any, provider);
+    // 3. Load Program ID from .env
+    const programIdStr = process.env.ORACLE_PROGRAM_ID || 'Brj7RU6jcmWXqCSfBa6o3v5bHS48Z6uDyKZUfG8ZbQoD';
+    const programId = new PublicKey(programIdStr);
 
-    const [registryPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from('sss-feed-registry')],
-        programId
-    );
+    console.log(`Target Network: ${network}`);
+    console.log(`Authority: ${authority.publicKey.toBase58()}`);
+    console.log(`Program ID: ${programId.toBase58()}`);
+
+    // 4. Airdrop if on localnet/devnet
+    if (network === SolanaNetwork.LOCALNET || network === SolanaNetwork.DEVNET) {
+        const balance = await connection.getBalance(authority.publicKey);
+        if (balance < 1 * LAMPORTS_PER_SOL) {
+            console.log('Airdropping 2 SOL to authority...');
+            try {
+                const sig = await connection.requestAirdrop(authority.publicKey, 2 * LAMPORTS_PER_SOL);
+                await connection.confirmTransaction(sig);
+            } catch (e) {
+                console.log('Airdrop failed (account might already have balance or limit reached)');
+            }
+        }
+    }
+
+    // 5. Initialize Oracle via SDK
+    const oracle = new OracleModule(network);
 
     try {
-        console.log('Initializing Oracle Feed Registry... PDA:', registryPda.toBase58());
-        const tx = await program.methods.initializeRegistry()
-            .accounts({
-                authority: authority.publicKey,
-                feedRegistry: registryPda,
-                systemProgram: SystemProgram.programId,
-            } as any)
-            .signers([authority])
-            .rpc();
+        const [registryPda] = OracleModule.findRegistryPda(programId);
+        console.log(`Initializing Registry... PDA: ${registryPda.toBase58()}`);
 
-        console.log('Success! Tx:', tx);
+        const txSig = await oracle.initializeRegistry(authority, programId);
+        console.log(`Success! Transaction Signature: ${txSig}`);
     } catch (e: any) {
-        if (e.message.includes('already in use')) {
+        if (e.message?.includes('already in use') || e.toString().includes('already in use')) {
             console.log('Registry already initialized.');
         } else {
-            console.error(e);
+            console.error('Initialization failed:', e);
         }
     }
 }
-run();
+
+run().catch(console.error);
+

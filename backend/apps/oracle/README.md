@@ -85,7 +85,7 @@ The `switchboardFeed` is the Public Key (address) of an on-chain **Switchboard V
 
 1. **For Devnet Testing:**
    You can find valid, publicly updated Switchboard aggregator addresses for Devnet directly on the Switchboard Explorer.
-   - Go to: [Switchboard Devnet Explorer](https://app.switchboard.xyz/solana/devnet)
+   - Go to: [Switchboard Devnet Explorer](https://ondemand.switchboard.xyz/solana/devnet)
    - Search for the pair you want (e.g., "BRL / USD").
    - Find the "Aggregator" or "Feed" address in the UI (it will look like a standard Solana base58 PublicKey).
    - *Example recognized Devnet feeds:*
@@ -97,7 +97,7 @@ The `switchboardFeed` is the Public Key (address) of an on-chain **Switchboard V
    **Option A: Clone a Devnet Feed to Localnet**
    When starting your local validator, you can "clone" the state of a specific Switchboard feed from devnet into your local environment:
    ```bash
-   solana-test-validator --url devnet --clone GvpepA4CQSRCBzAGt2cARL5A92zP2KqSt2K12fX5S2E
+   solana-test-validator --url devnet --clone BwBLNEuTnqQVhzgx3557szSgz1PEHEvj2RRoPiFWR8YB
    ```
    *(Note: The cloned price will be static; it will not update locally).*
    
