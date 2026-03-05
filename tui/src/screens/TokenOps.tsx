@@ -21,7 +21,7 @@ export default function TokenOps() {
     <Box flexDirection="column">
       {/* Sub-nav */}
       <Box gap={1} marginBottom={1}>
-        <Text bold color="yellow">Token Ops</Text>
+        <Text bold color="magenta">Token Ops</Text>
         <Text dimColor>│</Text>
         <TabLabel active={view === "dashboard"} label="[d] Dashboard" />
         <TabLabel active={view === "mint"} label="[m] Mint" />
@@ -39,7 +39,7 @@ export default function TokenOps() {
 
 /* ── Small helper --------------------------------------------------- */
 function TabLabel({ active, label }: { active: boolean; label: string }) {
-  return <Text color={active ? "green" : "gray"}>{label}</Text>;
+  return <Text color={active ? "yellow" : "gray"}>{label}</Text>;
 }
 
 /* ── Supply Dashboard ─────────────────────────────────────────────── */
@@ -68,13 +68,13 @@ function SupplyDashboard() {
   }, []);
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={2} paddingY={1}>
-      <Text bold color="cyan">Supply Metrics</Text>
+    <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
+      <Text bold color="yellow">Supply Metrics</Text>
       <Text dimColor>(auto-refreshes every 10s)</Text>
       <Box marginTop={1} flexDirection="column">
         {loading && !supply && (
           <Text>
-            <Text color="green"><Spinner type="dots" /></Text> Fetching supply…
+            <Text color="yellow"><Spinner type="dots" /></Text> Fetching supply…
           </Text>
         )}
         {error && <Text color="red">✖ {error}</Text>}
@@ -117,7 +117,7 @@ function MintForm() {
     <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
       <Text bold color="magenta">Mint Tokens</Text>
       <Box marginTop={1}>
-        <Text color={field === "recipient" ? "green" : "gray"}>Recipient: </Text>
+        <Text color={field === "recipient" ? "yellow" : "gray"}>Recipient: </Text>
         {field === "recipient" ? (
           <TextInput value={recipient} onChange={setRecipient} onSubmit={() => setField("amount")} />
         ) : (
@@ -125,7 +125,7 @@ function MintForm() {
         )}
       </Box>
       <Box>
-        <Text color={field === "amount" ? "green" : "gray"}>Amount:    </Text>
+        <Text color={field === "amount" ? "yellow" : "gray"}>Amount:    </Text>
         {field === "amount" ? (
           <TextInput value={amount} onChange={setAmount} onSubmit={handleSubmit} />
         ) : (
@@ -137,7 +137,7 @@ function MintForm() {
       </Box>
       {result && (
         <Box marginTop={1}>
-          <Text color={result.startsWith("✓") ? "green" : "red"}>{result}</Text>
+          <Text color={result.startsWith("✓") ? "yellow" : "red"}>{result}</Text>
         </Box>
       )}
     </Box>
@@ -150,10 +150,10 @@ function BurnForm() {
   const [result, setResult] = useState("");
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="red" paddingX={2} paddingY={1}>
-      <Text bold color="red">Burn Tokens</Text>
+    <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
+      <Text bold color="yellow">Burn Tokens</Text>
       <Box marginTop={1}>
-        <Text color="green">Amount: </Text>
+        <Text color="yellow">Amount: </Text>
         <TextInput
           value={amount}
           onChange={setAmount}
@@ -169,7 +169,7 @@ function BurnForm() {
       </Box>
       {result && (
         <Box marginTop={1}>
-          <Text color={result.startsWith("✓") ? "green" : "red"}>{result}</Text>
+          <Text color={result.startsWith("✓") ? "yellow" : "red"}>{result}</Text>
         </Box>
       )}
     </Box>
@@ -196,10 +196,10 @@ function HoldersTable() {
   }, []);
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="blue" paddingX={2} paddingY={1}>
-      <Text bold color="blue">Largest Holders</Text>
+    <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
+      <Text bold color="yellow">Largest Holders</Text>
       {loading && (
-        <Text><Text color="green"><Spinner type="dots" /></Text> Loading…</Text>
+        <Text><Text color="yellow"><Spinner type="dots" /></Text> Loading…</Text>
       )}
       {error && <Text color="red">✖ {error}</Text>}
       {!loading && !error && holders.length === 0 && (
@@ -208,8 +208,8 @@ function HoldersTable() {
       {holders.length > 0 && (
         <Box flexDirection="column" marginTop={1}>
           <Box>
-            <Text bold color="cyan">{"Address".padEnd(46)}</Text>
-            <Text bold color="cyan">{"Amount".padStart(16)}</Text>
+            <Text bold color="yellow">{"Address".padEnd(46)}</Text>
+            <Text bold color="yellow">{"Amount".padStart(16)}</Text>
           </Box>
           {holders.slice(0, 10).map((h, i) => (
             <Box key={i}>

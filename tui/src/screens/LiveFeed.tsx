@@ -5,9 +5,9 @@ import { getAuditLog } from "../api.js";
 import type { AuditEntry } from "../api.js";
 
 const EVENT_STYLES: Record<string, { emoji: string; color: string }> = {
-  MINT:   { emoji: "🟢", color: "green" },
-  BURN:   { emoji: "🔴", color: "red" },
-  SEIZE:  { emoji: "🟡", color: "yellow" },
+  MINT: { emoji: "🟡", color: "yellow" },
+  BURN: { emoji: "🔴", color: "red" },
+  SEIZE: { emoji: "🟡", color: "yellow" },
   FREEZE: { emoji: "🔵", color: "blue" },
 };
 
@@ -57,9 +57,9 @@ export default function LiveFeed() {
   return (
     <Box flexDirection="column">
       <Box gap={1} marginBottom={1}>
-        <Text bold color="yellow">Live Event Feed</Text>
+        <Text bold color="magenta">Live Event Feed</Text>
         <Text dimColor>│</Text>
-        <Text color="green">
+        <Text color="yellow">
           <Spinner type="dots" />
         </Text>
         <Text dimColor>Polling every 3s…</Text>
@@ -81,7 +81,7 @@ export default function LiveFeed() {
       )}
 
       {/* Event List */}
-      <Box flexDirection="column" borderStyle="round" borderColor="green" paddingX={2} paddingY={1}>
+      <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
         {events.length === 0 && !error && (
           <Text dimColor>Waiting for events…</Text>
         )}
@@ -102,7 +102,7 @@ export default function LiveFeed() {
                 {evt.action.padEnd(7)}
               </Text>
               <Text dimColor>by</Text>
-              <Text color="cyan">{truncAddr.padEnd(14)}</Text>
+              <Text color="yellow">{truncAddr.padEnd(14)}</Text>
               <Text color="white">{(evt.amount || "—").padStart(12)}</Text>
               <Text dimColor> tx:</Text>
               <Text>{truncTx.padEnd(12)}</Text>

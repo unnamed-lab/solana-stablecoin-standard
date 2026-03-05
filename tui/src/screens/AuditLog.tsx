@@ -83,7 +83,7 @@ export default function AuditLog() {
 
       {/* Filter dropdown */}
       {filterOpen && (
-        <Box borderStyle="round" borderColor="cyan" paddingX={1} marginBottom={1}>
+        <Box borderStyle="round" borderColor="magenta" paddingX={1} marginBottom={1}>
           <SelectInput
             items={ACTION_FILTERS}
             onSelect={(item) => {
@@ -99,23 +99,23 @@ export default function AuditLog() {
       {filter && (
         <Box marginBottom={1}>
           <Text dimColor>Filtered by: </Text>
-          <Text bold color="cyan">{filter}</Text>
+          <Text bold color="yellow">{filter}</Text>
         </Box>
       )}
 
       {/* Table */}
-      <Box flexDirection="column" borderStyle="round" borderColor="blue" paddingX={2} paddingY={1}>
+      <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
         {loading && (
-          <Text><Text color="green"><Spinner type="dots" /></Text> Loading…</Text>
+          <Text><Text color="yellow"><Spinner type="dots" /></Text> Loading…</Text>
         )}
         {error && <Text color="red">✖ {error}</Text>}
         {!loading && !error && (
           <>
             <Box>
-              <Text bold color="cyan">{"Action".padEnd(10)}</Text>
-              <Text bold color="cyan">{"Actor".padEnd(46)}</Text>
-              <Text bold color="cyan">{"Amount".padStart(14)}</Text>
-              <Text bold color="cyan">{"  Date"}</Text>
+              <Text bold color="yellow">{"Action".padEnd(10)}</Text>
+              <Text bold color="yellow">{"Actor".padEnd(46)}</Text>
+              <Text bold color="yellow">{"Amount".padStart(14)}</Text>
+              <Text bold color="yellow">{"  Date"}</Text>
             </Box>
             {entries.length === 0 && <Text dimColor>No entries found</Text>}
             {entries.map((e, i) => (
@@ -134,8 +134,8 @@ export default function AuditLog() {
           <Text dimColor>
             Page {page}/{totalPages} ({total} total)
           </Text>
-          {page > 1 && <Text color="green">← prev</Text>}
-          {page < totalPages && <Text color="green">next →</Text>}
+          {page > 1 && <Text color="yellow">← prev</Text>}
+          {page < totalPages && <Text color="yellow">next →</Text>}
         </Box>
       </Box>
     </Box>
@@ -144,7 +144,7 @@ export default function AuditLog() {
 
 function actionColor(action: string): string {
   switch (action) {
-    case "MINT": return "green";
+    case "MINT": return "yellow";
     case "BURN": return "red";
     case "SEIZE": return "yellow";
     case "FREEZE": return "blue";

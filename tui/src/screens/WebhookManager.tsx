@@ -19,7 +19,7 @@ export default function WebhookManager() {
   return (
     <Box flexDirection="column">
       <Box gap={1} marginBottom={1}>
-        <Text bold color="yellow">Webhook Manager</Text>
+        <Text bold color="magenta">Webhook Manager</Text>
         <Text dimColor>│</Text>
         <Tab active={view === "list"} label="[l] List" />
         <Tab active={view === "add"} label="[a] Add" />
@@ -34,7 +34,7 @@ export default function WebhookManager() {
 }
 
 function Tab({ active, label }: { active: boolean; label: string }) {
-  return <Text color={active ? "green" : "gray"}>{label}</Text>;
+  return <Text color={active ? "yellow" : "gray"}>{label}</Text>;
 }
 
 /* ── Webhook List ────────────────────────────────────────────────── */
@@ -75,8 +75,8 @@ function WebhookList() {
   };
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={2} paddingY={1}>
-      <Text bold color="cyan">Registered Webhooks</Text>
+    <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
+      <Text bold color="yellow">Registered Webhooks</Text>
       <Text dimColor>↑↓ navigate · Enter to toggle active/paused</Text>
       {loading && (
         <Text><Text color="green"><Spinner type="dots" /></Text> Loading…</Text>
@@ -87,10 +87,10 @@ function WebhookList() {
       )}
       {webhooks.map((wh, i) => (
         <Box key={wh.id} marginTop={i === 0 ? 1 : 0}>
-          <Text color={i === selectedIdx ? "green" : "white"}>
+          <Text color={i === selectedIdx ? "yellow" : "white"}>
             {i === selectedIdx ? "▸ " : "  "}
           </Text>
-          <Text color={wh.active ? "green" : "yellow"}>
+          <Text color={wh.active ? "yellow" : "yellow"}>
             {wh.active ? "● " : "○ "}
           </Text>
           <Text>{wh.url.padEnd(40)}</Text>
@@ -139,7 +139,7 @@ function AddWebhookForm() {
       <Text bold color="magenta">Register New Webhook</Text>
       {fields.map((f) => (
         <Box key={f} marginTop={f === "url" ? 1 : 0}>
-          <Text color={field === f ? "green" : "gray"}>
+          <Text color={field === f ? "yellow" : "gray"}>
             {(f.charAt(0).toUpperCase() + f.slice(1) + ":").padEnd(10)}
           </Text>
           {field === f ? (
@@ -151,7 +151,7 @@ function AddWebhookForm() {
       ))}
       <Text dimColor>Events: comma-separated (e.g. Minted,Burned,Seized)</Text>
       <Text dimColor>Tab to switch fields · Enter to submit</Text>
-      {result && <Text color={result.startsWith("✓") ? "green" : "red"}>{result}</Text>}
+      {result && <Text color={result.startsWith("✓") ? "yellow" : "red"}>{result}</Text>}
     </Box>
   );
 }
@@ -200,27 +200,27 @@ function DeleteWebhook() {
   };
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="red" paddingX={2} paddingY={1}>
-      <Text bold color="red">Delete Webhook</Text>
+    <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
+      <Text bold color="yellow">Delete Webhook</Text>
       <Text dimColor>↑↓ select · Enter to delete</Text>
       {loading && (
         <Text><Text color="green"><Spinner type="dots" /></Text> Loading…</Text>
       )}
       {webhooks.map((wh, i) => (
         <Box key={wh.id}>
-          <Text color={i === selectedIdx ? "red" : "white"}>
+          <Text color={i === selectedIdx ? "yellow" : "white"}>
             {i === selectedIdx ? "▸ " : "  "}{wh.url}
           </Text>
         </Box>
       ))}
       {confirm && (
         <Box marginTop={1}>
-          <Text bold color="red">
+          <Text bold color="yellow">
             Delete {webhooks[selectedIdx]?.url}? [y/n]
           </Text>
         </Box>
       )}
-      {result && <Text color={result.startsWith("✓") ? "green" : "red"}>{result}</Text>}
+      {result && <Text color={result.startsWith("✓") ? "yellow" : "red"}>{result}</Text>}
     </Box>
   );
 }

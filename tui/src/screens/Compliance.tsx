@@ -47,7 +47,7 @@ export default function Compliance() {
 }
 
 function Tab({ active, label }: { active: boolean; label: string }) {
-  return <Text color={active ? "green" : "gray"}>{label}</Text>;
+  return <Text color={active ? "yellow" : "gray"}>{label}</Text>;
 }
 
 /* ── Blacklist Table ─────────────────────────────────────────────── */
@@ -70,10 +70,10 @@ function BlacklistTable() {
   }, []);
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="red" paddingX={2} paddingY={1}>
-      <Text bold color="red">Blacklisted Addresses</Text>
+    <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
+      <Text bold color="yellow">Blacklisted Addresses</Text>
       {loading && (
-        <Text><Text color="green"><Spinner type="dots" /></Text> Loading…</Text>
+        <Text><Text color="yellow"><Spinner type="dots" /></Text> Loading…</Text>
       )}
       {error && <Text color="red">✖ {error}</Text>}
       {!loading && !error && entries.length === 0 && (
@@ -82,9 +82,9 @@ function BlacklistTable() {
       {entries.length > 0 && (
         <Box flexDirection="column" marginTop={1}>
           <Box>
-            <Text bold color="cyan">{"Address".padEnd(46)}</Text>
-            <Text bold color="cyan">{"Reason".padEnd(24)}</Text>
-            <Text bold color="cyan">{"Date".padEnd(12)}</Text>
+            <Text bold color="yellow">{"Address".padEnd(46)}</Text>
+            <Text bold color="yellow">{"Reason".padEnd(24)}</Text>
+            <Text bold color="yellow">{"Date".padEnd(12)}</Text>
           </Box>
           {entries.map((e, i) => (
             <Box key={i}>
@@ -125,7 +125,7 @@ function AddForm() {
     <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
       <Text bold color="magenta">Add to Blacklist</Text>
       <Box marginTop={1}>
-        <Text color={field === "address" ? "green" : "gray"}>Address: </Text>
+        <Text color={field === "address" ? "yellow" : "gray"}>Address: </Text>
         {field === "address" ? (
           <TextInput value={address} onChange={setAddress} onSubmit={() => setField("reason")} />
         ) : (
@@ -133,7 +133,7 @@ function AddForm() {
         )}
       </Box>
       <Box>
-        <Text color={field === "reason" ? "green" : "gray"}>Reason:  </Text>
+        <Text color={field === "reason" ? "yellow" : "gray"}>Reason:  </Text>
         {field === "reason" ? (
           <TextInput value={reason} onChange={setReason} onSubmit={submit} />
         ) : (
@@ -141,7 +141,7 @@ function AddForm() {
         )}
       </Box>
       <Text dimColor>Tab to switch fields · Enter to submit</Text>
-      {result && <Text color={result.startsWith("✓") ? "green" : "red"}>{result}</Text>}
+      {result && <Text color={result.startsWith("✓") ? "yellow" : "red"}>{result}</Text>}
     </Box>
   );
 }
@@ -152,10 +152,10 @@ function RemoveForm() {
   const [result, setResult] = useState("");
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="yellow" paddingX={2} paddingY={1}>
+    <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
       <Text bold color="yellow">Remove from Blacklist</Text>
       <Box marginTop={1}>
-        <Text color="green">Address: </Text>
+        <Text color="yellow">Address: </Text>
         <TextInput
           value={address}
           onChange={setAddress}
@@ -169,7 +169,7 @@ function RemoveForm() {
           }}
         />
       </Box>
-      {result && <Text color={result.startsWith("✓") ? "green" : "red"}>{result}</Text>}
+      {result && <Text color={result.startsWith("✓") ? "yellow" : "red"}>{result}</Text>}
     </Box>
   );
 }
@@ -180,10 +180,10 @@ function CheckForm() {
   const [result, setResult] = useState("");
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="blue" paddingX={2} paddingY={1}>
-      <Text bold color="blue">Check Blacklist Status</Text>
+    <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
+      <Text bold color="yellow">Check Blacklist Status</Text>
       <Box marginTop={1}>
-        <Text color="green">Address: </Text>
+        <Text color="yellow">Address: </Text>
         <TextInput
           value={address}
           onChange={setAddress}
@@ -198,7 +198,7 @@ function CheckForm() {
         />
       </Box>
       {result && (
-        <Text color={result.startsWith("✓") ? "green" : result.startsWith("⚠") ? "yellow" : "red"}>
+        <Text color={result.startsWith("✓") ? "yellow" : result.startsWith("⚠") ? "yellow" : "red"}>
           {result}
         </Text>
       )}
@@ -240,11 +240,11 @@ function SeizeForm() {
   const setters = { source: setSource, destination: setDestination, amount: setAmount, reason: setReason };
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="red" paddingX={2} paddingY={1}>
-      <Text bold color="red">Seize Tokens</Text>
+    <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
+      <Text bold color="yellow">Seize Tokens</Text>
       {fields.map((f) => (
         <Box key={f} marginTop={f === "source" ? 1 : 0}>
-          <Text color={field === f ? "green" : "gray"}>
+          <Text color={field === f ? "yellow" : "gray"}>
             {f.charAt(0).toUpperCase() + f.slice(1) + ":"}{" ".repeat(14 - f.length)}
           </Text>
           {field === f ? (
@@ -255,7 +255,7 @@ function SeizeForm() {
         </Box>
       ))}
       <Text dimColor>Tab to switch fields · Enter to submit</Text>
-      {result && <Text color={result.startsWith("✓") ? "green" : "red"}>{result}</Text>}
+      {result && <Text color={result.startsWith("✓") ? "yellow" : "red"}>{result}</Text>}
     </Box>
   );
 }

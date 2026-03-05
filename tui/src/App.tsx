@@ -5,6 +5,7 @@ import Compliance from "./screens/Compliance.js";
 import AuditLog from "./screens/AuditLog.js";
 import WebhookManager from "./screens/WebhookManager.js";
 import LiveFeed from "./screens/LiveFeed.js";
+import Brand from "./components/Brand.js";
 
 const SCREENS = [
   { key: "1", label: "Token Ops", Component: TokenOps },
@@ -33,12 +34,7 @@ export default function App() {
   return (
     <Box flexDirection="column" padding={1}>
       {/* ── Header ─────────────────────────────────── */}
-      <Box marginBottom={1}>
-        <Text bold color="cyan">
-          ◆ SSS Terminal{" "}
-        </Text>
-        <Text dimColor>— Solana Stablecoin Standard</Text>
-      </Box>
+      <Brand />
 
       {/* ── Tab Bar ────────────────────────────────── */}
       <Box gap={1} marginBottom={1}>
@@ -46,7 +42,7 @@ export default function App() {
           <Box key={s.key}>
             <Text
               bold={i === activeIdx}
-              color={i === activeIdx ? "green" : "gray"}
+              color={i === activeIdx ? "yellow" : "gray"}
               inverse={i === activeIdx}
             >
               {" "}[{s.key}] {s.label}{" "}
@@ -60,7 +56,7 @@ export default function App() {
 
       {/* ── Divider ────────────────────────────────── */}
       <Box marginBottom={1}>
-        <Text dimColor>{"─".repeat(72)}</Text>
+        <Text color="magenta">{"━".repeat(72)}</Text>
       </Box>
 
       {/* ── Active Screen ──────────────────────────── */}
