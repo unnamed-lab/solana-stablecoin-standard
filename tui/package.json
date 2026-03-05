@@ -1,9 +1,13 @@
 {
-  "name": "tui",
+  "name": "@stbr/sss-tui",
   "version": "1.0.0",
-  "description": "",
   "type": "module",
   "main": "index.js",
+  "description": "Terminal UI for the Solana Stablecoin Standard (SSS)",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "npx tsx src/index.tsx",
     "start": "npx tsx src/index.tsx",
@@ -11,8 +15,6 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.29.3",
   "dependencies": {
     "axios": "^1.13.6",
     "date-fns": "^4.1.0",
@@ -28,6 +30,7 @@
     "@types/node": "^25.3.2",
     "@types/react": "^19.2.14",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
 }
