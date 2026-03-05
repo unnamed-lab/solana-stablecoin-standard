@@ -10,12 +10,16 @@
             "default": "./dist/index.js"
         }
     },
+    "files": [
+        "dist",
+        "src"
+    ],
     "scripts": {
         "fetch-idls": "node scripts/fetch-idls.js",
-        "bundle": "yarn build && npm link",
+        "bundle": "npm run build && npm link",
         "link": "npm link",
         "unlink": "npm unlink",
-        "build": "yarn fetch-idls && tsc",
+        "build": "npm run fetch-idls && tsc",
         "clean": "rm -rf dist",
         "watch": "tsc -w",
         "test": "mocha -r ts-node/register tests/**/*.ts"
