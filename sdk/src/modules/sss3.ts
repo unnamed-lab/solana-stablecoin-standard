@@ -24,8 +24,19 @@ export function generateElGamalKeypair(): ElGamalKeypair {
     // Since the actual Token-2022 ZK WASM bindings aren't natively exported 
     // in the currently installed version of @solana/spl-token, we use a 
     // cryptographically secure 64-byte payload generated from Ed25519 keys
-    const mockKey = Keypair.generate().secretKey;
-    return { publicKey: mockKey, privateKey: mockKey };
+
+    // Generate a new random keypair
+    const wallet = Keypair.generate();
+
+    // We pad the 32-byte Ed25519 public key to 64 bytes to match 
+    // the ElGamal public key size constraint required by Token-2022.
+    const publicKey = new Uint8Array(64);
+    publicKey.set(wallet.publicKey.toBytes());
+
+    // Ed25519 secret keys are already 64 bytes natively.
+    const privateKey = wallet.secretKey;
+
+    return { publicKey, privateKey };
 }
 
 /**
