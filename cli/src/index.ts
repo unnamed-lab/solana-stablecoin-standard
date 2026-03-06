@@ -20,6 +20,7 @@ import {
     registerAcceptTransferCommand,
     registerComplianceCommands,
     registerHookCommands,
+    registerConfigCommands,
 } from './commands';
 
 const program = new Command();
@@ -58,6 +59,9 @@ registerComplianceCommands(program);
 
 // ── SSS-2 Transfer Hook (subcommand group) ──────────────────────────────
 registerHookCommands(program);
+
+// ── Custom Presets & Lists ──────────────────────────────────────────────
+registerConfigCommands(program);
 
 // ── Parse & Execute ─────────────────────────────────────────────────────
 program.parseAsync(process.argv).catch((err) => {

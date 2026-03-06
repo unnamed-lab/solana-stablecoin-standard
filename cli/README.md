@@ -408,6 +408,7 @@ cli/
 | `yarn build` | Compile TypeScript to `dist/` |
 | `yarn clean` | Remove `dist/` |
 | `yarn test` | Run Mocha tests |
+| `yarn ts-node scripts/generate-test-keypairs.ts` | Generate default testing keypairs (`admin`, `minter`, `owner`, `burner`, `user1`, `user2`) saved in `cli/test-keys/` |
 
 ---
 

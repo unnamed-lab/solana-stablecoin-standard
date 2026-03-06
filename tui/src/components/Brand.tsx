@@ -8,7 +8,7 @@ const LOGO = `
 ████▄   █████
 ██████▄ █████
 ██████▀ █████
-████▀▀  ███`;
+████▀▀  █████`;
 
 /**
  * Superteam Logo rendered with exact solid block characters 

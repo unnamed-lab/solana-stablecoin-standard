@@ -9,8 +9,8 @@
     "node": ">=18"
   },
   "scripts": {
-    "dev": "npx tsx src/index.tsx",
-    "start": "npx tsx src/index.tsx",
+    "dev": "yarn tsx src/index.tsx",
+    "start": "yarn tsx src/index.tsx",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -24,7 +24,8 @@
     "ink-spinner": "^5.0.0",
     "ink-table": "^3.1.0",
     "ink-text-input": "^6.0.0",
-    "react": "^19.2.4"
+    "react": "^19.2.4",
+    "toml": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^25.3.2",

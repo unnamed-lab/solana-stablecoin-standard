@@ -102,4 +102,23 @@ export class TokenController {
     const min = minAmount ? Number(minAmount) : undefined;
     return this.tokenService.getLargestHolders(min);
   }
+
+  @Get('minters')
+  @ApiOperation({ summary: 'Get the list of active minters and their quotas for the token' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of minters',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          pubkey: { type: 'string', example: 'TokenAccountAddress...' },
+        }
+      }
+    },
+  })
+  async getMintersList() {
+    return this.tokenService.getMintersList();
+  }
 }
