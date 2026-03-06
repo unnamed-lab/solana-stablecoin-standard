@@ -12,6 +12,7 @@ export enum StablecoinPreset {
     SSS_1 = 'sss1',
     SSS_2 = 'sss2',
     CUSTOM = 'custom',
+    SSS_3 = 'sss3',
 }
 
 /**
@@ -107,6 +108,20 @@ export interface BurnParams {
 }
 
 /**
+ * Parameters for the {@link SolanaStablecoin.transfer} method.
+ */
+export interface TransferParams {
+    /** Keypair of the token sender (must own `fromAta`). */
+    sender: Keypair;
+    /** Source token account address. */
+    fromAta: PublicKey;
+    /** Destination token account address. */
+    toAta: PublicKey;
+    /** Number of tokens to transfer (in base units). */
+    amount: number;
+}
+
+/**
  * Parameters for blacklist operations in the {@link ComplianceModule}.
  */
 export interface BlacklistParams {
@@ -135,6 +150,14 @@ export interface StablecoinInfo {
     paused: boolean;
     /** Number of active blacklist entries (SSS-2 only). */
     blacklistCount?: number;
+    /** Number of active allowlist entries (SSS-3 only). */
+    allowlistCount?: number;
+    /** Maximum supply cap (0 = unlimited). */
+    maxSupply?: number;
+    /** Whether confidential transfers are enabled. */
+    confidentialEnabled?: boolean;
+    /** Whether scoped allowlist enforcement is active. */
+    allowlistActive?: boolean;
 }
 
 /**
@@ -217,4 +240,88 @@ export interface HookConfigInfo {
     transferCount: number;
     /** Total number of transfers blocked by the hook. */
     blockedCount: number;
+}
+
+// ── SSS-3 Specific Types ──
+
+/**
+ * Operations permitted by an allowlist entry.
+ */
+export enum AllowlistOps {
+    NONE = 0x00,
+    RECEIVE = 0x01,
+    SEND = 0x02,
+    BOTH = 0x03,
+}
+
+/**
+ * KYC tier for an allowlist entry.
+ */
+export enum KycTier {
+    BASIC = 0,
+    ENHANCED = 1,
+    INSTITUTIONAL = 2,
+}
+
+/**
+ * Represents a single allowlist entry returned by the SDK.
+ */
+export interface AllowlistEntryInfo {
+    /** The address on the allowlist. */
+    address: PublicKey;
+    /** Permitted operations map. */
+    allowedOperations: {
+        canSend: boolean;
+        canReceive: boolean;
+        rawBits: number;
+    };
+    /** KYC tier level. */
+    kycTier: KycTier;
+    /** Expiry timestamp (Unix). 0 means permanent. */
+    expiry: number;
+    /** Public key of the allowlister who added this entry. */
+    addedBy: PublicKey;
+    /** Timestamp when the entry was added. */
+    addedAt: number;
+    /** Human-readable reason for allowlisting. */
+    reason: string;
+    /** Whether the entry is currently active (used for soft-deletes). */
+    active: boolean;
+}
+
+// ── SSS-3 Analytics Types ──
+
+export interface TokenAnalytics {
+    totalSupply: number;
+    maxSupply: number | null;
+    totalMintOperations: number;
+    totalBurnOperations: number;
+    largestSingleMint: number;
+    lastMintAt: number | null;
+    lastBurnAt: number | null;
+    minterCount: number;
+}
+
+export interface SupplySnapshotInfo {
+    dayNumber: number;
+    supply: number;
+    minterCount: number;
+    takenAt: number;
+    takenBy: PublicKey;
+}
+
+export interface SupplyHistory {
+    snapshots: SupplySnapshotInfo[];
+    averageDailyGrowth: number;
+}
+
+export interface MinterStats {
+    totalMintedAllTime: number;
+    operationCount: number;
+    lastMintAt: number | null;
+}
+
+export interface HolderEstimate {
+    estimatedHolders: number;
+    confidence: 'high' | 'medium' | 'low';
 }

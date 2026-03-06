@@ -17,6 +17,9 @@ export enum AuditAction {
   UNPAUSE = 'UNPAUSE',
   FREEZE = 'FREEZE',
   THAW = 'THAW',
+  ALLOWLIST_ADD = 'ALLOWLIST_ADD',
+  ALLOWLIST_REMOVE = 'ALLOWLIST_REMOVE',
+  ALLOWLIST_UPDATE = 'ALLOWLIST_UPDATE',
 }
 
 // ── On-Chain Event Interfaces ────────────────────────────────────────
@@ -52,6 +55,24 @@ export interface RemovedFromBlacklistEvent {
   address: string;
   removedBy: string;
   timestamp: string;
+}
+
+export interface AllowlistAddedEvent {
+  mint: string;
+  address: string;
+  allowedOperations: number;
+  kycTier: number;
+  expiry: string; // i64 as string
+  reason: string;
+  addedBy: string;
+  timestamp: string; // i64 as string
+}
+
+export interface AllowlistRemovedEvent {
+  mint: string;
+  address: string;
+  removedBy: string;
+  timestamp: string; // i64 as string
 }
 
 export interface SeizedEvent {

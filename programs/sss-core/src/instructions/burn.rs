@@ -1,7 +1,7 @@
+use crate::errors::SSSError;
+use crate::state::StablecoinConfig;
 use anchor_lang::prelude::*;
 use anchor_spl::token_2022::{self, Burn, Token2022};
-use crate::state::StablecoinConfig;
-use crate::errors::SSSError;
 
 #[derive(Accounts)]
 pub struct BurnTokens<'info> {
@@ -30,12 +30,16 @@ pub struct BurnTokens<'info> {
 
 pub fn burn(ctx: Context<BurnTokens>, amount: u64) -> Result<()> {
     let config = &mut ctx.accounts.config;
-    
+
     require!(!config.paused, SSSError::Paused);
     require!(amount > 0, SSSError::ZeroAmount);
 
     config.total_supply = config.total_supply.checked_sub(amount).unwrap_or(0);
     config.total_burned_all_time = config.total_burned_all_time.checked_add(amount).unwrap();
+
+    // Analytics counters
+    config.total_burn_operations = config.total_burn_operations.saturating_add(1);
+    config.last_burn_at = Clock::get()?.unix_timestamp;
 
     let cpi_accounts = Burn {
         mint: ctx.accounts.mint.to_account_info(),

@@ -1,4 +1,12 @@
 {
+  "private": true,
+  "workspaces": [
+    "tui",
+    "cli",
+    "sdk",
+    "backend",
+    "sss-oracle-frontend"
+  ],
   "license": "MIT",
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",

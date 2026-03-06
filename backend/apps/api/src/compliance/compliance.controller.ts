@@ -12,12 +12,14 @@ import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { ComplianceService } from './compliance.service';
 import { BlacklistDto, CheckWalletBlacklistDto } from './dto/blacklist.dto';
+import { AllowlistAddDto, CheckWalletAllowlistDto } from './dto/allowlist.dto';
+import { AllowlistOps } from '@stbr/sss-token';
 import { SeizeDto } from './dto/seize.dto';
 
 @ApiTags('Compliance')
 @Controller('api/v1')
 export class ComplianceController {
-  constructor(private readonly complianceService: ComplianceService) {}
+  constructor(private readonly complianceService: ComplianceService) { }
 
   @Post('blacklist')
   @HttpCode(200)
@@ -90,5 +92,66 @@ export class ComplianceController {
   })
   async seize(@Body() dto: SeizeDto) {
     return this.complianceService.seize(dto);
+  }
+
+  // ── SSS-3 Allowlist ──
+
+  @Post('allowlist')
+  @HttpCode(200)
+  @Throttle({ strict: { ttl: 60000, limit: 10 } })
+  @ApiOperation({ summary: 'Add a wallet address to the allowlist (SSS-3)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Address allowlisted and allowed to transact',
+  })
+  async allowlistAdd(@Body() dto: AllowlistAddDto) {
+    return this.complianceService.allowlistAdd(dto);
+  }
+
+  @Delete('allowlist/:address')
+  @ApiOperation({
+    summary: 'Remove a wallet address from the allowlist (SSS-3)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Address removed from allowlist',
+  })
+  async allowlistRemove(
+    @Param('address') address: string,
+    @Query('allowlisterKeypair') allowlisterKeypair: string,
+  ) {
+    return this.complianceService.allowlistRemove(address, allowlisterKeypair);
+  }
+
+  @Get('allowlist')
+  @ApiOperation({ summary: 'Get the active allowlist' })
+  @ApiQuery({
+    name: 'mint',
+    required: false,
+    description: 'Filter by mint address',
+  })
+  @ApiResponse({ status: 200, description: 'List of active allowlist entries' })
+  async getAllowlist(@Query('mint') mint?: string) {
+    return this.complianceService.getAllowlist(mint);
+  }
+
+  @Get('allowlist/check/:address')
+  @ApiOperation({ summary: 'Check if an address is allowlisted for operations' })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      properties: { allowlisted: { type: 'boolean', example: true } },
+    },
+  })
+  async isAllowlisted(
+    @Param('address') address: string,
+    @Query() queryDto?: CheckWalletAllowlistDto,
+  ) {
+    const allowlisted = await this.complianceService.isAllowlisted(
+      address,
+      queryDto?.operation ? Number(queryDto.operation) : AllowlistOps.BOTH,
+      queryDto?.mint,
+    );
+    return { allowlisted };
   }
 }

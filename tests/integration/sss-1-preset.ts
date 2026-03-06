@@ -109,6 +109,14 @@ describe("SSS-1 Preset Integration — mint → transfer → freeze", () => {
         );
         await provider.sendAndConfirm(createAtaTx, [authority]);
 
+        // Thaw the ATA if needed (the mint has a freeze authority, so new ATAs may start frozen)
+        try {
+            await sdk.thaw(authority, senderAta);
+            console.log("  → Thawed senderAta");
+        } catch {
+            console.log("  → Already thawed: senderAta");
+        }
+
         const tx = await sdk.mint({
             recipient: senderAta,
             amount: 500_000,
@@ -154,6 +162,14 @@ describe("SSS-1 Preset Integration — mint → transfer → freeze", () => {
             )
         );
         await provider.sendAndConfirm(createAtaTx, [authority]);
+
+        // Thaw receiver ATA if needed
+        try {
+            await sdk.thaw(authority, receiverAta);
+            console.log("  → Thawed receiverAta");
+        } catch {
+            console.log("  → Already thawed: receiverAta");
+        }
 
         // Use the SPL Token transfer instruction via the SDK
         const tx = await sdk.transfer({
