@@ -1,0 +1,209 @@
+# Frontend Component Reference
+
+> Mapping every component to its origin in [sss-dashboard-v2.jsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx) — the monolithic prototype the app was refactored from.
+
+---
+
+## Architecture Overview
+
+```
+sss-dashboard-v2.jsx (single-file prototype, 1441 lines)
+       │
+       ▼
+Next.js App (app/ + components/)
+  ├── app/layout.tsx          ← Root shell (server component)
+  │     └── ClientLayout      ← All client-side chrome
+  │           ├── Sidebar     ← Navigation drawer
+  │           └── TopBar      ← Header bar
+  └── app/<route>/page.tsx    ← Server component per page
+        └── components/views/<Name>View.tsx   ← Client page body
+```
+
+**Key architectural shift**: The prototype used client-side `useState("page")` to switch pages. The Next.js app uses the **file-system router** — each URL maps to a real page, enabling server rendering and proper back/forward navigation.
+
+---
+
+## 1. [app/layout.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/app/layout.tsx) — Root Layout (Server Component)
+
+**Source in v2**: Lines 1289–1438 — the top-level `<App>` return JSX (`<html>`, `<body>`, `<Fonts>`, `<AmbientBg>`, the `<motion.aside>` sidebar and `<motion.header>` topbar all lived inline in [App()](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#1270-1441)).
+
+| Responsibility | Detail |
+|---|---|
+| Sets `<html>` + `<body>` | Wraps everything with proper HTML skeleton |
+| Imports [globals.css](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/app/globals.css) | CSS custom properties (`--bg`, `--accent`, etc.) that were inline `<style>` in v2 |
+| Renders `<ClientLayout>` | Delegates all interactive chrome to the client boundary |
+| Sets page `<title>` + meta | Via Next.js `Metadata` export — didn't exist in v2 |
+
+---
+
+## 2. [components/ClientLayout.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/ClientLayout.tsx) — Client Chrome Shell
+
+**Source in v2**: The outer `div` + sidebar + topbar + `<main>` from [App()](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#1270-1441) (lines 1292–1436).
+
+| Responsibility | Detail |
+|---|---|
+| `sidebarOpen` state | **New** — not in v2. Enables mobile drawer toggle |
+| `isMobile` via `matchMedia` | **New** — v2 had no responsive behaviour |
+| Renders `<Sidebar>` | Passes `open` + `onClose` props (mobile-aware) |
+| Renders `<TopBar>` | Passes `onMenuClick` for hamburger |
+| Mobile backdrop overlay | **New** — `AnimatePresence` fade on `position: fixed` div |
+| `<main>` page transitions | Same `AnimatePresence` + `motion.div` blur/y transition as v2 (line 1426–1434), but now keyed by `pathname` (from `usePathname`) instead of `page` state |
+| `clamp()` padding | **New** — fluid mobile padding |
+
+---
+
+## 3. [components/Sidebar.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Sidebar.tsx) — Navigation Drawer
+
+**Source in v2**: The `<motion.aside>` block, lines 1296–1394.
+
+| Part | v2 location | Current behaviour |
+|---|---|---|
+| Logo block | L1304–1318 | Identical markup |
+| Network status pill | L1321–1330 | Identical, `animate opacity` pulse |
+| `NAV_ITEMS` config | L1261–1268 | Identical icons/labels/groups; current version adds `href` for URL routing |
+| Nav item active state | `page === item.id` (L1351) | `pathname.startsWith(href)` — real URL-based |
+| Nav click handler | [goTo(item.id)](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#1277-1278) (L1349) | `<Link href={...}>` — Next.js router |
+| `layoutId="activeIndicator"` | L1357 | Identical Framer Motion shared layout marker |
+| User footer | L1378–1393 | Identical |
+| **Mobile drawer (new)** | — | `open`/`onClose` props; `position: fixed` on mobile; Framer `x` slide animation |
+
+---
+
+## 4. [components/TopBar.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/TopBar.tsx) — Header Bar
+
+**Source in v2**: The `<motion.header>` block, lines 1400–1422.
+
+| Part | v2 location | Current behaviour |
+|---|---|---|
+| Height / blur / border | L1403 | Identical |
+| Service pills (localhost:3000, oracle:3003) | L1406–1416 | Identical; hidden on mobile |
+| Bell button | L1417–1421 | Identical |
+| **Hamburger button (new)** | — | `<Menu>` icon, only rendered when `isMobile`, calls `onMenuClick` |
+
+---
+
+## 5. [components/Primitives.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx) — Shared Design System
+
+**Source in v2**: All the mini-components defined at the top of the file (lines 92–337).
+
+| Export | v2 original | Purpose | Notable diff |
+|---|---|---|---|
+| `EASE_OUT_EXPO` | L93 | Bézier curve constant | `as const` added (TS fix) |
+| `EASE_IN_OUT` | L94 | Bézier curve constant | `as const` added |
+| `SPRING_SNAPPY` | L95 | Spring config | `as const` — fixes TS `type: string` error |
+| `SPRING_BOUNCY` | L96 | Spring config | `as const` |
+| `STAGGER` | L97 | Stagger variant | Identical |
+| `FADE_UP` | L98–101 | Entrance variant | Identical |
+| `FADE_RIGHT` | L102–105 | Entrance variant | Identical |
+| [Fonts](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#12-91) | L12–90 | Google Fonts injector | Stripped global CSS (moved to [globals.css](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/app/globals.css)) |
+| [AmbientBg](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#42-72) | L108–127 | Background radial blobs + grid | Identical |
+| [MagneticBtn](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#81-108) | L130–154 | Spring-powered magnetic button | Mouse-tracking identical; TS-typed props |
+| [CountUp](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#113-134) | L157–177 | Animated number counter | Identical |
+| [Tag](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#179-199) | L180–198 | Coloured badge pill | `style` prop added |
+| [DepthCard](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#171-205) | L201–229 | Hoverable surface card | Identical |
+| [StatCard](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#231-257) | L232–256 | Metric display card | `change !== undefined` (was truthy check — fixes `change=0` bug) |
+| [TxLink](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#258-267) | L259–266 | Solscan transaction link | Identical |
+| [CopyBtn](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#268-284) | L269–283 | Clipboard button | Identical |
+| [ActionBadge](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#286-289) | L286–289 | MINT/BURN/FREEZE/etc. tag | Identical |
+| [Modal](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#294-327) | L292–319 | Centred dialog overlay | Identical |
+| [Btn](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#335-359) | L322–337 | Multi-variant button | `type` prop added for `<form>` use |
+| [Spinner](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#360-364) | — | `<RefreshCw spin>` shorthand | **New** in current; not in v2 |
+| [KeypairWarning](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#365-381) | Inline in [DashboardPage](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#381-578) (L495–500) | Reusable keypair warning | **Extracted** from Dashboard inline markup |
+| [Pagination](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#384-410) | Inline in [AuditPage](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#859-942) (L927–936) | Page nav buttons | **Extracted** from Audit page inline markup |
+
+---
+
+## 6. `components/views/` — Page Bodies (Client Components)
+
+In v2 these were all top-level function components inside the same file. In the Next.js app each is a separate `"use client"` file in `components/views/`.
+
+| View file | v2 component | Route | Source lines |
+|---|---|---|---|
+| [DashboardView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/DashboardView.tsx) | [DashboardPage](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#381-578) | `/` | L384–577 |
+| [HoldersView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/HoldersView.tsx) | [HoldersPage](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#579-648) | `/holders` | L582–647 |
+| [ComplianceView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/ComplianceView.tsx) | [CompliancePage](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#649-858) | `/compliance` | L652–857 |
+| [AuditLogView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/AuditLogView.tsx) | [AuditPage](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#859-942) | `/audit-log` | L862–941 |
+| [WebhooksView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/WebhooksView.tsx) | [WebhooksPage](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#943-1075) | `/webhooks` | L946–1074 |
+| [OracleView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/OracleView.tsx) | [OraclePage](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#1076-1257) | `/oracle` | L1079–1256 |
+
+### Each view's internal responsibilities
+
+#### [DashboardView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/DashboardView.tsx)
+- `mintAmt`, `showKey`, `loading`, `txBanner` state
+- Stat grid (4 × [StatCard](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#231-257) with [CountUp](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#113-134) values)
+- Animated TX confirmation banner (`AnimatePresence`)
+- Mint form (recipient, amount, keypair with show/hide + [KeypairWarning](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#365-381))
+- Burn form
+- Recent Activity table (last 6 `MOCK_AUDIT` events)
+
+#### [HoldersView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/HoldersView.tsx)
+- `minAmt` filter state
+- Total holders [CountUp](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#113-134) hero stat
+- Leaderboard table with share % bar animation
+- [CopyBtn](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#268-284) + Solscan link per holder row
+
+#### [ComplianceView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/ComplianceView.tsx)
+- `tab` state (`blacklist` | `check` | `seize`)
+- `addModal`, `removeModal`, `seizeModal`, `seizeText` state
+- Tab bar with `AnimatePresence mode="wait"` panel transitions
+- **Blacklist tab**: list of frozen accounts, Add/Remove with modals
+- **Check Address tab**: address lookup → clean/blacklisted result card
+- **Seize tab**: confirm-word gate (`SEIZE` typed input) before executing
+
+#### [AuditLogView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/AuditLogView.tsx)
+- `actionFilter`, `actorFilter` state
+- Filter bar (action dropdown + actor text input + animated Clear button)
+- Events table with [ActionBadge](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#286-289), [TxLink](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#258-267), timestamps
+- [Pagination](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx#384-410) bar
+
+#### [WebhooksView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/WebhooksView.tsx)
+- [hooks](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#943-1075), `createModal`, `deleteModal`, `expanded` state
+- Per-webhook toggle switch (animated thumb), expand-to-edit accordion
+- Register + Delete modals
+- Payload reference card (events + HMAC header format)
+
+#### [OracleView.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/views/OracleView.tsx)
+- `tab` state (`feeds` | `config` | `simulator`)
+- **Feeds tab**: price feed cards + Register Feed form
+- **Config tab**: fetch oracle config + Initialize Config form
+- **Simulator tab**: Mint Quote + Redeem Quote calculators (pure maths, no RPC)
+
+---
+
+## 7. `app/<route>/page.tsx` — Thin Server Page Wrappers
+
+Each route folder contains a single [page.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/app/page.tsx) that is a **React Server Component** — it simply imports and returns the corresponding View. This is how Next.js knows which view to render per URL.
+
+```
+app/page.tsx           →  <DashboardView />
+app/holders/page.tsx   →  <HoldersView />
+app/compliance/…       →  <ComplianceView />
+app/audit-log/…        →  <AuditLogView />
+app/webhooks/…         →  <WebhooksView />
+app/oracle/…           →  <OracleView />
+```
+
+---
+
+## 8. Data & CSS
+
+| File | v2 equivalent | Notes |
+|---|---|---|
+| [app/globals.css](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/app/globals.css) | `<Fonts>` `<style>` block (L12–89) | CSS custom properties, scrollbar, `.input`, `.label`, `@keyframes` |
+| Mock data (`MOCK_AUDIT`, `MOCK_HOLDERS`, etc.) | L345–379 | Still in each View file; **should be moved to API calls** |
+
+---
+
+## Key Differences Summary: v2 → Current App
+
+| Concern | [sss-dashboard-v2.jsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx) (prototype) | Next.js App |
+|---|---|---|
+| Routing | `useState("page")` + `PAGES[page]` | File-system router (`app/`) |
+| Server rendering | None (entirely client) | Server components at page level |
+| Responsiveness | None | Mobile drawer + `matchMedia` |
+| Global CSS | Inline `<style>` tag | [app/globals.css](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/app/globals.css) |
+| TypeScript | No ([.jsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx)) | Yes ([.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/app/page.tsx)) — strict prop types |
+| Component splitting | Single 1441-line file | Shared [Primitives.tsx](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/components/Primitives.tsx) + separate View files |
+| Active route | `page === item.id` | `pathname.startsWith(href)` |
+| Navigation | [goTo(id)](file:///c:/Users/sysadmin/Documents/projects/solana-stablecoin-standard/frontend/sss-dashboard-v2.jsx#1277-1278) (state mutation) | `<Link href>` (Next.js router) |
+| `type: "spring"` | Inferred as `string` | `as const` → literal `"spring"` |
