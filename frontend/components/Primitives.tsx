@@ -222,41 +222,50 @@ interface StatCardProps {
   icon: ReactNode; accent?: AccentColor; change?: number;
 }
 export const StatCard = ({ label, value, unit, icon, accent, change }: StatCardProps) => (
-  <motion.div variants={FADE_UP}>
-    <DepthCard accent={accent}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--sub)", marginBottom: 14 }}>
-            {label}
-          </p>
-          <p style={{ fontFamily: "Geist Mono", fontSize: 26, fontWeight: 600, lineHeight: 1, letterSpacing: "-0.03em" }}>
-            {value}
-          </p>
-          <p style={{ fontSize: 11, color: "var(--sub)", marginTop: 6, fontFamily: "Geist Mono" }}>{unit}</p>
-        </div>
+  <motion.div variants={FADE_UP} style={{ height: "100%" }}>
+    <DepthCard accent={accent} style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Top row: label + icon */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--sub)", lineHeight: 1.4 }}>
+          {label}
+        </p>
         <motion.div
           whileHover={{ rotate: 10, scale: 1.1 }}
           transition={SPRING_BOUNCY}
           style={{
-            width: 38, height: 38, borderRadius: 10, background: "var(--surface2)",
-            border: "1px solid var(--border)", display: "flex", alignItems: "center",
-            justifyContent: "center", color: "var(--sub)"
+            flexShrink: 0, width: 34, height: 34, borderRadius: 9,
+            background: "var(--surface2)", border: "1px solid var(--border)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "var(--sub)"
           }}
         >
           {icon}
         </motion.div>
       </div>
-      {change !== undefined && (
-        <div style={{ marginTop: 14, display: "flex", alignItems: "center", gap: 5, fontSize: 11,
-          color: change > 0 ? "var(--accent)" : "var(--danger)" }}>
-          {change > 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
-          <span style={{ fontFamily: "Geist Mono" }}>{Math.abs(change)}%</span>
-          <span style={{ color: "var(--sub)" }}>vs last 24h</span>
-        </div>
-      )}
+
+      {/* Value + unit */}
+      <div style={{ marginTop: 14, flex: 1 }}>
+        <p style={{ fontFamily: "Geist Mono", fontSize: "clamp(18px, 2vw, 24px)", fontWeight: 600, lineHeight: 1, letterSpacing: "-0.03em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {value}
+        </p>
+        <p style={{ fontSize: 11, color: "var(--sub)", marginTop: 6, fontFamily: "Geist Mono" }}>{unit}</p>
+      </div>
+
+      {/* Change badge — pushed to bottom so cards align */}
+      <div style={{ marginTop: 12, minHeight: 20 }}>
+        {change !== undefined && (
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11,
+            color: change > 0 ? "var(--accent)" : "var(--danger)" }}>
+            {change > 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
+            <span style={{ fontFamily: "Geist Mono" }}>{Math.abs(change)}%</span>
+            <span style={{ color: "var(--sub)" }}>vs 24h</span>
+          </div>
+        )}
+      </div>
     </DepthCard>
   </motion.div>
 );
+
 
 /* ── Tx link ─────────────────────────────────────────────────────── */
 export const TxLink = ({ sig }: { sig: string }) => (

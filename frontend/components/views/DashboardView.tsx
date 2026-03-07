@@ -79,7 +79,7 @@ export default function DashboardView() {
         </div>
       </motion.div>
 
-      <motion.div variants={STAGGER} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 14 }}>
+      <motion.div variants={STAGGER} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 14, alignItems: "stretch" }}>
         <StatCard label="Total Supply" value={<CountUp to={totalSupplyNum} />} unit="USDS" icon={<Coins size={15} />} accent="purple" change={2.4} />
         <StatCard label="Max Supply"   value={<CountUp to={maxSupplyNum} />}   unit="USDS" icon={<BarChart3 size={15} />} />
         <StatCard label="Total Burned" value={<CountUp to={burnedNum} />}      unit="USDS" icon={<Flame size={15} />} accent="red" change={-0.8} />
