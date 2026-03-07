@@ -1,0 +1,148 @@
+/* ── Google Fonts ──────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Geist+Mono:wght@300;400;500;600&display=swap');
+
+/* ── Reset ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Design Tokens ─────────────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg:       #070709;
+  --bg2:      #0C0C10;
+  --surface:  #111116;
+  --surface2: #18181F;
+
+  /* Borders */
+  --border:   rgba(255, 255, 255, 0.06);
+  --border2:  rgba(255, 255, 255, 0.1);
+
+  /* Brand */
+  --primary:  #7C5CFF;
+  --accent:   #00E5A0;
+
+  /* Semantic */
+  --danger:   #FF4060;
+  --warn:     #F59E0B;
+
+  /* Text */
+  --text:     #F0F0F5;
+  --sub:      #8888A0;
+  --dim:      #444455;
+}
+
+/* ── Base ──────────────────────────────────────────────────────────── */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Typography ────────────────────────────────────────────────────── */
+.mono {
+  font-family: 'Geist Mono', monospace;
+}
+
+button {
+  font-family: 'Syne', sans-serif;
+}
+
+input,
+select,
+textarea {
+  font-family: 'Geist Mono', monospace;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 3px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--dim);
+  border-radius: 99px;
+}
+
+/* ── Form Utilities ────────────────────────────────────────────────── */
+.input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  border-color: rgba(124, 92, 255, 0.5);
+  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.08);
+}
+
+.input::placeholder {
+  color: var(--dim);
+}
+
+.label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sub);
+  margin-bottom: 7px;
+}
+
+/* ── Keyframe Animations ───────────────────────────────────────────── */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* ── Mobile utilities ──────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Prevent anything from bleeding off-screen */
+  * { max-width: 100%; }
+
+  /* Allow inline-flex items like tags/buttons to break */
+  p, span, div { word-break: break-word; }
+
+  /* Scale down page headings slightly */
+  h1 { font-size: 22px !important; }
+
+  /* Inputs should always fill width on mobile */
+  .input { font-size: 14px; } /* Prevent iOS zoom on focus */
+
+  /* Horizontal-scroll thin scrollbar for tab bars */
+  ::-webkit-scrollbar { height: 2px; }
+}
+
