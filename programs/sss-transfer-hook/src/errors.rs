@@ -12,4 +12,8 @@ pub enum HookError {
     InvalidMint,
     #[msg("Invalid authority")]
     InvalidAuthority,
+    #[msg("Sender is not on the allowlist — SSS-3 requires explicit allowlist membership to send")]
+    SenderNotAllowlisted,
+    #[msg("Recipient is not on the allowlist — SSS-3 requires explicit allowlist membership to receive")]
+    RecipientNotAllowlisted,
 }

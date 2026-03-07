@@ -1,8 +1,11 @@
-use anchor_lang::prelude::*;
-use anchor_spl::token_2022::{self, TransferChecked, Token2022, spl_token_2022::state::AccountState};
-use anchor_spl::token_interface::TokenAccount;
-use crate::state::{StablecoinConfig, SeizureRecord};
 use crate::errors::SSSError;
+use crate::state::{SeizureRecord, StablecoinConfig};
+use anchor_lang::prelude::*;
+use anchor_spl::token_2022::{
+    self, spl_token_2022::state::AccountState, FreezeAccount, ThawAccount, Token2022,
+    TransferChecked,
+};
+use anchor_spl::token_interface::TokenAccount;
 
 #[derive(Accounts)]
 #[instruction(amount: u64, reason: String)]
@@ -44,14 +47,26 @@ pub struct Seize<'info> {
 pub fn seize(ctx: Context<Seize>, amount: u64, reason: String) -> Result<()> {
     let config = &ctx.accounts.config;
     let record = &mut ctx.accounts.seizure_record;
-    
+
     require!(config.enable_transfer_hook, SSSError::ComplianceNotEnabled);
-    require!(config.enable_permanent_delegate, SSSError::PermanentDelegateNotEnabled);
-    require!(config.seizer == Some(ctx.accounts.seizer.key()), SSSError::NotSeizer);
-    
-    // Check if account is frozen
-    require!(ctx.accounts.source_account.state == AccountState::Frozen, SSSError::AccountNotFrozen);
-    require!(amount > 0 && amount <= ctx.accounts.source_account.amount, SSSError::ZeroAmount);
+    require!(
+        config.enable_permanent_delegate,
+        SSSError::PermanentDelegateNotEnabled
+    );
+    require!(
+        config.seizer == Some(ctx.accounts.seizer.key()),
+        SSSError::NotSeizer
+    );
+
+    // Source must be frozen to authorise seizure
+    require!(
+        ctx.accounts.source_account.state == AccountState::Frozen,
+        SSSError::AccountNotFrozen
+    );
+    require!(
+        amount > 0 && amount <= ctx.accounts.source_account.amount,
+        SSSError::ZeroAmount
+    );
 
     let current_time = Clock::get()?.unix_timestamp;
 
@@ -68,23 +83,47 @@ pub fn seize(ctx: Context<Seize>, amount: u64, reason: String) -> Result<()> {
 
     let mint_key = config.mint.key();
     let config_bump = config.bump;
-    let seeds = &[
-        b"sss-config".as_ref(),
-        mint_key.as_ref(),
-        &[config_bump],
-    ];
+    let seeds = &[b"sss-config".as_ref(), mint_key.as_ref(), &[config_bump]];
     let signer = &[&seeds[..]];
 
-    let cpi_accounts = TransferChecked {
-        from: ctx.accounts.source_account.to_account_info(),
-        mint: ctx.accounts.mint.to_account_info(),
-        to: ctx.accounts.destination_account.to_account_info(),
-        authority: config.to_account_info(),
-    };
-    let cpi_program = ctx.accounts.token_program.to_account_info();
-    let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+    // Step 1: Thaw the source account.
+    // Token-2022's transfer_checked rejects transfers from frozen accounts even when a
+    // permanent delegate is the authority. We must thaw first, transfer, then re-freeze.
+    let thaw_ctx = CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        ThawAccount {
+            account: ctx.accounts.source_account.to_account_info(),
+            mint: ctx.accounts.mint.to_account_info(),
+            authority: config.to_account_info(),
+        },
+        signer,
+    );
+    token_2022::thaw_account(thaw_ctx)?;
 
-    token_2022::transfer_checked(cpi_ctx, amount, config.decimals)?;
+    // Step 2: Transfer using the config PDA as the permanent delegate authority.
+    let transfer_ctx = CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        TransferChecked {
+            from: ctx.accounts.source_account.to_account_info(),
+            mint: ctx.accounts.mint.to_account_info(),
+            to: ctx.accounts.destination_account.to_account_info(),
+            authority: config.to_account_info(),
+        },
+        signer,
+    );
+    token_2022::transfer_checked(transfer_ctx, amount, config.decimals)?;
+
+    // Step 3: Re-freeze the source account to preserve the seized/locked state.
+    let freeze_ctx = CpiContext::new_with_signer(
+        ctx.accounts.token_program.to_account_info(),
+        FreezeAccount {
+            account: ctx.accounts.source_account.to_account_info(),
+            mint: ctx.accounts.mint.to_account_info(),
+            authority: config.to_account_info(),
+        },
+        signer,
+    );
+    token_2022::freeze_account(freeze_ctx)?;
 
     emit!(Seized {
         mint: config.mint,

@@ -180,6 +180,12 @@ export type SssTransferHook = {
         },
         {
           "name": "recipientBlacklistEntry"
+        },
+        {
+          "name": "senderAllowlistEntry"
+        },
+        {
+          "name": "recipientAllowlistEntry"
         }
       ],
       "args": [
@@ -417,6 +423,68 @@ export type SssTransferHook = {
           "type": "bool"
         }
       ]
+    },
+    {
+      "name": "setAllowlistMode",
+      "docs": [
+        "SSS-3: Enable or disable allowlist mode on the hook.",
+        "Called by the authority after initialize_sss3 on sss-core."
+      ],
+      "discriminator": [
+        3,
+        97,
+        85,
+        153,
+        186,
+        48,
+        32,
+        191
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "hookConfig"
+          ]
+        },
+        {
+          "name": "hookConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  104,
+                  111,
+                  111,
+                  107,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "hook_config.mint",
+                "account": "hookConfig"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "enabled",
+          "type": "bool"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -500,6 +568,16 @@ export type SssTransferHook = {
       "code": 6004,
       "name": "invalidAuthority",
       "msg": "Invalid authority"
+    },
+    {
+      "code": 6005,
+      "name": "senderNotAllowlisted",
+      "msg": "Sender is not on the allowlist — SSS-3 requires explicit allowlist membership to send"
+    },
+    {
+      "code": 6006,
+      "name": "recipientNotAllowlisted",
+      "msg": "Recipient is not on the allowlist — SSS-3 requires explicit allowlist membership to receive"
     }
   ],
   "types": [
@@ -531,6 +609,14 @@ export type SssTransferHook = {
           {
             "name": "blockedCount",
             "type": "u64"
+          },
+          {
+            "name": "allowlistMode",
+            "docs": [
+              "SSS-3: When true, enforces allowlist checking in addition to blacklist.",
+              "Default false for SSS-2 mints. Set to true when SSS-3 is initialized."
+            ],
+            "type": "bool"
           },
           {
             "name": "bump",
@@ -665,6 +751,78 @@ export type SssTransferHook = {
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "maxSupply",
+            "docs": [
+              "Maximum token supply. 0 = unlimited.",
+              "Enforced in mint instruction: current_supply + amount <= max_supply (if > 0)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalMintOperations",
+            "docs": [
+              "Total number of successful mint operations (operation count, not amount)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalBurnOperations",
+            "docs": [
+              "Total number of successful burn operations"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "largestSingleMint",
+            "docs": [
+              "Largest single mint amount ever (in token base units)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lastMintAt",
+            "docs": [
+              "Timestamp of the most recent mint operation"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "lastBurnAt",
+            "docs": [
+              "Timestamp of the most recent burn operation"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "confidentialTransfersEnabled",
+            "docs": [
+              "Whether confidential transfers are enabled on this mint"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "allowlistActive",
+            "docs": [
+              "Whether scoped allowlist enforcement is active.",
+              "false = SSS-1/SSS-2 (blacklist model), true = SSS-3 (allowlist model)"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "allowlistCount",
+            "docs": [
+              "Count of active allowlist entries (for dashboard display)"
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "minterCount",
+            "docs": [
+              "Count of active minters"
+            ],
+            "type": "u32"
           }
         ]
       }
@@ -685,6 +843,9 @@ export type SssTransferHook = {
           },
           {
             "name": "custom"
+          },
+          {
+            "name": "sss3"
           }
         ]
       }

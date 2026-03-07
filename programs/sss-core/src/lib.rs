@@ -22,7 +22,7 @@ pub mod sss_core {
     pub fn mint(ctx: Context<MintTokens>, amount: u64) -> Result<()> {
         instructions::mint::mint(ctx, amount)
     }
-    
+
     pub fn burn(ctx: Context<BurnTokens>, amount: u64) -> Result<()> {
         instructions::burn::burn(ctx, amount)
     }
@@ -47,7 +47,10 @@ pub mod sss_core {
         instructions::roles::update_roles(ctx, update)
     }
 
-    pub fn propose_authority_transfer(ctx: Context<ProposeTransfer>, new_authority: Pubkey) -> Result<()> {
+    pub fn propose_authority_transfer(
+        ctx: Context<ProposeTransfer>,
+        new_authority: Pubkey,
+    ) -> Result<()> {
         instructions::roles::propose_authority_transfer(ctx, new_authority)
     }
 
@@ -80,10 +83,46 @@ pub mod sss_core {
         instructions::blacklist::add_to_blacklist(ctx, target, reason)
     }
 
-    pub fn remove_from_blacklist(
-        ctx: Context<RemoveFromBlacklist>,
-        target: Pubkey,
-    ) -> Result<()> {
+    pub fn remove_from_blacklist(ctx: Context<RemoveFromBlacklist>, target: Pubkey) -> Result<()> {
         instructions::blacklist::remove_from_blacklist(ctx, target)
+    }
+
+    // ── SSS-3 Instructions ────────────────────────────────────────────────
+
+    pub fn initialize_sss3(
+        ctx: Context<InitializeSss3>,
+        params: InitializeSss3Params,
+    ) -> Result<()> {
+        instructions::sss3::initialize_sss3(ctx, params)
+    }
+
+    pub fn add_to_allowlist(
+        ctx: Context<AddToAllowlist>,
+        params: AddToAllowlistParams,
+    ) -> Result<()> {
+        instructions::sss3::add_to_allowlist(ctx, params)
+    }
+
+    pub fn remove_from_allowlist(ctx: Context<RemoveFromAllowlist>) -> Result<()> {
+        instructions::sss3::remove_from_allowlist(ctx)
+    }
+
+    pub fn update_allowlist_entry(
+        ctx: Context<UpdateAllowlistEntry>,
+        params: UpdateAllowlistParams,
+    ) -> Result<()> {
+        instructions::sss3::update_allowlist_entry(ctx, params)
+    }
+
+    pub fn approve_confidential_account(ctx: Context<ApproveConfidentialAccount>) -> Result<()> {
+        instructions::sss3::approve_confidential_account(ctx)
+    }
+
+    pub fn set_max_supply(ctx: Context<SetMaxSupply>, new_max: u64) -> Result<()> {
+        instructions::sss3::set_max_supply(ctx, new_max)
+    }
+
+    pub fn take_supply_snapshot(ctx: Context<TakeSupplySnapshot>, day_number: u32) -> Result<()> {
+        instructions::sss3::take_supply_snapshot(ctx, day_number)
     }
 }

@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import Spinner from "ink-spinner";
-import { getSupply, mint, getLargestHolders, burn } from "../api.js";
-import type { SupplyMetrics, Holder } from "../api.js";
+import { getSupply, mint, getLargestHolders, burn, getMinters } from "../api.js";
+import type { SupplyMetrics, Holder, Minter } from "../api.js";
 
-type SubView = "dashboard" | "mint" | "burn" | "holders";
+type SubView = "dashboard" | "mint" | "burn" | "holders" | "minters";
 
 export default function TokenOps() {
   const [view, setView] = useState<SubView>("dashboard");
@@ -15,6 +15,7 @@ export default function TokenOps() {
     if (input === "m") setView("mint");
     if (input === "b") setView("burn");
     if (input === "h") setView("holders");
+    if (input === "i") setView("minters");
   });
 
   return (
@@ -27,12 +28,14 @@ export default function TokenOps() {
         <TabLabel active={view === "mint"} label="[m] Mint" />
         <TabLabel active={view === "burn"} label="[b] Burn" />
         <TabLabel active={view === "holders"} label="[h] Holders" />
+        <TabLabel active={view === "minters"} label="[i] Minters" />
       </Box>
 
       {view === "dashboard" && <SupplyDashboard />}
       {view === "mint" && <MintForm />}
       {view === "burn" && <BurnForm />}
       {view === "holders" && <HoldersTable />}
+      {view === "minters" && <MintersTable />}
     </Box>
   );
 }
@@ -222,3 +225,51 @@ function HoldersTable() {
     </Box>
   );
 }
+
+/* ── Minters Table ────────────────────────────────────────────────── */
+function MintersTable() {
+  const [minters, setMinters] = useState<Minter[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getMinters();
+        setMinters(data);
+      } catch {
+        setError("Could not fetch minters");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  return (
+    <Box flexDirection="column" borderStyle="round" borderColor="magenta" paddingX={2} paddingY={1}>
+      <Text bold color="yellow">Active Minters</Text>
+      {loading && (
+        <Text><Text color="yellow"><Spinner type="dots" /></Text> Loading…</Text>
+      )}
+      {error && <Text color="red">✖ {error}</Text>}
+      {!loading && !error && minters.length === 0 && (
+        <Text dimColor>No minters found (is the server running?)</Text>
+      )}
+      {minters.length > 0 && (
+        <Box flexDirection="column" marginTop={1}>
+          <Box>
+            <Text bold color="yellow">{"Public Key".padEnd(46)}</Text>
+            <Text bold color="yellow">{"Note"}</Text>
+          </Box>
+          {minters.map((m, i) => (
+            <Box key={i}>
+              <Text>{m.pubkey.padEnd(46)}</Text>
+              <Text color="white">{m.note || "—"}</Text>
+            </Box>
+          ))}
+        </Box>
+      )}
+    </Box>
+  );
+}
+

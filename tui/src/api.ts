@@ -37,6 +37,14 @@ export const burn = (amount: number) =>
 export const getLargestHolders = (minAmount?: number) =>
   api.get<Holder[]>("/holders/largest", { params: { minAmount } }).then((r) => r.data);
 
+export interface Minter {
+  pubkey: string;
+  note?: string;
+}
+
+export const getMinters = () =>
+  api.get<Minter[]>("/minters").then((r) => r.data);
+
 /* ── Compliance ───────────────────────────────────────────── */
 
 export interface BlacklistEntry {

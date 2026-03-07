@@ -13,6 +13,8 @@ import {
 import {
     TOKEN_2022_PROGRAM_ID,
     getAssociatedTokenAddressSync,
+    createTransferCheckedInstruction,
+    getMint,
 } from '@solana/spl-token';
 import { SssCore } from './types/sss_core';
 import { SssTransferHook } from './types/sss_transfer_hook';
@@ -20,6 +22,7 @@ import {
     CreateStablecoinConfig,
     MintParams,
     BurnParams,
+    TransferParams,
     StablecoinPreset,
     StablecoinInfo,
     ResolvedConfig,
@@ -29,6 +32,8 @@ import {
 } from './types';
 import { TransferHookModule } from './modules/transfer-hook';
 import { ComplianceModule } from './modules/compliance';
+import { Sss3Module } from './modules/sss3';
+import { AnalyticsModule } from './modules/analytics';
 import idl from './idl/sss_core.json';
 import hookIdl from './idl/sss_transfer_hook.json';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
@@ -86,9 +91,19 @@ export class SolanaStablecoin {
     public readonly compliance: ComplianceModule;
     /**
      * Transfer hook sub-module for managing the Token-2022 transfer hook.
-     * Only available on **SSS-2** instances; accessing on SSS-1 / CUSTOM throws.
+     * Only available on **SSS-2 / SSS-3** instances.
      */
     public readonly transferHook: TransferHookModule;
+    /**
+     * SSS-3 sub-module for scoped allowlists and confidential transfers.
+     * Only available on **SSS-2 / SSS-3** instances (since SSS-2 can upgrade).
+     */
+    public readonly sss3: Sss3Module;
+    /**
+     * Analytics sub-module for supply caps, snapshots, and metrics.
+     * Available on all preset instances.
+     */
+    public readonly analytics: AnalyticsModule;
 
     // ── Constructor ────────────────────────────────────────────────────────
     private constructor(
@@ -103,7 +118,14 @@ export class SolanaStablecoin {
         this.config = config;
         this.preset = preset;
 
-        if (preset === StablecoinPreset.SSS_2) {
+        this.analytics = new AnalyticsModule(
+            this.connection,
+            this.network,
+            mint,
+            config,
+        );
+
+        if (preset === StablecoinPreset.SSS_2 || preset === StablecoinPreset.SSS_3) {
             // Pass a factory so ComplianceModule can also build its own providers
             this.compliance = new ComplianceModule(
                 this.connection,
@@ -117,18 +139,31 @@ export class SolanaStablecoin {
                 mint,
                 config,
             );
+            this.sss3 = new Sss3Module(
+                this.connection,
+                this.network,
+                mint,
+                config,
+            );
         } else {
             this.compliance = new Proxy({} as ComplianceModule, {
                 get() {
                     throw new Error(
-                        "Compliance module is only available on SSS-2 instances"
+                        "Compliance module is only available on SSS-2 and SSS-3 instances"
                     );
                 },
             });
             this.transferHook = new Proxy({} as TransferHookModule, {
                 get() {
                     throw new Error(
-                        "Transfer hook module is only available on SSS-2 instances"
+                        "Transfer hook module is only available on SSS-2 and SSS-3 instances"
+                    );
+                },
+            });
+            this.sss3 = new Proxy({} as Sss3Module, {
+                get() {
+                    throw new Error(
+                        "SSS-3 module is only available on SSS-2 and SSS-3 instances"
                     );
                 },
             });
@@ -205,9 +240,10 @@ export class SolanaStablecoin {
         );
 
         const presetEnum =
-            resolvedConfig.preset === StablecoinPreset.SSS_2 ? { sss2: {} } :
-                resolvedConfig.preset === StablecoinPreset.CUSTOM ? { custom: {} } :
-                    { sss1: {} };
+            resolvedConfig.preset === StablecoinPreset.SSS_3 ? { sss3: {} } :
+                resolvedConfig.preset === StablecoinPreset.SSS_2 ? { sss2: {} } :
+                    resolvedConfig.preset === StablecoinPreset.CUSTOM ? { custom: {} } :
+                        { sss1: {} };
 
         const params = {
             name: resolvedConfig.name,
@@ -280,9 +316,10 @@ export class SolanaStablecoin {
         const configData = await program.account.stablecoinConfig.fetch(configPda);
 
         const preset =
-            configData.preset.sss2 ? StablecoinPreset.SSS_2 :
-                configData.preset.custom ? StablecoinPreset.CUSTOM :
-                    StablecoinPreset.SSS_1;
+            configData.preset.sss3 ? StablecoinPreset.SSS_3 :
+                configData.preset.sss2 ? StablecoinPreset.SSS_2 :
+                    configData.preset.custom ? StablecoinPreset.CUSTOM :
+                        StablecoinPreset.SSS_1;
 
         return new SolanaStablecoin(network, mint, configPda, preset);
     }
@@ -375,6 +412,58 @@ export class SolanaStablecoin {
             } as any)
             .signers([params.burner])
             .rpc();
+    }
+
+    /**
+     * Transfer tokens between two token accounts using Token-2022's
+     * `transfer_checked` instruction.
+     *
+     * This is a direct SPL Token transfer — it does **not** go through
+     * sss-core. For SSS-2 tokens with the transfer-hook enabled, the hook
+     * will still fire automatically.
+     *
+     * @param params - Transfer parameters (sender keypair, source ATA, destination ATA, amount).
+     * @returns Transaction signature.
+     *
+     * @example
+     * ```ts
+     * const txSig = await sdk.transfer({
+     *   sender: senderKeypair,
+     *   fromAta: senderAta,
+     *   toAta: recipientAta,
+     *   amount: 100_000,
+     * });
+     * ```
+     */
+    async transfer(params: TransferParams): Promise<string> {
+        const { Transaction } = await import('@solana/web3.js');
+        // Fetch on-chain decimals so transfer_checked has the correct value
+        const mintInfo = await getMint(this.connection, this.mintAddress, 'confirmed', TOKEN_2022_PROGRAM_ID);
+
+        const ix = createTransferCheckedInstruction(
+            params.fromAta,
+            this.mintAddress,
+            params.toAta,
+            params.sender.publicKey,
+            BigInt(params.amount),
+            mintInfo.decimals,
+            [],
+            TOKEN_2022_PROGRAM_ID,
+        );
+
+        const tx = new Transaction().add(ix);
+        const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash('confirmed');
+        tx.recentBlockhash = blockhash;
+        tx.lastValidBlockHeight = lastValidBlockHeight;
+        tx.feePayer = params.sender.publicKey;
+        tx.sign(params.sender);
+
+        const sig = await this.connection.sendRawTransaction(tx.serialize(), {
+            skipPreflight: false,
+            preflightCommitment: 'confirmed',
+        });
+        await this.connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed');
+        return sig;
     }
 
     /**
@@ -720,6 +809,10 @@ export class SolanaStablecoin {
             totalSupply: data.totalSupply.toNumber(),
             paused: data.paused,
             blacklistCount: data.blacklistCount,
+            allowlistCount: data.allowlistCount,
+            maxSupply: data.maxSupply.toNumber() > 0 ? data.maxSupply.toNumber() : undefined,
+            confidentialEnabled: data.confidentialTransfersEnabled,
+            allowlistActive: data.allowlistActive,
         };
     }
 
@@ -742,19 +835,19 @@ export class SolanaStablecoin {
     /**
      * Get the maximum token supply in base units.
      * 
-     * Since the stablecoin does not enforce an on-chain maximum supply, this 
-     * method always returns `null`.
+     * Uses the SSS-3 max_supply configuration field. Returns `null` if no cap is set.
      *
-     * @returns Always returns `null`.
+     * @returns Maximum supply cap or `null`.
      *
      * @example
      * ```ts
      * const maxSupply = await sdk.getMaxSupply();
-     * // maxSupply → null
+     * // maxSupply → 10_000_000
      * ```
      */
     async getMaxSupply(): Promise<number | null> {
-        return null;
+        const data = await this.readProgram.account.stablecoinConfig.fetch(this.config);
+        return data.maxSupply.toNumber() > 0 ? data.maxSupply.toNumber() : null;
     }
 
     /**
@@ -838,6 +931,7 @@ export class SolanaStablecoin {
         const defaults: Record<StablecoinPreset, { permanentDelegate: boolean; transferHook: boolean; defaultAccountFrozen: boolean }> = {
             [StablecoinPreset.SSS_1]: { permanentDelegate: false, transferHook: false, defaultAccountFrozen: false },
             [StablecoinPreset.SSS_2]: { permanentDelegate: true, transferHook: true, defaultAccountFrozen: true },
+            [StablecoinPreset.SSS_3]: { permanentDelegate: true, transferHook: true, defaultAccountFrozen: true },
             [StablecoinPreset.CUSTOM]: { permanentDelegate: false, transferHook: false, defaultAccountFrozen: false },
         };
 

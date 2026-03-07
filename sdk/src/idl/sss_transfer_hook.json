@@ -174,6 +174,12 @@
         },
         {
           "name": "recipient_blacklist_entry"
+        },
+        {
+          "name": "sender_allowlist_entry"
+        },
+        {
+          "name": "recipient_allowlist_entry"
         }
       ],
       "args": [
@@ -411,6 +417,68 @@
           "type": "bool"
         }
       ]
+    },
+    {
+      "name": "set_allowlist_mode",
+      "docs": [
+        "SSS-3: Enable or disable allowlist mode on the hook.",
+        "Called by the authority after initialize_sss3 on sss-core."
+      ],
+      "discriminator": [
+        3,
+        97,
+        85,
+        153,
+        186,
+        48,
+        32,
+        191
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "hook_config"
+          ]
+        },
+        {
+          "name": "hook_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  104,
+                  111,
+                  111,
+                  107,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "hook_config.mint",
+                "account": "HookConfig"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "enabled",
+          "type": "bool"
+        }
+      ]
     }
   ],
   "accounts": [
@@ -494,6 +562,16 @@
       "code": 6004,
       "name": "InvalidAuthority",
       "msg": "Invalid authority"
+    },
+    {
+      "code": 6005,
+      "name": "SenderNotAllowlisted",
+      "msg": "Sender is not on the allowlist — SSS-3 requires explicit allowlist membership to send"
+    },
+    {
+      "code": 6006,
+      "name": "RecipientNotAllowlisted",
+      "msg": "Recipient is not on the allowlist — SSS-3 requires explicit allowlist membership to receive"
     }
   ],
   "types": [
@@ -525,6 +603,14 @@
           {
             "name": "blocked_count",
             "type": "u64"
+          },
+          {
+            "name": "allowlist_mode",
+            "docs": [
+              "SSS-3: When true, enforces allowlist checking in addition to blacklist.",
+              "Default false for SSS-2 mints. Set to true when SSS-3 is initialized."
+            ],
+            "type": "bool"
           },
           {
             "name": "bump",
@@ -659,6 +745,78 @@
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "max_supply",
+            "docs": [
+              "Maximum token supply. 0 = unlimited.",
+              "Enforced in mint instruction: current_supply + amount <= max_supply (if > 0)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_mint_operations",
+            "docs": [
+              "Total number of successful mint operations (operation count, not amount)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "total_burn_operations",
+            "docs": [
+              "Total number of successful burn operations"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "largest_single_mint",
+            "docs": [
+              "Largest single mint amount ever (in token base units)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "last_mint_at",
+            "docs": [
+              "Timestamp of the most recent mint operation"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "last_burn_at",
+            "docs": [
+              "Timestamp of the most recent burn operation"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "confidential_transfers_enabled",
+            "docs": [
+              "Whether confidential transfers are enabled on this mint"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "allowlist_active",
+            "docs": [
+              "Whether scoped allowlist enforcement is active.",
+              "false = SSS-1/SSS-2 (blacklist model), true = SSS-3 (allowlist model)"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "allowlist_count",
+            "docs": [
+              "Count of active allowlist entries (for dashboard display)"
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "minter_count",
+            "docs": [
+              "Count of active minters"
+            ],
+            "type": "u32"
           }
         ]
       }
@@ -679,6 +837,9 @@
           },
           {
             "name": "Custom"
+          },
+          {
+            "name": "SSS3"
           }
         ]
       }

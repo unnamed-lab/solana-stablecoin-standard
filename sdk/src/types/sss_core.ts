@@ -173,6 +173,110 @@ export type SssCore = {
       ]
     },
     {
+      "name": "addToAllowlist",
+      "discriminator": [
+        149,
+        143,
+        78,
+        134,
+        241,
+        244,
+        7,
+        56
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "allowlister",
+          "signer": true
+        },
+        {
+          "name": "stableConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "stableConfig"
+          ]
+        },
+        {
+          "name": "allowlistEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  97,
+                  108,
+                  108,
+                  111,
+                  119,
+                  108,
+                  105,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              },
+              {
+                "kind": "arg",
+                "path": "params.address"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "addToAllowlistParams"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "addToBlacklist",
       "discriminator": [
         90,
@@ -281,6 +385,68 @@ export type SssCore = {
           "type": "string"
         }
       ]
+    },
+    {
+      "name": "approveConfidentialAccount",
+      "discriminator": [
+        64,
+        146,
+        249,
+        68,
+        150,
+        102,
+        96,
+        140
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "confidentialConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  100,
+                  101,
+                  110,
+                  116,
+                  105,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint"
+        },
+        {
+          "name": "tokenAccount",
+          "writable": true
+        },
+        {
+          "name": "tokenProgram"
+        }
+      ],
+      "args": []
     },
     {
       "name": "burn",
@@ -488,6 +654,111 @@ export type SssCore = {
           "type": {
             "defined": {
               "name": "initializeParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "initializeSss3",
+      "discriminator": [
+        2,
+        245,
+        16,
+        64,
+        10,
+        249,
+        110,
+        143
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "mint",
+          "writable": true,
+          "relations": [
+            "stableConfig"
+          ]
+        },
+        {
+          "name": "stableConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "confidentialConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  100,
+                  101,
+                  110,
+                  116,
+                  105,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "initializeSss3Params"
             }
           }
         }
@@ -711,6 +982,93 @@ export type SssCore = {
           "type": "pubkey"
         }
       ]
+    },
+    {
+      "name": "removeFromAllowlist",
+      "discriminator": [
+        45,
+        46,
+        214,
+        56,
+        189,
+        77,
+        242,
+        227
+      ],
+      "accounts": [
+        {
+          "name": "allowlister",
+          "signer": true
+        },
+        {
+          "name": "stableConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "stableConfig"
+          ]
+        },
+        {
+          "name": "allowlistEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  97,
+                  108,
+                  108,
+                  111,
+                  119,
+                  108,
+                  105,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              },
+              {
+                "kind": "account",
+                "path": "allowlist_entry.address",
+                "account": "allowlistEntry"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
     },
     {
       "name": "removeFromBlacklist",
@@ -1019,6 +1377,159 @@ export type SssCore = {
       ]
     },
     {
+      "name": "setMaxSupply",
+      "discriminator": [
+        16,
+        207,
+        140,
+        77,
+        107,
+        20,
+        202,
+        158
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "signer": true
+        },
+        {
+          "name": "stableConfig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "stableConfig"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "newMax",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "takeSupplySnapshot",
+      "discriminator": [
+        74,
+        131,
+        180,
+        187,
+        213,
+        144,
+        180,
+        205
+      ],
+      "accounts": [
+        {
+          "name": "taker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "stableConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "stableConfig"
+          ]
+        },
+        {
+          "name": "snapshot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  115,
+                  110,
+                  97,
+                  112,
+                  115,
+                  104,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              },
+              {
+                "kind": "arg",
+                "path": "dayNumber"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "dayNumber",
+          "type": "u32"
+        }
+      ]
+    },
+    {
       "name": "thawAccount",
       "discriminator": [
         115,
@@ -1138,6 +1649,102 @@ export type SssCore = {
       "args": []
     },
     {
+      "name": "updateAllowlistEntry",
+      "discriminator": [
+        84,
+        46,
+        19,
+        204,
+        154,
+        192,
+        175,
+        152
+      ],
+      "accounts": [
+        {
+          "name": "allowlister",
+          "signer": true
+        },
+        {
+          "name": "stableConfig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "stableConfig"
+          ]
+        },
+        {
+          "name": "allowlistEntry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  97,
+                  108,
+                  108,
+                  111,
+                  119,
+                  108,
+                  105,
+                  115,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              },
+              {
+                "kind": "account",
+                "path": "allowlist_entry.address",
+                "account": "allowlistEntry"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "updateAllowlistParams"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "updateRoles",
       "discriminator": [
         220,
@@ -1206,6 +1813,19 @@ export type SssCore = {
   ],
   "accounts": [
     {
+      "name": "allowlistEntry",
+      "discriminator": [
+        42,
+        59,
+        88,
+        1,
+        124,
+        138,
+        92,
+        236
+      ]
+    },
+    {
       "name": "blacklistEntry",
       "discriminator": [
         218,
@@ -1216,6 +1836,19 @@ export type SssCore = {
         25,
         168,
         189
+      ]
+    },
+    {
+      "name": "confidentialConfig",
+      "discriminator": [
+        121,
+        207,
+        127,
+        211,
+        92,
+        193,
+        173,
+        135
       ]
     },
     {
@@ -1256,6 +1889,19 @@ export type SssCore = {
         101,
         6
       ]
+    },
+    {
+      "name": "supplySnapshot",
+      "discriminator": [
+        230,
+        52,
+        2,
+        192,
+        100,
+        187,
+        34,
+        51
+      ]
     }
   ],
   "events": [
@@ -1286,6 +1932,32 @@ export type SssCore = {
       ]
     },
     {
+      "name": "allowlistAdded",
+      "discriminator": [
+        102,
+        147,
+        146,
+        236,
+        103,
+        153,
+        16,
+        151
+      ]
+    },
+    {
+      "name": "allowlistRemoved",
+      "discriminator": [
+        47,
+        69,
+        78,
+        173,
+        196,
+        109,
+        163,
+        172
+      ]
+    },
+    {
       "name": "blacklisted",
       "discriminator": [
         107,
@@ -1312,6 +1984,19 @@ export type SssCore = {
       ]
     },
     {
+      "name": "confidentialAccountApproved",
+      "discriminator": [
+        246,
+        206,
+        25,
+        153,
+        83,
+        157,
+        2,
+        182
+      ]
+    },
+    {
       "name": "initialized",
       "discriminator": [
         208,
@@ -1322,6 +2007,19 @@ export type SssCore = {
         82,
         201,
         209
+      ]
+    },
+    {
+      "name": "maxSupplyUpdated",
+      "discriminator": [
+        227,
+        187,
+        147,
+        191,
+        84,
+        72,
+        203,
+        219
       ]
     },
     {
@@ -1387,6 +2085,32 @@ export type SssCore = {
         37,
         100,
         65
+      ]
+    },
+    {
+      "name": "sss3Initialized",
+      "discriminator": [
+        34,
+        153,
+        44,
+        45,
+        67,
+        252,
+        253,
+        60
+      ]
+    },
+    {
+      "name": "supplySnapshotTaken",
+      "discriminator": [
+        199,
+        99,
+        82,
+        185,
+        82,
+        67,
+        13,
+        95
       ]
     },
     {
@@ -1523,6 +2247,96 @@ export type SssCore = {
       "code": 6023,
       "name": "supplyOverflow",
       "msg": "Overflow in supply calculation"
+    },
+    {
+      "code": 6024,
+      "name": "senderNotAllowed",
+      "msg": "Sender is not on the allowlist — SSS-3 requires explicit allowlist membership to send"
+    },
+    {
+      "code": 6025,
+      "name": "recipientNotAllowed",
+      "msg": "Recipient is not on the allowlist — SSS-3 requires explicit allowlist membership to receive"
+    },
+    {
+      "code": 6026,
+      "name": "allowlistEntryExpired",
+      "msg": "Allowlist entry has expired — request renewal from the issuer"
+    },
+    {
+      "code": 6027,
+      "name": "sendPermissionDenied",
+      "msg": "Sender's allowlist entry does not grant SEND permission"
+    },
+    {
+      "code": 6028,
+      "name": "receivePermissionDenied",
+      "msg": "Recipient's allowlist entry does not grant RECEIVE permission"
+    },
+    {
+      "code": 6029,
+      "name": "alreadyAllowlisted",
+      "msg": "Address is already on the allowlist"
+    },
+    {
+      "code": 6030,
+      "name": "notOnAllowlist",
+      "msg": "Address is not on the allowlist — cannot remove what doesn't exist"
+    },
+    {
+      "code": 6031,
+      "name": "confidentialNotEnabled",
+      "msg": "Confidential transfers are not enabled on this mint"
+    },
+    {
+      "code": 6032,
+      "name": "confidentialAlreadyInitialized",
+      "msg": "Confidential config already initialized for this mint"
+    },
+    {
+      "code": 6033,
+      "name": "autoApproveDisabled",
+      "msg": "Auto-approve is disabled — authority must call approve_confidential_account first"
+    },
+    {
+      "code": 6034,
+      "name": "accountNotApproved",
+      "msg": "Confidential token account has not been approved for confidential transfers"
+    },
+    {
+      "code": 6035,
+      "name": "invalidAuditorKey",
+      "msg": "Auditor ElGamal pubkey is not 64 bytes — check key format"
+    },
+    {
+      "code": 6036,
+      "name": "maxSupplyExceeded",
+      "msg": "Mint would exceed the configured max_supply cap"
+    },
+    {
+      "code": 6037,
+      "name": "maxSupplyBelowCurrentSupply",
+      "msg": "New max supply cannot be less than the current total supply"
+    },
+    {
+      "code": 6038,
+      "name": "allowlistNotActive",
+      "msg": "Allowlist mode is not active on this mint — this instruction requires SSS-3"
+    },
+    {
+      "code": 6039,
+      "name": "cannotDisableAllowlist",
+      "msg": "Cannot disable allowlist mode once active — security invariant"
+    },
+    {
+      "code": 6040,
+      "name": "requiresSss2Preset",
+      "msg": "Cannot initialize SSS-3 on a non-SSS-2 mint — upgrade to SSS-2 first"
+    },
+    {
+      "code": 6041,
+      "name": "snapshotAlreadyTaken",
+      "msg": "A supply snapshot has already been taken for today — one per day maximum"
     }
   ],
   "types": [
@@ -1565,6 +2379,190 @@ export type SssCore = {
           },
           {
             "name": "by",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "addToAllowlistParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "address",
+            "type": "pubkey"
+          },
+          {
+            "name": "allowedOperations",
+            "type": "u8"
+          },
+          {
+            "name": "kycTier",
+            "type": "u8"
+          },
+          {
+            "name": "expiry",
+            "type": "i64"
+          },
+          {
+            "name": "reason",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "allowlistAdded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "address",
+            "type": "pubkey"
+          },
+          {
+            "name": "allowedOperations",
+            "type": "u8"
+          },
+          {
+            "name": "kycTier",
+            "type": "u8"
+          },
+          {
+            "name": "expiry",
+            "type": "i64"
+          },
+          {
+            "name": "addedBy",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "allowlistEntry",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "docs": [
+              "The SSS token mint this entry is for"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "address",
+            "docs": [
+              "The wallet address being allowlisted"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "allowedOperations",
+            "docs": [
+              "Bitmask of permitted operations — see allowlist_ops",
+              "0x01 = receive, 0x02 = send, 0x03 = both"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "kycTier",
+            "docs": [
+              "KYC tier (application-level metadata, not enforced by program)",
+              "0 = basic, 1 = enhanced (EDD), 2 = institutional"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "expiry",
+            "docs": [
+              "Optional expiry timestamp.",
+              "0 = never expires",
+              "If current time > expiry: hook rejects the transfer"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "addedBy",
+            "docs": [
+              "Who added this entry"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "addedAt",
+            "docs": [
+              "Timestamp this entry was added"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "reason",
+            "docs": [
+              "Reason for allowlisting (audit trail)"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "active",
+            "docs": [
+              "Whether this entry is active.",
+              "Soft-delete: set to false rather than closing the account."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "removedBy",
+            "docs": [
+              "If active=false, who removed it"
+            ],
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "removedAt",
+            "docs": [
+              "If active=false, when it was removed"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "allowlistRemoved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "address",
+            "type": "pubkey"
+          },
+          {
+            "name": "removedBy",
             "type": "pubkey"
           },
           {
@@ -1683,6 +2681,125 @@ export type SssCore = {
       }
     },
     {
+      "name": "confidentialAccountApproved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "tokenAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "approvedBy",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "confidentialConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "version",
+            "docs": [
+              "Schema version — increment if structure changes"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "mint",
+            "docs": [
+              "The SSS token mint this confidential config is for"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "docs": [
+              "Authority that can update this config (same as StablecoinConfig.master_authority)"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "auditorElgamalPubkey",
+            "docs": [
+              "ElGamal public key of the auditor.",
+              "The holder of the corresponding private key can decrypt ALL ciphertext",
+              "balances and transfer amounts on this mint.",
+              "",
+              "SECURITY: Treat this key material with HSM-level protection.",
+              "If None: no auditor — fully private (not recommended for regulated tokens)",
+              "If Some: auditor can see all amounts — compliant but privacy-limited",
+              "",
+              "Stored as 64 raw bytes (the compressed ElGamal pubkey format used by",
+              "Token-2022's ConfidentialTransferMint extension)"
+            ],
+            "type": {
+              "option": {
+                "array": [
+                  "u8",
+                  64
+                ]
+              }
+            }
+          },
+          {
+            "name": "autoApproveNewAccounts",
+            "docs": [
+              "If true: any wallet can self-configure their ATA for confidential use.",
+              "If false: the authority must explicitly call approve_confidential_account.",
+              "",
+              "For regulated stablecoins: MUST be false."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "complianceNote",
+            "docs": [
+              "Human-readable note about the compliance/auditing arrangement.",
+              "e.g. \"Auditor key held by XYZ Law Firm under data protection agreement\""
+            ],
+            "type": "string"
+          },
+          {
+            "name": "enabledAt",
+            "docs": [
+              "Timestamp when confidential mode was enabled"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "enabledBy",
+            "docs": [
+              "Who enabled confidential mode"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "totalConfidentialTransfers",
+            "docs": [
+              "Cumulative count of confidential transfer operations"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
       "name": "initializeParams",
       "type": {
         "kind": "struct",
@@ -1757,6 +2874,33 @@ export type SssCore = {
       }
     },
     {
+      "name": "initializeSss3Params",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auditorElgamalPubkey",
+            "type": {
+              "option": {
+                "array": [
+                  "u8",
+                  64
+                ]
+              }
+            }
+          },
+          {
+            "name": "autoApproveNewAccounts",
+            "type": "bool"
+          },
+          {
+            "name": "complianceNote",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
       "name": "initialized",
       "type": {
         "kind": "struct",
@@ -1788,6 +2932,34 @@ export type SssCore = {
           {
             "name": "complianceEnabled",
             "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "maxSupplyUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "oldMax",
+            "type": "u64"
+          },
+          {
+            "name": "newMax",
+            "type": "u64"
+          },
+          {
+            "name": "updatedBy",
+            "type": "pubkey"
           },
           {
             "name": "timestamp",
@@ -2080,6 +3252,38 @@ export type SssCore = {
       }
     },
     {
+      "name": "sss3Initialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "autoApprove",
+            "type": "bool"
+          },
+          {
+            "name": "hasAuditor",
+            "type": "bool"
+          },
+          {
+            "name": "allowlistActive",
+            "type": "bool"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
       "name": "stablecoinConfig",
       "type": {
         "kind": "struct",
@@ -2205,6 +3409,78 @@ export type SssCore = {
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "maxSupply",
+            "docs": [
+              "Maximum token supply. 0 = unlimited.",
+              "Enforced in mint instruction: current_supply + amount <= max_supply (if > 0)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalMintOperations",
+            "docs": [
+              "Total number of successful mint operations (operation count, not amount)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "totalBurnOperations",
+            "docs": [
+              "Total number of successful burn operations"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "largestSingleMint",
+            "docs": [
+              "Largest single mint amount ever (in token base units)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "lastMintAt",
+            "docs": [
+              "Timestamp of the most recent mint operation"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "lastBurnAt",
+            "docs": [
+              "Timestamp of the most recent burn operation"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "confidentialTransfersEnabled",
+            "docs": [
+              "Whether confidential transfers are enabled on this mint"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "allowlistActive",
+            "docs": [
+              "Whether scoped allowlist enforcement is active.",
+              "false = SSS-1/SSS-2 (blacklist model), true = SSS-3 (allowlist model)"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "allowlistCount",
+            "docs": [
+              "Count of active allowlist entries (for dashboard display)"
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "minterCount",
+            "docs": [
+              "Count of active minters"
+            ],
+            "type": "u32"
           }
         ]
       }
@@ -2225,6 +3501,73 @@ export type SssCore = {
           },
           {
             "name": "custom"
+          },
+          {
+            "name": "sss3"
+          }
+        ]
+      }
+    },
+    {
+      "name": "supplySnapshot",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "dayNumber",
+            "type": "u32"
+          },
+          {
+            "name": "supply",
+            "type": "u64"
+          },
+          {
+            "name": "minterCount",
+            "type": "u32"
+          },
+          {
+            "name": "takenBy",
+            "type": "pubkey"
+          },
+          {
+            "name": "takenAt",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "supplySnapshotTaken",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "dayNumber",
+            "type": "u32"
+          },
+          {
+            "name": "supply",
+            "type": "u64"
+          },
+          {
+            "name": "takenBy",
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
           }
         ]
       }
@@ -2245,6 +3588,30 @@ export type SssCore = {
           {
             "name": "timestamp",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "updateAllowlistParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "allowedOperations",
+            "type": "u8"
+          },
+          {
+            "name": "kycTier",
+            "type": "u8"
+          },
+          {
+            "name": "expiry",
+            "type": "i64"
+          },
+          {
+            "name": "reason",
+            "type": "string"
           }
         ]
       }

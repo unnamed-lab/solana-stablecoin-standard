@@ -11,3 +11,4 @@ export {
 } from './admin';
 export { registerComplianceCommands } from './compliance';
 export { registerHookCommands } from './hook';
+export { registerConfigCommands } from './custom';

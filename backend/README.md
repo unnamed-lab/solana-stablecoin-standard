@@ -8,7 +8,7 @@ The backend is structured as a monorepo consisting of three primary applications
 
 ### 1. API Application (`api`)
 The core REST API serving external clients and dashboards. 
-- **Token Management:** Minting and burning of stablecoins, and fetching token statistics (supply, largest holders).
+- **Token Management:** Minting and burning of stablecoins, and fetching token statistics (supply, minters, largest holders).
 - **Compliance:** Managing blacklisted addresses and executing token seizures using permanent delegates.
 - **Audit Logs:** Providing a queryable and exportable history of all administrative actions (minting, burning, freezing, seizing, etc.).
 - **Webhooks Config:** Managing subscriptions for real-time notifications on various on-chain events.

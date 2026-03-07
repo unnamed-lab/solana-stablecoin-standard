@@ -21,11 +21,13 @@
         "link": "npm run build && npm link"
     },
     "dependencies": {
-        "@stbr/sss-token": "file:../sdk",
+        "@clack/prompts": "^1.1.0",
         "@solana/web3.js": "^1.95.3",
+        "@stbr/sss-token": "file:../sdk",
         "chalk": "^4.1.2",
         "commander": "^12.1.0",
-        "ora": "^5.4.1"
+        "ora": "^5.4.1",
+        "toml": "^3.0.0"
     },
     "devDependencies": {
         "@types/node": "^22.5.4",

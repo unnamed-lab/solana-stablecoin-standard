@@ -63,6 +63,26 @@ model BlacklistEntry {
   @@index([mint, removed])
 }
 
+model AllowlistEntry {
+  id               String    @id @default(uuid())
+  mint             String
+  address          String
+  reason           String
+  allowedOperations Int
+  kycTier          Int
+  expiry           BigInt    @default(0)
+  addedBy          String
+  active           Boolean   @default(true)
+  removedBy        String?
+  removedAt        DateTime?
+  txSignature      String    @unique
+  onChainTimestamp BigInt
+  indexedAt         DateTime  @default(now())
+
+  @@unique([mint, address])
+  @@index([mint, active])
+}
+
 model SeizureEvent {
   id               String   @id @default(uuid())
   mint             String
@@ -82,7 +102,7 @@ model SeizureEvent {
 model AuditLog {
   id          String   @id @default(uuid())
   mint        String
-  action      String   // MINT | BURN | BLACKLIST_ADD | BLACKLIST_REMOVE | SEIZE | PAUSE | UNPAUSE | FREEZE | THAW
+  action      String   // MINT | BURN | BLACKLIST_ADD | BLACKLIST_REMOVE | SEIZE | PAUSE | UNPAUSE | FREEZE | THAW | ALLOWLIST_ADD | ALLOWLIST_REMOVE | ALLOWLIST_UPDATE
   actor       String
   target      String?
   amount      BigInt?

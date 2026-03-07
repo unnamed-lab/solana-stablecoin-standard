@@ -1,7 +1,7 @@
+use crate::errors::SSSError;
+use crate::state::{MinterConfig, StablecoinConfig};
 use anchor_lang::prelude::*;
 use anchor_spl::token_2022::{self, MintTo, Token2022};
-use crate::state::{StablecoinConfig, MinterConfig};
-use crate::errors::SSSError;
 
 #[derive(Accounts)]
 pub struct MintTokens<'info> {
@@ -46,7 +46,7 @@ pub fn mint(ctx: Context<MintTokens>, amount: u64) -> Result<()> {
 
     // 2. Check if minter is active
     require!(minter_config.is_active, SSSError::MinterInactive);
-    
+
     // 3. Quota check
     if minter_config.quota_per_period > 0 {
         // Reset period if expired
@@ -56,7 +56,11 @@ pub fn mint(ctx: Context<MintTokens>, amount: u64) -> Result<()> {
         }
 
         require!(
-            minter_config.minted_this_period.checked_add(amount).unwrap() <= minter_config.quota_per_period,
+            minter_config
+                .minted_this_period
+                .checked_add(amount)
+                .unwrap()
+                <= minter_config.quota_per_period,
             SSSError::QuotaExceeded
         );
     }
@@ -64,22 +68,46 @@ pub fn mint(ctx: Context<MintTokens>, amount: u64) -> Result<()> {
     // 4. Amount > 0
     require!(amount > 0, SSSError::ZeroAmount);
 
-    // 5. Overflow check and state update
-    config.total_supply = config.total_supply.checked_add(amount).ok_or(SSSError::SupplyOverflow)?;
-    config.total_minted_all_time = config.total_minted_all_time.checked_add(amount).ok_or(SSSError::SupplyOverflow)?;
-    
-    minter_config.minted_this_period = minter_config.minted_this_period.checked_add(amount).unwrap();
+    // 5. Max supply enforcement (SSS-3 analytics)
+    if config.max_supply > 0 {
+        require!(
+            config
+                .total_supply
+                .checked_add(amount)
+                .ok_or(SSSError::SupplyOverflow)?
+                <= config.max_supply,
+            SSSError::MaxSupplyExceeded
+        );
+    }
+
+    // 6. Overflow check and state update
+    config.total_supply = config
+        .total_supply
+        .checked_add(amount)
+        .ok_or(SSSError::SupplyOverflow)?;
+    config.total_minted_all_time = config
+        .total_minted_all_time
+        .checked_add(amount)
+        .ok_or(SSSError::SupplyOverflow)?;
+
+    minter_config.minted_this_period = minter_config
+        .minted_this_period
+        .checked_add(amount)
+        .unwrap();
     minter_config.total_minted = minter_config.total_minted.checked_add(amount).unwrap();
     minter_config.mint_count = minter_config.mint_count.checked_add(1).unwrap();
+
+    // 7. Analytics counters
+    config.total_mint_operations = config.total_mint_operations.saturating_add(1);
+    if amount > config.largest_single_mint {
+        config.largest_single_mint = amount;
+    }
+    config.last_mint_at = current_time;
 
     // 6. CPI to token program
     let mint_key = config.mint.key();
     let bump = config.bump;
-    let seeds = &[
-        b"sss-config".as_ref(),
-        mint_key.as_ref(),
-        &[bump],
-    ];
+    let seeds = &[b"sss-config".as_ref(), mint_key.as_ref(), &[bump]];
     let signer = &[&seeds[..]];
 
     let cpi_accounts = MintTo {

@@ -29,7 +29,7 @@ export class IndexerService implements OnModuleInit, OnModuleDestroy {
     private readonly prisma: PrismaService,
     @InjectQueue(WEBHOOK_QUEUE)
     private readonly webhookQueue: Queue,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     const rpcUrl = this.configService.get<string>(
@@ -195,6 +195,77 @@ export class IndexerService implements OnModuleInit, OnModuleDestroy {
             data: {
               mint: data.mint,
               action: AuditAction.BLACKLIST_REMOVE,
+              actor: data.removedBy,
+              target: data.address,
+              txSignature: signature,
+            },
+          }),
+        ]);
+        break;
+
+      case 'AllowlistAdded':
+        await this.prisma.$transaction([
+          this.prisma.allowlistEntry.upsert({
+            where: {
+              mint_address: {
+                mint: data.mint,
+                address: data.address,
+              },
+            },
+            update: {
+              reason: data.reason,
+              allowedOperations: data.allowedOperations,
+              kycTier: data.kycTier,
+              expiry: BigInt(data.expiry),
+              addedBy: data.addedBy,
+              active: true,
+              txSignature: signature,
+              onChainTimestamp: BigInt(data.timestamp),
+            },
+            create: {
+              mint: data.mint,
+              address: data.address,
+              reason: data.reason,
+              allowedOperations: data.allowedOperations,
+              kycTier: data.kycTier,
+              expiry: BigInt(data.expiry),
+              addedBy: data.addedBy,
+              active: true,
+              txSignature: signature,
+              onChainTimestamp: BigInt(data.timestamp),
+            },
+          }),
+          this.prisma.auditLog.create({
+            data: {
+              mint: data.mint,
+              action: AuditAction.ALLOWLIST_ADD,
+              actor: data.addedBy,
+              target: data.address,
+              reason: data.reason,
+              txSignature: signature,
+            },
+          }),
+        ]);
+        break;
+
+      case 'AllowlistRemoved':
+        await this.prisma.$transaction([
+          this.prisma.allowlistEntry.updateMany({
+            where: {
+              mint: data.mint,
+              address: data.address,
+              active: true,
+            },
+            data: {
+              active: false,
+              removedBy: data.removedBy,
+              removedAt: new Date(),
+            },
+          }),
+          this.prisma.auditLog.create({
+            data: {
+              mint: data.mint,
+              action: AuditAction.ALLOWLIST_REMOVE,
               actor: data.removedBy,
               target: data.address,
               txSignature: signature,

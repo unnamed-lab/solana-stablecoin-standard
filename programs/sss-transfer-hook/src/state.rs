@@ -2,12 +2,15 @@ use anchor_lang::prelude::*;
 
 #[account]
 pub struct HookConfig {
-    pub mint: Pubkey,               // Which mint this hook serves
-    pub sss_core_program: Pubkey,   // Authorized reference for PDA derivation
-    pub authority: Pubkey,          // hook_authority from sss-core config
-    pub enabled: bool,              // Kill switch without unregistering
-    pub transfer_count: u64,        // Total transfers processed
-    pub blocked_count: u64,         // Total transfers blocked
+    pub mint: Pubkey,             // Which mint this hook serves
+    pub sss_core_program: Pubkey, // Authorized reference for PDA derivation
+    pub authority: Pubkey,        // hook_authority from sss-core config
+    pub enabled: bool,            // Kill switch without unregistering
+    pub transfer_count: u64,      // Total transfers processed
+    pub blocked_count: u64,       // Total transfers blocked
+    /// SSS-3: When true, enforces allowlist checking in addition to blacklist.
+    /// Default false for SSS-2 mints. Set to true when SSS-3 is initialized.
+    pub allowlist_mode: bool,
     pub bump: u8,
 }
 
@@ -19,5 +22,6 @@ impl HookConfig {
         1 + // enabled
         8 + // transfer_count
         8 + // blocked_count
+        1 + // allowlist_mode
         1; // bump
 }

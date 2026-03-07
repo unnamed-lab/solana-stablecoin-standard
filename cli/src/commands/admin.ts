@@ -2,6 +2,8 @@ import { Command } from 'commander';
 import { PublicKey } from '@solana/web3.js';
 import { SolanaStablecoin, SolanaNetwork } from '@stbr/sss-token';
 import ora from 'ora';
+import chalk from 'chalk';
+import { intro, outro, text, isCancel, cancel, multiselect } from '@clack/prompts';
 import {
     loadKeypair,
     getDefaultKeypairPath,
@@ -71,11 +73,28 @@ export function registerAddMinterCommand(program: Command): void {
         .command('add-minter')
         .description('Authorise a new minter with an optional quota')
         .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
-        .requiredOption('--minter <pubkey>', 'Public key of the new minter')
+        .option('--minter <pubkey>', 'Public key of the new minter')
         .option('--quota <number>', 'Max tokens this minter can mint per period')
         .option('--keypair <path>', 'Path to minter-authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
+            let minter = opts.minter;
+            const isInteractive = !minter;
+
+            if (isInteractive) {
+                intro(chalk.blue('Add New Minter'));
+                const res = await text({
+                    message: 'Enter public key of the new minter:',
+                    placeholder: 'Address',
+                    validate: (v: string) => {
+                        if (!v) return 'Minter address is required';
+                        try { new PublicKey(v); } catch { return 'Invalid public key'; }
+                    }
+                });
+                if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
+                minter = res as string;
+            }
+
             const spinner = ora('Adding minter...').start();
 
             try {
@@ -88,12 +107,13 @@ export function registerAddMinterCommand(program: Command): void {
 
                 const txSig = await sdk.addMinter(
                     authority,
-                    new PublicKey(opts.minter),
+                    new PublicKey(minter),
                     quota,
                 );
 
                 spinner.stop();
-                printSuccess(`Minter added: ${opts.minter}`, txSig);
+                if (isInteractive) outro(chalk.green('Minter added successfully!'));
+                printSuccess(`Minter added: ${minter}`, txSig);
             } catch (err) {
                 spinner.fail('Failed to add minter');
                 printError('Add minter failed', err);
@@ -107,10 +127,27 @@ export function registerRemoveMinterCommand(program: Command): void {
         .command('remove-minter')
         .description('Revoke minting rights from a minter')
         .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
-        .requiredOption('--minter <pubkey>', 'Public key of the minter to remove')
+        .option('--minter <pubkey>', 'Public key of the minter to remove')
         .option('--keypair <path>', 'Path to minter-authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
+            let minter = opts.minter;
+            const isInteractive = !minter;
+
+            if (isInteractive) {
+                intro(chalk.blue('Remove Minter'));
+                const res = await text({
+                    message: 'Enter public key of the minter to remove:',
+                    placeholder: 'Address',
+                    validate: (v: string) => {
+                        if (!v) return 'Minter address is required';
+                        try { new PublicKey(v); } catch { return 'Invalid public key'; }
+                    }
+                });
+                if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
+                minter = res as string;
+            }
+
             const spinner = ora('Removing minter...').start();
 
             try {
@@ -122,11 +159,12 @@ export function registerRemoveMinterCommand(program: Command): void {
 
                 const txSig = await sdk.removeMinter(
                     authority,
-                    new PublicKey(opts.minter),
+                    new PublicKey(minter),
                 );
 
                 spinner.stop();
-                printSuccess(`Minter removed: ${opts.minter}`, txSig);
+                if (isInteractive) outro(chalk.green('Minter removed successfully!'));
+                printSuccess(`Minter removed: ${minter}`, txSig);
             } catch (err) {
                 spinner.fail('Failed to remove minter');
                 printError('Remove minter failed', err);
@@ -148,6 +186,45 @@ export function registerUpdateRolesCommand(program: Command): void {
         .option('--keypair <path>', 'Path to master authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
+            let roles: any = {
+                newPauser: opts.newPauser,
+                newMinterAuthority: opts.newMinterAuthority,
+                newBurner: opts.newBurner,
+                newBlacklister: opts.newBlacklister,
+                newSeizer: opts.newSeizer,
+            };
+
+            const hasAnyFlag = Object.values(roles).some(v => !!v);
+
+            if (!hasAnyFlag) {
+                intro(chalk.blue('Update Roles'));
+
+                const selected = await multiselect({
+                    message: 'Select roles to update:',
+                    options: [
+                        { value: 'newPauser', label: 'Pauser' },
+                        { value: 'newMinterAuthority', label: 'Minter Authority' },
+                        { value: 'newBurner', label: 'Burner' },
+                        { value: 'newBlacklister', label: 'Blacklister (SSS-2)' },
+                        { value: 'newSeizer', label: 'Seizer (SSS-2)' },
+                    ]
+                });
+
+                if (isCancel(selected)) { cancel('Operation cancelled.'); process.exit(0); }
+
+                for (const role of (selected as string[])) {
+                    const res = await text({
+                        message: `Enter new address for ${role}:`,
+                        validate: (v: string) => {
+                            if (!v) return 'Address is required';
+                            try { new PublicKey(v); } catch { return 'Invalid public key'; }
+                        }
+                    });
+                    if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
+                    roles[role] = res as string;
+                }
+            }
+
             const spinner = ora('Updating roles...').start();
 
             try {
@@ -158,14 +235,15 @@ export function registerUpdateRolesCommand(program: Command): void {
                 const authority = loadKeypair(opts.keypair);
 
                 const txSig = await sdk.updateRoles(authority, {
-                    newPauser: opts.newPauser ? new PublicKey(opts.newPauser) : undefined,
-                    newMinterAuthority: opts.newMinterAuthority ? new PublicKey(opts.newMinterAuthority) : undefined,
-                    newBurner: opts.newBurner ? new PublicKey(opts.newBurner) : undefined,
-                    newBlacklister: opts.newBlacklister ? new PublicKey(opts.newBlacklister) : undefined,
-                    newSeizer: opts.newSeizer ? new PublicKey(opts.newSeizer) : undefined,
+                    newPauser: roles.newPauser ? new PublicKey(roles.newPauser) : undefined,
+                    newMinterAuthority: roles.newMinterAuthority ? new PublicKey(roles.newMinterAuthority) : undefined,
+                    newBurner: roles.newBurner ? new PublicKey(roles.newBurner) : undefined,
+                    newBlacklister: roles.newBlacklister ? new PublicKey(roles.newBlacklister) : undefined,
+                    newSeizer: roles.newSeizer ? new PublicKey(roles.newSeizer) : undefined,
                 });
 
                 spinner.stop();
+                if (!hasAnyFlag) outro(chalk.green('Roles updated successfully!'));
                 printSuccess('Roles updated', txSig);
             } catch (err) {
                 spinner.fail('Failed to update roles');
@@ -180,10 +258,27 @@ export function registerProposeTransferCommand(program: Command): void {
         .command('propose-transfer')
         .description('Propose master authority transfer to a new key')
         .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
-        .requiredOption('--new-authority <pubkey>', 'Public key of the proposed new authority')
+        .option('--new-authority <pubkey>', 'Public key of the proposed new authority')
         .option('--keypair <path>', 'Path to current authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
+            let newAuthority = opts.newAuthority;
+            const isInteractive = !newAuthority;
+
+            if (isInteractive) {
+                intro(chalk.blue('Propose Authority Transfer'));
+                const res = await text({
+                    message: 'Enter public key of the proposed new authority:',
+                    placeholder: 'Address',
+                    validate: (v: string) => {
+                        if (!v) return 'Address is required';
+                        try { new PublicKey(v); } catch { return 'Invalid public key'; }
+                    }
+                });
+                if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
+                newAuthority = res as string;
+            }
+
             const spinner = ora('Proposing authority transfer...').start();
 
             try {
@@ -195,11 +290,12 @@ export function registerProposeTransferCommand(program: Command): void {
 
                 const txSig = await sdk.proposeAuthorityTransfer(
                     authority,
-                    new PublicKey(opts.newAuthority),
+                    new PublicKey(newAuthority),
                 );
 
                 spinner.stop();
-                printSuccess(`Authority transfer proposed to ${opts.newAuthority}`, txSig);
+                if (isInteractive) outro(chalk.green('Authority transfer proposed successfully!'));
+                printSuccess(`Authority transfer proposed to ${newAuthority}`, txSig);
             } catch (err) {
                 spinner.fail('Failed to propose transfer');
                 printError('Propose authority transfer failed', err);

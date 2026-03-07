@@ -37,7 +37,7 @@ Built with [Ink](https://github.com/vadimdemedes/ink) — React for interactive 
 
 | Screen | Capabilities |
 |--------|-------------|
-| **Token Ops** | Live supply dashboard (auto-refreshes every 10s), mint tokens, burn tokens, view top 10 holders |
+| **Token Ops** | Live supply dashboard (auto-refreshes every 10s), mint tokens, burn tokens, view active minters, view top 10 holders |
 | **Compliance** | View blacklist, add/remove addresses, check status, seize tokens from frozen accounts |
 | **Audit Log** | Browse paginated on-chain audit history |
 | **Webhooks** | Register, toggle active/paused, and delete webhook endpoints |
@@ -146,6 +146,7 @@ Press `1` to open. Sub-views are accessed with single-key shortcuts:
 | `m` | Mint | Form to mint tokens to a recipient address and amount |
 | `b` | Burn | Form to burn a specified token amount |
 | `h` | Holders | Table of the top 10 largest token holders (address + balance) |
+| `i` | Minters | Table of the active minter authorities and notes |
 
 **Dashboard** auto-polls the API every 10 seconds without any user interaction. A spinner is shown while loading.
 

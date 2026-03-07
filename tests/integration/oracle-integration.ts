@@ -48,7 +48,8 @@ describe("Oracle Module Integration — initRegistry → registerFeed → initOr
     // ─── 1. PDA Derivation ───────────────────────────────────────────────────────
     it("Step 1: Correctly derives FeedRegistry PDA", () => {
         const [registryPda] = OracleModule.findRegistryPda(ORACLE_PROGRAM_ID);
-        expect(registryPda).to.be.instanceOf(PublicKey);
+        // Use toBase58() for cross-package-version-safe assertion
+        expect(registryPda.toBase58()).to.be.a("string").with.length.greaterThan(0);
         console.log("  → Registry PDA:", registryPda.toBase58());
     });
 
@@ -57,7 +58,7 @@ describe("Oracle Module Integration — initRegistry → registerFeed → initOr
             fakeMint.publicKey,
             ORACLE_PROGRAM_ID
         );
-        expect(oraclePda).to.be.instanceOf(PublicKey);
+        expect(oraclePda.toBase58()).to.be.a("string").with.length.greaterThan(0);
         console.log("  → OracleConfig PDA:", oraclePda.toBase58());
     });
 
@@ -69,7 +70,7 @@ describe("Oracle Module Integration — initRegistry → registerFeed → initOr
             nonce,
             ORACLE_PROGRAM_ID
         );
-        expect(quotePda).to.be.instanceOf(PublicKey);
+        expect(quotePda.toBase58()).to.be.a("string").with.length.greaterThan(0);
         console.log("  → Quote PDA:", quotePda.toBase58());
     });
 
