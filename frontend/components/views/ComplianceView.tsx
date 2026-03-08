@@ -64,7 +64,7 @@ export default function ComplianceView() {
     if (!finalKeypair) return;
     setLoading(true);
     try {
-      await backendApi.post("/unblacklist", { address: removeModal, blacklisterKeypair: finalKeypair });
+      await backendApi.delete(`/blacklist/${removeModal}`, { blacklisterKeypair: finalKeypair });
       setBlacklist(b => b.filter(e => e.address !== removeModal));
       setRemoveModal(null); setRemoveKeypair("");
     } catch { } finally { setLoading(false); }

@@ -1,4 +1,4 @@
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api/v1";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000/api/v1";
 const ORACLE = process.env.NEXT_PUBLIC_ORACLE_URL || "http://localhost:3003";
 
 async function apiFetch<T>(base: string, path: string, opts?: RequestInit): Promise<T> {
@@ -14,7 +14,12 @@ async function apiFetch<T>(base: string, path: string, opts?: RequestInit): Prom
     }
     throw Object.assign(new Error(message), { status: res.status, body });
   }
-  return res.json() as Promise<T>;
+  const body = await res.json() as any;
+  // If it's a standard envelope, return the data part
+  if (body && typeof body === "object" && body.status === "success" && "data" in body) {
+    return body.data as T;
+  }
+  return body as T;
 }
 
 /* ── Backend API ─────────────────────────────────────────────────── */

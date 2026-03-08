@@ -128,7 +128,7 @@ export default function GovernanceView() {
                     <p style={{ color: "var(--sub)", fontSize: 13, marginTop: 6, fontFamily: "Geist Mono" }}>M-of-N Multisig & Time-locks</p>
                 </div>
                 <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                    <Tag variant="accent" pulse={proposals.some(p => p.status === "PENDING")}>
+                    <Tag variant="dim" pulse={proposals.some(p => p.status === "PENDING")}>
                         {proposals.filter(p => p.status === "PENDING").length} Pending
                     </Tag>
                 </div>

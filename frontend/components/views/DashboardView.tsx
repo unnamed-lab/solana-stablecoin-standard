@@ -14,6 +14,7 @@ import { useKeyStore } from "../KeyStoreProvider";
 
 interface Supply { totalSupply: string; maxSupply: string | null; burnSupply: string; decimals: number; }
 interface AuditEntry { action: string; actor: string; amount?: string; txSignature?: string; timestamp: string; }
+interface Info { name: string; symbol: string; mint: string; paused: boolean; preset: string; }
 
 const MOCK_AUDIT: AuditEntry[] = [
   { action: "MINT", actor: "7xKXtg…AsU", amount: "5000", txSignature: "5Kz7xYpQ1a", timestamp: "2025-01-22T15:04:00Z" },
@@ -28,6 +29,7 @@ export default function DashboardView() {
   const isMobile = useBreakpoint();
   const { keys } = useKeyStore();
   const [supply, setSupply] = useState<Supply | null>(null);
+  const [info, setInfo] = useState<Info | null>(null);
   const [holderCount, setHolderCount] = useState(1500);
   const [recentActivity, setRecentActivity] = useState<AuditEntry[]>(MOCK_AUDIT);
   const [mintAmt, setMintAmt] = useState("");
@@ -41,6 +43,7 @@ export default function DashboardView() {
   const [burnKeypair, setBurnKeypair] = useState("");
 
   useEffect(() => {
+    backendApi.get<Info>("/info").then(setInfo).catch(() => { });
     backendApi.get<Supply>("/supply").then(setSupply).catch(() => { });
     backendApi.get<{ count: number }>("/holders/count").then(r => setHolderCount(r.count)).catch(() => { });
     backendApi.getWithQuery<{ items: AuditEntry[] }>("/audit-log", { pageSize: "6" })
@@ -48,6 +51,7 @@ export default function DashboardView() {
   }, []);
 
   const dec = supply?.decimals ?? 6;
+  const symbol = info?.symbol ?? "USDS";
   const totalSupplyNum = supply ? Number(fmt(supply.totalSupply, dec).replace(/,/g, "")) : 125000000;
   const maxSupplyNum = supply?.maxSupply ? Number(fmt(supply.maxSupply, dec).replace(/,/g, "")) : 500000000;
   const burnedNum = supply ? Number(fmt(supply.burnSupply, dec).replace(/,/g, "")) : 3200000;
@@ -76,8 +80,8 @@ export default function DashboardView() {
     <motion.div variants={STAGGER} initial="hidden" animate="show" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <motion.div variants={FADE_UP} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1 }}>Overview</h1>
-          <p style={{ color: "var(--sub)", fontSize: 13, marginTop: 6, fontFamily: "Geist Mono" }}>Token lifecycle · real-time</p>
+          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1 }}>{info?.name ?? "Overview"}</h1>
+          <p style={{ color: "var(--sub)", fontSize: 13, marginTop: 6, fontFamily: "Geist Mono" }}>{info?.symbol ?? "Token"} lifecycle · real-time</p>
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <Tag variant="green" pulse>LIVE</Tag>
@@ -86,9 +90,9 @@ export default function DashboardView() {
       </motion.div>
 
       <motion.div variants={STAGGER} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 14, alignItems: "stretch" }}>
-        <StatCard label="Total Supply" value={<CountUp to={totalSupplyNum} />} unit="USDS" icon={<Coins size={15} />} accent="purple" change={2.4} />
-        <StatCard label="Max Supply" value={<CountUp to={maxSupplyNum} />} unit="USDS" icon={<BarChart3 size={15} />} />
-        <StatCard label="Total Burned" value={<CountUp to={burnedNum} />} unit="USDS" icon={<Flame size={15} />} accent="red" change={-0.8} />
+        <StatCard label="Total Supply" value={<CountUp to={totalSupplyNum} />} unit={symbol} icon={<Coins size={15} />} accent="purple" change={2.4} />
+        <StatCard label="Max Supply" value={<CountUp to={maxSupplyNum} />} unit={symbol} icon={<BarChart3 size={15} />} />
+        <StatCard label="Total Burned" value={<CountUp to={burnedNum} />} unit={symbol} icon={<Flame size={15} />} accent="red" change={-0.8} />
         <StatCard label="Holders" value={<CountUp to={holderCount} />} unit="accounts" icon={<Users size={15} />} accent="green" change={5.1} />
       </motion.div>
 
@@ -131,7 +135,7 @@ export default function DashboardView() {
                     {mintAmt && (
                       <motion.span initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
                         style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "var(--accent)", fontFamily: "Geist Mono", pointerEvents: "none" }}>
-                        = {(Number(mintAmt) / 1e6).toFixed(2)} USDS
+                        = {(Number(mintAmt) / Math.pow(10, dec)).toFixed(2)} {symbol}
                       </motion.span>
                     )}
                   </AnimatePresence>
@@ -212,7 +216,7 @@ export default function DashboardView() {
                 style={{ display: "flex", alignItems: "center", gap: isMobile ? 8 : 14, padding: "11px 4px", borderBottom: i < recentActivity.length - 1 ? "1px solid var(--border)" : "none", borderRadius: 6 }}>
                 <ActionBadge action={r.action} />
                 {!isMobile && <span style={{ fontFamily: "Geist Mono", fontSize: 11, color: "var(--sub)", flex: 1 }}>{r.actor}</span>}
-                <span style={{ fontFamily: "Geist Mono", fontSize: 11, flex: isMobile ? 1 : undefined }}>{r.amount ? `${Number(r.amount).toLocaleString()} USDS` : <span style={{ color: "var(--dim)" }}>—</span>}</span>
+                <span style={{ fontFamily: "Geist Mono", fontSize: 11, flex: isMobile ? 1 : undefined }}>{r.amount ? `${Number(r.amount).toLocaleString()} ${symbol}` : <span style={{ color: "var(--dim)" }}>—</span>}</span>
                 {r.txSignature && <TxLink sig={r.txSignature} />}
                 {!isMobile && <span style={{ fontSize: 10, color: "var(--dim)", fontFamily: "Geist Mono", minWidth: 100, textAlign: "right" }}>{fmtTime(r.timestamp)}</span>}
               </motion.div>

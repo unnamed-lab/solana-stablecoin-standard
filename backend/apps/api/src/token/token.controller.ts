@@ -103,6 +103,16 @@ export class TokenController {
     return this.tokenService.getLargestHolders(min);
   }
 
+  @Get('info')
+  @ApiOperation({ summary: 'Get basic stablecoin information (name, symbol, supply, etc.)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Stablecoin information',
+  })
+  async getInfo() {
+    return this.tokenService.getInfo();
+  }
+
   @Get('minters')
   @ApiOperation({ summary: 'Get the list of active minters and their quotas for the token' })
   @ApiResponse({

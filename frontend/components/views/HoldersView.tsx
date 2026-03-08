@@ -14,8 +14,8 @@ const MOCK_HOLDERS: Holder[] = [
   { address: "3Kzg7p3CW87d97TXJSDpbD5jBkhe3qA83TZRu9osgBsP", uiAmountString: "32,000.00", amount: "32000000000", decimals: 6, uiAmount: 32000 },
   { address: "9mNXtg2CW87d97TXJSDpbD5jBkhe3qA83TZRuJosgCsQ", uiAmountString: "18,500.00", amount: "18500000000", decimals: 6, uiAmount: 18500 },
   { address: "5yLKtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgDtR", uiAmountString: "12,750.00", amount: "12750000000", decimals: 6, uiAmount: 12750 },
-  { address: "2wMKtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgEuS", uiAmountString:  "9,900.00", amount:  "9900000000", decimals: 6, uiAmount: 9900 },
-  { address: "8nOKtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgFvT", uiAmountString:  "6,400.00", amount:  "6400000000", decimals: 6, uiAmount: 6400 },
+  { address: "2wMKtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgEuS", uiAmountString: "9,900.00", amount: "9900000000", decimals: 6, uiAmount: 9900 },
+  { address: "8nOKtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgFvT", uiAmountString: "6,400.00", amount: "6400000000", decimals: 6, uiAmount: 6400 },
 ];
 
 export default function HoldersView() {
@@ -23,13 +23,14 @@ export default function HoldersView() {
   const [minAmt, setMinAmt] = useState("");
   const [holders, setHolders] = useState<Holder[]>(MOCK_HOLDERS);
   const [count, setCount] = useState(1500);
-  const totalSupply = 125000000000000;
+  const [totalSupply, setTotalSupply] = useState("125000000000000");
 
   useEffect(() => {
+    backendApi.get<{ totalSupply: string }>("/supply").then(s => setTotalSupply(s.totalSupply)).catch(() => { });
     const q: Record<string, string> = {};
     if (minAmt) q.minAmount = minAmt;
-    backendApi.getWithQuery<Holder[]>("/holders/largest", q).then(d => { if (d?.length) setHolders(d); }).catch(() => {});
-    backendApi.get<{ count: number }>("/holders/count").then(r => setCount(r.count)).catch(() => {});
+    backendApi.getWithQuery<Holder[]>("/holders/largest", q).then(d => { if (d?.length) setHolders(d); }).catch(() => { });
+    backendApi.get<{ count: number }>("/holders/count").then(r => setCount(r.count)).catch(() => { });
   }, [minAmt]);
 
   const filtered = minAmt ? holders.filter(h => Number(h.amount) >= Number(minAmt)) : holders;
@@ -60,7 +61,7 @@ export default function HoldersView() {
           </div>
           <motion.div variants={STAGGER} initial="hidden" animate="show">
             {filtered.map((h, i) => {
-              const share = (Number(h.amount) / totalSupply * 100).toFixed(3);
+              const share = (Number(h.amount) / Number(totalSupply) * 100).toFixed(3);
               return (
                 <motion.div key={i} variants={FADE_RIGHT} whileHover={{ x: 4, background: "rgba(255,255,255,0.025)" }}
                   style={{ display: "grid", gridTemplateColumns: isMobile ? "32px 1fr auto" : "32px 1fr auto auto", gap: isMobile ? 8 : 14, alignItems: "center", padding: "13px 8px", borderBottom: i < filtered.length - 1 ? "1px solid var(--border)" : "none", borderRadius: 8 }}>

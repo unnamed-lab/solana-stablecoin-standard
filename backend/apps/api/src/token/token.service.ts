@@ -191,4 +191,11 @@ export class TokenService {
       return [];
     }
   }
+  /**
+   * Get basic stablecoin information from on-chain state.
+   */
+  async getInfo(): Promise<any> {
+    const sdk = await this.sdkService.getSdk();
+    return sdk.getInfo();
+  }
 }
