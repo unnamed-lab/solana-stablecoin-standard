@@ -30,7 +30,7 @@ export default function DashboardView() {
   const { keys } = useKeyStore();
   const [supply, setSupply] = useState<Supply | null>(null);
   const [info, setInfo] = useState<Info | null>(null);
-  const [holderCount, setHolderCount] = useState(1500);
+  const [holderCount, setHolderCount] = useState(0);
   const [recentActivity, setRecentActivity] = useState<AuditEntry[]>(MOCK_AUDIT);
   const [mintAmt, setMintAmt] = useState("");
   const [showMintKey, setShowMintKey] = useState(false);
@@ -52,9 +52,9 @@ export default function DashboardView() {
 
   const dec = supply?.decimals ?? 6;
   const symbol = info?.symbol ?? "USDS";
-  const totalSupplyNum = supply ? Number(fmt(supply.totalSupply, dec).replace(/,/g, "")) : 125000000;
-  const maxSupplyNum = supply?.maxSupply ? Number(fmt(supply.maxSupply, dec).replace(/,/g, "")) : 500000000;
-  const burnedNum = supply ? Number(fmt(supply.burnSupply, dec).replace(/,/g, "")) : 3200000;
+  const totalSupplyNum = supply ? Number(fmt(supply.totalSupply, dec).replace(/,/g, "")) : 0;
+  const maxSupplyNum = supply?.maxSupply ? Number(fmt(supply.maxSupply, dec).replace(/,/g, "")) : 0;
+  const burnedNum = supply ? Number(fmt(supply.burnSupply, dec).replace(/,/g, "")) : 0;
 
   const submitMint = async () => {
     const finalKeypair = keys?.minterKeypair || mintKeypair;
