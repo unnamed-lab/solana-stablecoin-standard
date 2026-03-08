@@ -4,31 +4,44 @@ The **Solana Stablecoin Standard (SSS)** is an enterprise-grade toolkit for depl
 
 Built exclusively on the **Token-2022 standard**, SSS provides a modular architecture specifically designed to scale from decentralized algorithmic stablecoins (SSS-1) to strict, institutionally regulated fiat-backed assets (SSS-2).
 
-## Core Programs
+## Project Structure
 
-The standard consists of two deeply interconnected Anchor programs:
+SSS is a comprehensive monorepo containing everything needed to run a stablecoin:
 
-1. **`sss-core`**: The state machine. Manages mint authority, role separation, minting quotas, pauses, permanent delegates (seizures), and blacklist registries.
-2. **`sss-transfer-hook`**: The compliance engine. Operates as a Token-2022 Transfer Hook to intercept and validate every transaction against the on-chain blacklist registries managed by `sss-core`.
+- **[`backend/`](./backend)**: A scalable NestJS backend providing a REST API, blockchain indexer, and webhook dispatcher.
+- **[`cli/`](./cli)**: The `sss-token` command-line interface for deploying and managing stablecoins from your terminal.
+- **[`frontend/`](./frontend)**: A Next.js dashboard for users and operators to view metrics and perform token operations.
+- **[`programs/`](./programs)**: Core Anchor smart contracts (`sss-core`, `sss-oracle`, `sss-transfer-hook`).
+- **[`sdk/`](./sdk)**: The canonical `@stbr/sss-token` TypeScript SDK for interacting with the blockchain.
+- **[`sss-oracle-frontend/`](./sss-oracle-frontend)**: A web UI for simulating quotes and managing oracle price feeds.
+- **[`tui/`](./tui)**: An interactive Terminal UI for monitoring supply, compliance, and real-time events.
 
 ## Documentation
 
-Dive deep into the SSS architecture and compliance models in this directory:
+Comprehensive documentation is available in the [`docs/`](./docs) directory:
 
-* [Architecture Overview](./docs/ARCHITECTURE.md) - Understanding the PDAs, CPIs, and program interactions.
-* [Compliance & Regulations](./docs/COMPLIANCE.md) - How SSS handles Blacklists, Seizures, and KYC workflows.
-* [SSS-1 (Standard) Preset](./docs/SSS-1.md) - Utilizing the standard token flows without strict compliance overhead.
-* [SSS-2 (Regulated) Preset](./docs/SSS-2.md) - Unlocking dynamic Transfer Hooks and Permanent Delegates.
+- [**Overview & Architecture**](./docs/README.md) - Understanding the system design and interaction of components.
+- [**SDK Reference**](./docs/SDK.md) - Integrating the TypeScript SDK.
+- [**Operator Runbook**](./docs/OPERATIONS.md) - Guide for minting, burning, and freezing.
+- [**Backend API Reference**](./docs/API.md) - Interacting with the SSS API and Indexer.
+- [**Compliance & Regulations**](./docs/COMPLIANCE.md) - Managing Blacklists, Seizures, and KYC.
+- [**SSS-1 (Minimal)**](./docs/SSS-1.md) - Lightweight preset overview.
+- [**SSS-2 (Regulated)**](./docs/SSS-2.md) - Fully compliant preset overview.
+- [**SSS-3 (Governance)**](./docs/SSS-3.md) - Upcoming DAO/Multi-sig standard.
+- [**Frontends**](./docs/FRONTEND.md) - Overview of the web applications.
 
-## Building and Testing
+## Quick Start
 
-Ensure you have the latest Rust, Solana, and Anchor CLI tools installed.
-If you experience `cross-crate` or `Cargo` network timeouts in WSL during compilation, you may need to update your Solana `platform-tools` or install via `cargo-build-sbf --install-only`.
+1. **Install Prerequisites**: Node.js ≥ 18, Rust, Solana CLI, Anchor CLI.
+2. **Clone and Install**:
+   ```bash
+   git clone https://github.com/solanabr/solana-stablecoin-standard.git
+   cd sss
+   yarn install:each
+   ```
+3. **Build the Smart Contracts**:
+   ```bash
+   anchor build
+   ```
 
-```bash
-# Build the programs
-anchor build
-
-# Or directly with Cargo SBF
-cargo build-sbf
-```
+*(See individual directory READMEs for specific instructions on running each component).*

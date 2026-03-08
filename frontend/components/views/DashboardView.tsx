@@ -10,21 +10,23 @@ import {
 } from "../Primitives";
 import { backendApi } from "../../lib/api";
 import { fmt, fmtTime } from "../../lib/utils";
+import { useKeyStore } from "../KeyStoreProvider";
 
 interface Supply { totalSupply: string; maxSupply: string | null; burnSupply: string; decimals: number; }
 interface AuditEntry { action: string; actor: string; amount?: string; txSignature?: string; timestamp: string; }
 
 const MOCK_AUDIT: AuditEntry[] = [
-  { action: "MINT",   actor: "7xKXtg…AsU", amount: "5000",  txSignature: "5Kz7xYpQ1a", timestamp: "2025-01-22T15:04:00Z" },
-  { action: "BURN",   actor: "3Kzg7p…BsP", amount: "1200",  txSignature: "3wCXURH82b", timestamp: "2025-01-22T14:32:00Z" },
-  { action: "FREEZE", actor: "9mNXtg…CsQ",                  txSignature: "9pQkLMN23c", timestamp: "2025-01-22T13:15:00Z" },
-  { action: "SEIZE",  actor: "5yLKtg…DtR", amount: "850",   txSignature: "7rTmVWX44d", timestamp: "2025-01-22T12:00:00Z" },
-  { action: "MINT",   actor: "2wMKtg…EuS", amount: "20000", txSignature: "2sPnYZ115e", timestamp: "2025-01-21T18:45:00Z" },
-  { action: "BURN",   actor: "8nOKtg…FvT", amount: "300",   txSignature: "8qUoAB556f", timestamp: "2025-01-21T16:22:00Z" },
+  { action: "MINT", actor: "7xKXtg…AsU", amount: "5000", txSignature: "5Kz7xYpQ1a", timestamp: "2025-01-22T15:04:00Z" },
+  { action: "BURN", actor: "3Kzg7p…BsP", amount: "1200", txSignature: "3wCXURH82b", timestamp: "2025-01-22T14:32:00Z" },
+  { action: "FREEZE", actor: "9mNXtg…CsQ", txSignature: "9pQkLMN23c", timestamp: "2025-01-22T13:15:00Z" },
+  { action: "SEIZE", actor: "5yLKtg…DtR", amount: "850", txSignature: "7rTmVWX44d", timestamp: "2025-01-22T12:00:00Z" },
+  { action: "MINT", actor: "2wMKtg…EuS", amount: "20000", txSignature: "2sPnYZ115e", timestamp: "2025-01-21T18:45:00Z" },
+  { action: "BURN", actor: "8nOKtg…FvT", amount: "300", txSignature: "8qUoAB556f", timestamp: "2025-01-21T16:22:00Z" },
 ];
 
 export default function DashboardView() {
   const isMobile = useBreakpoint();
+  const { keys } = useKeyStore();
   const [supply, setSupply] = useState<Supply | null>(null);
   const [holderCount, setHolderCount] = useState(1500);
   const [recentActivity, setRecentActivity] = useState<AuditEntry[]>(MOCK_AUDIT);
@@ -39,29 +41,33 @@ export default function DashboardView() {
   const [burnKeypair, setBurnKeypair] = useState("");
 
   useEffect(() => {
-    backendApi.get<Supply>("/supply").then(setSupply).catch(() => {});
-    backendApi.get<{ count: number }>("/holders/count").then(r => setHolderCount(r.count)).catch(() => {});
+    backendApi.get<Supply>("/supply").then(setSupply).catch(() => { });
+    backendApi.get<{ count: number }>("/holders/count").then(r => setHolderCount(r.count)).catch(() => { });
     backendApi.getWithQuery<{ items: AuditEntry[] }>("/audit-log", { pageSize: "6" })
-      .then(r => { if (r?.items?.length) setRecentActivity(r.items); }).catch(() => {});
+      .then(r => { if (r?.items?.length) setRecentActivity(r.items); }).catch(() => { });
   }, []);
 
   const dec = supply?.decimals ?? 6;
   const totalSupplyNum = supply ? Number(fmt(supply.totalSupply, dec).replace(/,/g, "")) : 125000000;
-  const maxSupplyNum   = supply?.maxSupply ? Number(fmt(supply.maxSupply, dec).replace(/,/g, "")) : 500000000;
-  const burnedNum      = supply ? Number(fmt(supply.burnSupply, dec).replace(/,/g, "")) : 3200000;
+  const maxSupplyNum = supply?.maxSupply ? Number(fmt(supply.maxSupply, dec).replace(/,/g, "")) : 500000000;
+  const burnedNum = supply ? Number(fmt(supply.burnSupply, dec).replace(/,/g, "")) : 3200000;
 
   const submitMint = async () => {
+    const finalKeypair = keys?.minterKeypair || mintKeypair;
+    if (!finalKeypair) return;
     setLoading("MINT");
     try {
-      const res = await backendApi.post<{ txSignature: string }>("/mint", { recipient: mintRecipient, amount: Number(mintAmt), minterKeypair: mintKeypair });
+      const res = await backendApi.post<{ txSignature: string }>("/mint", { recipient: mintRecipient, amount: Number(mintAmt), minterKeypair: finalKeypair });
       setTxBanner({ type: "MINT", sig: res.txSignature });
     } catch { setTxBanner({ type: "MINT", sig: "error" }); } finally { setLoading(null); }
   };
 
   const submitBurn = async () => {
+    const finalKeypair = keys?.burnerKeypair || burnKeypair;
+    if (!finalKeypair) return;
     setLoading("BURN");
     try {
-      const res = await backendApi.post<{ txSignature: string }>("/burn", { amount: Number(burnAmt), burnerKeypair: burnKeypair, ...(burnSource ? { source: burnSource } : {}) });
+      const res = await backendApi.post<{ txSignature: string }>("/burn", { amount: Number(burnAmt), burnerKeypair: finalKeypair, ...(burnSource ? { source: burnSource } : {}) });
       setTxBanner({ type: "BURN", sig: res.txSignature });
     } catch { setTxBanner({ type: "BURN", sig: "error" }); } finally { setLoading(null); }
   };
@@ -81,9 +87,9 @@ export default function DashboardView() {
 
       <motion.div variants={STAGGER} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 14, alignItems: "stretch" }}>
         <StatCard label="Total Supply" value={<CountUp to={totalSupplyNum} />} unit="USDS" icon={<Coins size={15} />} accent="purple" change={2.4} />
-        <StatCard label="Max Supply"   value={<CountUp to={maxSupplyNum} />}   unit="USDS" icon={<BarChart3 size={15} />} />
-        <StatCard label="Total Burned" value={<CountUp to={burnedNum} />}      unit="USDS" icon={<Flame size={15} />} accent="red" change={-0.8} />
-        <StatCard label="Holders"      value={<CountUp to={holderCount} />}    unit="accounts" icon={<Users size={15} />} accent="green" change={5.1} />
+        <StatCard label="Max Supply" value={<CountUp to={maxSupplyNum} />} unit="USDS" icon={<BarChart3 size={15} />} />
+        <StatCard label="Total Burned" value={<CountUp to={burnedNum} />} unit="USDS" icon={<Flame size={15} />} accent="red" change={-0.8} />
+        <StatCard label="Holders" value={<CountUp to={holderCount} />} unit="accounts" icon={<Users size={15} />} accent="green" change={5.1} />
       </motion.div>
 
       <AnimatePresence>
@@ -133,13 +139,21 @@ export default function DashboardView() {
               </div>
               <div>
                 <label className="label">Minter Keypair</label>
-                <div style={{ position: "relative" }}>
-                  <input className="input" type={showMintKey ? "text" : "password"} placeholder="Base58 keypair…" style={{ paddingRight: 40 }} value={mintKeypair} onChange={e => setMintKeypair(e.target.value)} />
-                  <motion.button whileTap={{ scale: 0.85 }} onClick={() => setShowMintKey(!showMintKey)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--sub)" }}>
-                    {showMintKey ? <EyeOff size={12} /> : <Eye size={12} />}
-                  </motion.button>
-                </div>
-                <KeypairWarning />
+                {keys?.minterKeypair ? (
+                  <div style={{ padding: "10px 14px", background: "rgba(0,229,160,0.1)", color: "var(--accent)", borderRadius: 8, fontSize: 13, border: "1px solid rgba(0,229,160,0.2)" }}>
+                    ✓ Provided by Secure Vault
+                  </div>
+                ) : (
+                  <>
+                    <div style={{ position: "relative" }}>
+                      <input className="input" type={showMintKey ? "text" : "password"} placeholder="Base58 keypair…" style={{ paddingRight: 40 }} value={mintKeypair} onChange={e => setMintKeypair(e.target.value)} />
+                      <motion.button whileTap={{ scale: 0.85 }} onClick={() => setShowMintKey(!showMintKey)} style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--sub)" }}>
+                        {showMintKey ? <EyeOff size={12} /> : <Eye size={12} />}
+                      </motion.button>
+                    </div>
+                    <KeypairWarning />
+                  </>
+                )}
               </div>
               <Btn variant="accent" onClick={submitMint} disabled={!!loading} style={{ justifyContent: "center", width: "100%", borderRadius: 9 }}>
                 {loading === "MINT" ? <><Spinner /> Processing…</> : <><Coins size={13} /> Mint Tokens</>}
@@ -166,8 +180,16 @@ export default function DashboardView() {
               <div><label className="label">Source Account <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 400, color: "var(--dim)" }}>(optional)</span></label><input className="input" placeholder="Defaults to burner ATA…" value={burnSource} onChange={e => setBurnSource(e.target.value)} /></div>
               <div>
                 <label className="label">Burner Keypair</label>
-                <input className="input" type="password" placeholder="Base58 keypair…" value={burnKeypair} onChange={e => setBurnKeypair(e.target.value)} />
-                <KeypairWarning />
+                {keys?.burnerKeypair ? (
+                  <div style={{ padding: "10px 14px", background: "rgba(255,64,96,0.1)", color: "var(--danger)", borderRadius: 8, fontSize: 13, border: "1px solid rgba(255,64,96,0.2)" }}>
+                    ✓ Provided by Secure Vault
+                  </div>
+                ) : (
+                  <>
+                    <input className="input" type="password" placeholder="Base58 keypair…" value={burnKeypair} onChange={e => setBurnKeypair(e.target.value)} />
+                    <KeypairWarning />
+                  </>
+                )}
               </div>
               <Btn variant="danger" onClick={submitBurn} disabled={!!loading} style={{ justifyContent: "center", width: "100%", borderRadius: 9, padding: "10px 18px", fontSize: 13, fontWeight: 700 }}>
                 {loading === "BURN" ? <><Spinner /> Processing…</> : <><Flame size={13} /> Burn Tokens</>}

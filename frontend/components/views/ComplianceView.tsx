@@ -9,17 +9,19 @@ import {
 } from "../Primitives";
 import { backendApi } from "../../lib/api";
 import { truncAddr, fmtTime } from "../../lib/utils";
+import { useKeyStore } from "../KeyStoreProvider";
 
 interface BlacklistEntry { address: string; reason: string; timestamp: string; }
 
 const MOCK_BLACKLIST: BlacklistEntry[] = [
   { address: "Bad1xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU", reason: "Sanctioned entity — OFAC list", timestamp: "2025-01-15T10:23:00Z" },
-  { address: "Bad23Kzg7p3CW87d97TXJSDpbD5jBkhe3qA83TZRuJosgBs", reason: "Suspected wash trading",        timestamp: "2025-01-18T14:05:00Z" },
-  { address: "Bad39mNXtg2CW87d97TXJSDpbD5jBkhe3qA83TZRuJosgCs", reason: "KYC failure — frozen pending",  timestamp: "2025-01-22T09:11:00Z" },
+  { address: "Bad23Kzg7p3CW87d97TXJSDpbD5jBkhe3qA83TZRuJosgBs", reason: "Suspected wash trading", timestamp: "2025-01-18T14:05:00Z" },
+  { address: "Bad39mNXtg2CW87d97TXJSDpbD5jBkhe3qA83TZRuJosgCs", reason: "KYC failure — frozen pending", timestamp: "2025-01-22T09:11:00Z" },
 ];
 
 export default function ComplianceView() {
   const isMobile = useBreakpoint();
+  const { keys } = useKeyStore();
   const [tab, setTab] = useState<"blacklist" | "check" | "seize">("blacklist");
   const [blacklist, setBlacklist] = useState<BlacklistEntry[]>(MOCK_BLACKLIST);
   const [addModal, setAddModal] = useState(false);
@@ -40,7 +42,7 @@ export default function ComplianceView() {
   const [removeKeypair, setRemoveKeypair] = useState("");
 
   useEffect(() => {
-    backendApi.get<BlacklistEntry[]>("/blacklist").then(d => { if (d?.length) setBlacklist(d); }).catch(() => {});
+    backendApi.get<BlacklistEntry[]>("/blacklist").then(d => { if (d?.length) setBlacklist(d); }).catch(() => { });
   }, []);
 
   const handleCheck = async () => {
@@ -48,33 +50,39 @@ export default function ComplianceView() {
     catch { setCheckResult("clean"); }
   };
   const handleAdd = async () => {
+    const finalKeypair = keys?.blacklisterKeypair || addKeypair;
+    if (!finalKeypair) return;
     setLoading(true);
     try {
-      await backendApi.post("/blacklist", { address: addAddress, reason: addReason, blacklisterKeypair: addKeypair });
+      await backendApi.post("/blacklist", { address: addAddress, reason: addReason, blacklisterKeypair: finalKeypair });
       setBlacklist(b => [...b, { address: addAddress, reason: addReason, timestamp: new Date().toISOString() }]);
       setAddModal(false); setAddAddress(""); setAddReason(""); setAddKeypair("");
     } catch { } finally { setLoading(false); }
   };
   const handleRemove = async () => {
+    const finalKeypair = keys?.blacklisterKeypair || removeKeypair;
+    if (!finalKeypair) return;
     setLoading(true);
     try {
-      await backendApi.delete(`/blacklist/${removeModal}`, { blacklisterKeypair: removeKeypair });
+      await backendApi.post("/unblacklist", { address: removeModal, blacklisterKeypair: finalKeypair });
       setBlacklist(b => b.filter(e => e.address !== removeModal));
       setRemoveModal(null); setRemoveKeypair("");
     } catch { } finally { setLoading(false); }
   };
   const handleSeize = async () => {
+    const finalKeypair = keys?.seizerKeypair || seizeKeypair;
+    if (!finalKeypair) return;
     setLoading(true);
     try {
-      await backendApi.post("/seize", { from: seizeFrom, to: seizeTo, amount: Number(seizeAmt), reason: seizeReason, seizerKeypair: seizeKeypair });
+      await backendApi.post("/seize", { from: seizeFrom, to: seizeTo, amount: Number(seizeAmt), reason: seizeReason, seizerKeypair: finalKeypair });
       setSeizeModal(false); setSeizeText("");
     } catch { } finally { setLoading(false); }
   };
 
   const TABS = [
     { id: "blacklist" as const, label: "Blacklist", count: blacklist.length },
-    { id: "check"     as const, label: "Check Address" },
-    { id: "seize"     as const, label: "Seize Tokens" },
+    { id: "check" as const, label: "Check Address" },
+    { id: "seize" as const, label: "Seize Tokens" },
   ];
 
   return (
@@ -87,9 +95,11 @@ export default function ComplianceView() {
       <motion.div variants={FADE_UP} style={{ display: "flex", gap: 4, background: "var(--surface)", borderRadius: 10, padding: 5, border: "1px solid var(--border)", alignSelf: "flex-start", overflowX: "auto", maxWidth: "100%" }}>
         {TABS.map(t => (
           <motion.button key={t.id} onClick={() => setTab(t.id)} whileTap={{ scale: 0.97 }} layout
-            style={{ padding: "7px 16px", borderRadius: 7, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
+            style={{
+              padding: "7px 16px", borderRadius: 7, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
               background: tab === t.id ? "var(--surface2)" : "transparent", color: tab === t.id ? "var(--text)" : "var(--sub)",
-              display: "flex", alignItems: "center", gap: 6 }}>
+              display: "flex", alignItems: "center", gap: 6
+            }}>
             {t.label}
             {t.count !== undefined && <Tag variant={tab === t.id ? "warn" : "dim"}>{t.count}</Tag>}
           </motion.button>
@@ -138,10 +148,12 @@ export default function ComplianceView() {
                 {checkResult && (
                   <motion.div initial={{ opacity: 0, scale: 0.96, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
                     transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                    style={{ marginTop: 16, padding: "16px 18px", borderRadius: 10,
+                    style={{
+                      marginTop: 16, padding: "16px 18px", borderRadius: 10,
                       background: checkResult === "clean" ? "rgba(0,229,160,0.06)" : "rgba(255,64,96,0.06)",
                       border: `1px solid ${checkResult === "clean" ? "rgba(0,229,160,0.25)" : "rgba(255,64,96,0.25)"}`,
-                      display: "flex", alignItems: "center", gap: 10 }}>
+                      display: "flex", alignItems: "center", gap: 10
+                    }}>
                     <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 500, damping: 20 }}>
                       {checkResult === "clean" ? <CheckCircle size={18} style={{ color: "var(--accent)" }} /> : <XCircle size={18} style={{ color: "var(--danger)" }} />}
                     </motion.div>
@@ -170,17 +182,26 @@ export default function ComplianceView() {
                     <p style={{ fontSize: 11, color: "var(--sub)", fontFamily: "Geist Mono" }}>Permanent Delegate required</p>
                   </div>
                 </div>
-                {[ { label: "From (frozen account)", ph: "Frozen token account…", val: seizeFrom, set: setSeizeFrom },
-                   { label: "To (destination)", ph: "Destination account…", val: seizeTo, set: setSeizeTo },
-                   { label: "Amount (base units)", ph: "e.g. 1000000", val: seizeAmt, set: setSeizeAmt, type: "number" },
-                   { label: "Reason (max 200 chars)", ph: "Legal justification…", val: seizeReason, set: setSeizeReason },
-                   { label: "Seizer Keypair", ph: "Base58 keypair…", val: seizeKeypair, set: setSeizeKeypair, type: "password" },
+                {[{ label: "From (frozen account)", ph: "Frozen token account…", val: seizeFrom, set: setSeizeFrom },
+                { label: "To (destination)", ph: "Destination account…", val: seizeTo, set: setSeizeTo },
+                { label: "Amount (base units)", ph: "e.g. 1000000", val: seizeAmt, set: setSeizeAmt, type: "number" },
+                { label: "Reason (max 200 chars)", ph: "Legal justification…", val: seizeReason, set: setSeizeReason },
                 ].map((f, i) => (
                   <div key={i} style={{ marginBottom: 12 }}>
                     <label className="label">{f.label}</label>
                     <input className="input" placeholder={f.ph} type={f.type || "text"} value={f.val} onChange={e => f.set(e.target.value)} />
                   </div>
                 ))}
+                <div style={{ marginBottom: 12 }}>
+                  <label className="label">Seizer Keypair</label>
+                  {keys?.seizerKeypair ? (
+                    <div style={{ padding: "10px 14px", background: "rgba(255,64,96,0.1)", color: "var(--danger)", borderRadius: 8, fontSize: 13, border: "1px solid rgba(255,64,96,0.2)" }}>
+                      ✓ Provided by Secure Vault
+                    </div>
+                  ) : (
+                    <input className="input" type="password" placeholder="Base58 keypair…" value={seizeKeypair} onChange={e => setSeizeKeypair(e.target.value)} />
+                  )}
+                </div>
                 <Btn variant="danger" onClick={() => setSeizeModal(true)} style={{ width: "100%", justifyContent: "center", marginTop: 4, borderRadius: 9, padding: "10px" }}>
                   <AlertTriangle size={12} /> Proceed to Seize
                 </Btn>
@@ -198,15 +219,24 @@ export default function ComplianceView() {
       </AnimatePresence>
 
       <Modal open={addModal} onClose={() => setAddModal(false)} title="Add to Blacklist" subtitle="Token account will be frozen immediately.">
-        {[ { l: "Wallet Address", p: "Base58 wallet address…", val: addAddress, set: setAddAddress },
-           { l: "Reason (max 100 chars)", p: "OFAC sanctioned entity…", val: addReason, set: setAddReason },
-           { l: "Blacklister Keypair", p: "Base58 keypair…", t: "password", val: addKeypair, set: setAddKeypair },
+        {[{ l: "Wallet Address", p: "Base58 wallet address…", t: "text", val: addAddress, set: setAddAddress },
+        { l: "Reason (max 100 chars)", p: "OFAC sanctioned entity…", t: "text", val: addReason, set: setAddReason },
         ].map((f, i) => (
           <div key={i} style={{ marginBottom: 14 }}>
             <label className="label">{f.l}</label>
-            <input className="input" placeholder={f.p} type={f.t || "text"} value={f.val} onChange={e => f.set(e.target.value)} />
+            <input className="input" placeholder={f.p} type={f.t} value={f.val} onChange={e => f.set(e.target.value)} />
           </div>
         ))}
+        <div style={{ marginBottom: 14 }}>
+          <label className="label">Blacklister Keypair</label>
+          {keys?.blacklisterKeypair ? (
+            <div style={{ padding: "10px 14px", background: "rgba(0,229,160,0.1)", color: "var(--accent)", borderRadius: 8, fontSize: 13, border: "1px solid rgba(0,229,160,0.2)" }}>
+              ✓ Provided by Secure Vault
+            </div>
+          ) : (
+            <input className="input" type="password" placeholder="Base58 keypair…" value={addKeypair} onChange={e => setAddKeypair(e.target.value)} />
+          )}
+        </div>
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 6 }}>
           <Btn variant="ghost" onClick={() => setAddModal(false)}>Cancel</Btn>
           <Btn variant="primary" onClick={handleAdd} disabled={loading}>{loading ? <><Spinner /> Adding…</> : <><Lock size={11} /> Confirm</>}</Btn>
@@ -217,8 +247,16 @@ export default function ComplianceView() {
         <div style={{ marginBottom: 14, padding: "10px 14px", background: "var(--surface2)", borderRadius: 8 }}>
           <p style={{ fontFamily: "Geist Mono", fontSize: 11, wordBreak: "break-all", color: "var(--sub)" }}>{removeModal}</p>
         </div>
-        <label className="label">Blacklister Keypair</label>
-        <input className="input" type="password" placeholder="Base58 keypair…" style={{ marginBottom: 18 }} value={removeKeypair} onChange={e => setRemoveKeypair(e.target.value)} />
+        <div style={{ marginBottom: 18 }}>
+          <label className="label">Blacklister Keypair</label>
+          {keys?.blacklisterKeypair ? (
+            <div style={{ padding: "10px 14px", background: "rgba(0,229,160,0.1)", color: "var(--accent)", borderRadius: 8, fontSize: 13, border: "1px solid rgba(0,229,160,0.2)" }}>
+              ✓ Provided by Secure Vault
+            </div>
+          ) : (
+            <input className="input" type="password" placeholder="Base58 keypair…" value={removeKeypair} onChange={e => setRemoveKeypair(e.target.value)} />
+          )}
+        </div>
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
           <Btn variant="ghost" onClick={() => setRemoveModal(null)}>Cancel</Btn>
           <Btn variant="accent" onClick={handleRemove} disabled={loading}>{loading ? <><Spinner /> Removing…</> : <><Unlock size={11} /> Remove &amp; Thaw</>}</Btn>

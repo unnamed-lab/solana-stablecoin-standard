@@ -1,15 +1,46 @@
-# Solana Stablecoin Standard — Frontend Features
+# Solana Stablecoin Standard (SSS) Frontend
+
+The SSS provides multiple user-facing web applications to simplify interactions with the stablecoin infrastructure and the blockchain.
+
+## Main Frontend App
+
+- Located in: `frontend/`
+- Framework: Next.js + React.
+- Purpose: Provides a dashboard to view the token supply, active minters, and perform operations like minting, burning, and compliance (if authorized).
+
+### Operating the Frontend
+The frontend uses the `@stbr/sss-token` SDK to construct Solana transactions and send them to the network.
+
+## Oracle Frontend
+
+- Located in: `sss-oracle-frontend/`
+- Framework: Next.js.
+- Purpose: Interfaces with the Oracle backend service to simulate stablecoin quoting for mint/redeem processes based on integrated price feeds (like Switchboard).
+
+## Running the Frontends
+
+```bash
+# In the frontend directory
+yarn install
+yarn dev
+
+# In the sss-oracle-frontend directory
+yarn install
+yarn dev
+```
+
+---
+
+## Frontend Features & API References
 
 > **Base API URL:** `http://localhost:3000/api/v1`  
 > **Oracle Microservice URL:** `http://localhost:3003` (no `/api/v1` prefix)
 
----
-
-## 1. Token Operations
+### 1. Token Operations
 
 > Core stablecoin lifecycle operations: minting, burning, and supply/holder analytics.
 
-### 1.1 Mint Tokens
+#### 1.1 Mint Tokens
 - **Screen:** Mint Form
 - **Endpoint:** `POST /api/v1/mint`
 - **Rate Limit:** 10 requests / 60 seconds
@@ -26,7 +57,7 @@
 
 ---
 
-### 1.2 Burn Tokens
+#### 1.2 Burn Tokens
 - **Screen:** Burn Form
 - **Endpoint:** `POST /api/v1/burn`
 - **Rate Limit:** 10 requests / 60 seconds
@@ -40,7 +71,7 @@
 
 ---
 
-### 1.3 Token Supply Dashboard
+#### 1.3 Token Supply Dashboard
 - **Screen:** Dashboard / Analytics
 - **Endpoint:** `GET /api/v1/supply`
 - **Response Fields:**
@@ -56,7 +87,7 @@
 
 ---
 
-### 1.4 Holders Count
+#### 1.4 Holders Count
 - **Screen:** Dashboard / Analytics
 - **Endpoint:** `GET /api/v1/holders/count`
 - **Response:** `{ count: 1500 }`
@@ -64,7 +95,7 @@
 
 ---
 
-### 1.5 Largest Holders Leaderboard
+#### 1.5 Largest Holders Leaderboard
 - **Screen:** Holders Page
 - **Endpoint:** `GET /api/v1/holders/largest`
 - **Query Params:**
@@ -85,11 +116,11 @@
 
 ---
 
-## 2. Compliance
+### 2. Compliance
 
 > Admin-only features requiring Blacklister or Permanent Delegate authority.
 
-### 2.1 Add to Blacklist
+#### 2.1 Add to Blacklist
 - **Screen:** Compliance Panel → Blacklist Tab
 - **Endpoint:** `POST /api/v1/blacklist`
 - **Rate Limit:** 10 requests / 60 seconds
@@ -103,7 +134,7 @@
 
 ---
 
-### 2.2 Remove from Blacklist
+#### 2.2 Remove from Blacklist
 - **Screen:** Compliance Panel → Blacklist Tab
 - **Endpoint:** `DELETE /api/v1/blacklist/:address`
 - **Query Params:**
@@ -114,7 +145,7 @@
 
 ---
 
-### 2.3 View Active Blacklist
+#### 2.3 View Active Blacklist
 - **Screen:** Compliance Panel → Blacklist Tab
 - **Endpoint:** `GET /api/v1/blacklist`
 - **Query Params:**
@@ -126,7 +157,7 @@
 
 ---
 
-### 2.4 Check Blacklist Status
+#### 2.4 Check Blacklist Status
 - **Screen:** Compliance Panel → Check Address
 - **Endpoint:** `GET /api/v1/blacklist/check/:address`
 - **Query Params:**
@@ -138,7 +169,7 @@
 
 ---
 
-### 2.5 Seize Tokens
+#### 2.5 Seize Tokens
 - **Screen:** Compliance Panel → Seize Tab
 - **Endpoint:** `POST /api/v1/seize`
 - **Rate Limit:** 10 requests / 60 seconds
@@ -154,11 +185,11 @@
 
 ---
 
-## 3. Audit Log
+### 3. Audit Log
 
 > Full history of all administrative on-chain actions.
 
-### 3.1 View Audit Log
+#### 3.1 View Audit Log
 - **Screen:** Audit Log Page
 - **Endpoint:** `GET /api/v1/audit-log`
 - **Query Params:**
@@ -176,7 +207,7 @@
 
 ---
 
-### 3.2 Export Audit Log (CSV)
+#### 3.2 Export Audit Log (CSV)
 - **Screen:** Audit Log Page
 - **Endpoint:** `GET /api/v1/audit-log/export`
 - **Query Params:**
@@ -189,11 +220,11 @@
 
 ---
 
-## 4. Webhooks
+### 4. Webhooks
 
 > Manage event-driven notification subscriptions for on-chain events.
 
-### 4.1 Register Webhook
+#### 4.1 Register Webhook
 - **Screen:** Webhooks Page → Create Form
 - **Endpoint:** `POST /api/v1/webhooks`
 - **Fields:**
@@ -207,7 +238,7 @@
 
 ---
 
-### 4.2 List All Webhooks
+#### 4.2 List All Webhooks
 - **Screen:** Webhooks Page
 - **Endpoint:** `GET /api/v1/webhooks`
 - **Response:** Array of webhook objects.
@@ -215,14 +246,14 @@
 
 ---
 
-### 4.3 Get Webhook Details
+#### 4.3 Get Webhook Details
 - **Screen:** Webhooks Page → Detail View
 - **Endpoint:** `GET /api/v1/webhooks/:id`
 - **UI Notes:** Click-through from the list to a detail panel.
 
 ---
 
-### 4.4 Update Webhook
+#### 4.4 Update Webhook
 - **Screen:** Webhooks Page → Edit Form
 - **Endpoint:** `PUT /api/v1/webhooks/:id`
 - **Body:** Partial `CreateWebhookDto` (any subset of `url`, `events`, `secret`, `active`)
@@ -230,14 +261,14 @@
 
 ---
 
-### 4.5 Delete Webhook
+#### 4.5 Delete Webhook
 - **Screen:** Webhooks Page
 - **Endpoint:** `DELETE /api/v1/webhooks/:id`
 - **UI Notes:** Delete button with confirmation modal.
 
 ---
 
-### 4.6 Webhook Event Payload Reference
+#### 4.6 Webhook Event Payload Reference
 The backend dispatches signed HTTP POST events to registered URLs when on-chain events occur.
 
 **Signed Headers:**
@@ -268,11 +299,11 @@ The backend dispatches signed HTTP POST events to registered URLs when on-chain 
 
 ---
 
-## 5. Oracle (Separate Microservice)
+### 5. Oracle (Separate Microservice)
 
 > Switchboard price feed registry and quote simulation. Base URL: `http://localhost:3003`
 
-### 5.1 List Price Feeds
+#### 5.1 List Price Feeds
 - **Screen:** Oracle Page → Feeds Tab
 - **Endpoint:** `GET /feeds`
 - **Response:** Array of `FeedEntry`:
@@ -290,7 +321,7 @@ The backend dispatches signed HTTP POST events to registered URLs when on-chain 
 
 ---
 
-### 5.2 Register Price Feed
+#### 5.2 Register Price Feed
 - **Screen:** Oracle Page → Register Feed Form
 - **Endpoint:** `POST /feeds/register`
 - **Fields:**
@@ -306,7 +337,7 @@ The backend dispatches signed HTTP POST events to registered URLs when on-chain 
 
 ---
 
-### 5.3 Get Oracle Config for a Mint
+#### 5.3 Get Oracle Config for a Mint
 - **Screen:** Oracle Page → Config Tab
 - **Endpoint:** `GET /config/:mint`
 - **Path Param:** `mint` — Base58 token mint address
@@ -315,7 +346,7 @@ The backend dispatches signed HTTP POST events to registered URLs when on-chain 
 
 ---
 
-### 5.4 Initialize Oracle Config
+#### 5.4 Initialize Oracle Config
 - **Screen:** Oracle Page → Initialize Config Form
 - **Endpoint:** `POST /config/initialize`
 - **Fields:**
@@ -332,7 +363,7 @@ The backend dispatches signed HTTP POST events to registered URLs when on-chain 
 
 ---
 
-### 5.5 Simulate Mint Quote
+#### 5.5 Simulate Mint Quote
 - **Screen:** Oracle Page → Quote Simulator / Main Dashboard
 - **Endpoint:** `GET /quotes/mint/simulate`
 - **Description:** Pure math (no RPC), ideal for high-frequency UI price previews.
@@ -349,7 +380,7 @@ The backend dispatches signed HTTP POST events to registered URLs when on-chain 
 
 ---
 
-### 5.6 Simulate Redeem Quote
+#### 5.6 Simulate Redeem Quote
 - **Screen:** Oracle Page → Quote Simulator / Main Dashboard
 - **Endpoint:** `GET /quotes/redeem/simulate`
 - **Description:** Pure math, no RPC. Converts token input to USD output.
@@ -366,7 +397,7 @@ The backend dispatches signed HTTP POST events to registered URLs when on-chain 
 
 ---
 
-## 6. Suggested Frontend Pages / Navigation
+### 6. Suggested Frontend Pages / Navigation
 
 | Page | Features |
 |---|---|
@@ -379,7 +410,7 @@ The backend dispatches signed HTTP POST events to registered URLs when on-chain 
 
 ---
 
-## 7. Common UX Considerations
+### 7. Common UX Considerations
 
 - **Keypair Security:** Minter, burner, blacklister, and seizer keypairs are passed as base58-encoded secrets. The frontend must warn users to never expose these in public environments. Consider an admin-only, password-protected interface.
 - **TX Links:** All responses that return a `txSignature` should link to `https://solscan.io/tx/<txSignature>` (or Solana Explorer).

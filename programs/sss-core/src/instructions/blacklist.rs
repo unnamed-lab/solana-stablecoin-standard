@@ -1,7 +1,9 @@
-use anchor_lang::prelude::*;
-use anchor_spl::token_2022::{self, FreezeAccount as SplFreezeAccount, ThawAccount as SplThawAccount, Token2022};
-use crate::state::{StablecoinConfig, BlacklistEntry};
 use crate::errors::SSSError;
+use crate::state::{BlacklistEntry, StablecoinConfig};
+use anchor_lang::prelude::*;
+use anchor_spl::token_2022::{
+    self, FreezeAccount as SplFreezeAccount, ThawAccount as SplThawAccount, Token2022,
+};
 
 #[derive(Accounts)]
 #[instruction(target: Pubkey, reason: String)]
@@ -77,13 +79,23 @@ pub fn add_to_blacklist(
 ) -> Result<()> {
     let config = &mut ctx.accounts.config;
     let entry = &mut ctx.accounts.blacklist_entry;
-    
+
+    require!(
+        !config.multisig_enabled,
+        SSSError::DirectExecutionBlockedByMultisig
+    );
     require!(config.enable_transfer_hook, SSSError::ComplianceNotEnabled);
     require!(!config.paused, SSSError::Paused);
-    require!(config.blacklister == Some(ctx.accounts.blacklister.key()), SSSError::NotBlacklister);
-    require!(target != Pubkey::default(), SSSError::InvalidBlacklistTarget);
+    require!(
+        config.blacklister == Some(ctx.accounts.blacklister.key()),
+        SSSError::NotBlacklister
+    );
+    require!(
+        target != Pubkey::default(),
+        SSSError::InvalidBlacklistTarget
+    );
     require!(reason.len() <= 100, SSSError::NameTooLong); // Reusing NameTooLong or max reason size
-    
+
     entry.mint = config.mint;
     entry.address = target;
     entry.reason = reason;
@@ -98,11 +110,7 @@ pub fn add_to_blacklist(
 
     let mint_key = config.mint.key();
     let config_bump = config.bump;
-    let seeds = &[
-        b"sss-config".as_ref(),
-        mint_key.as_ref(),
-        &[config_bump],
-    ];
+    let seeds = &[b"sss-config".as_ref(), mint_key.as_ref(), &[config_bump]];
     let signer = &[&seeds[..]];
 
     // Immediately freeze the account
@@ -127,15 +135,19 @@ pub fn add_to_blacklist(
     Ok(())
 }
 
-pub fn remove_from_blacklist(
-    ctx: Context<RemoveFromBlacklist>,
-    target: Pubkey,
-) -> Result<()> {
+pub fn remove_from_blacklist(ctx: Context<RemoveFromBlacklist>, target: Pubkey) -> Result<()> {
     let config = &mut ctx.accounts.config;
     let entry = &mut ctx.accounts.blacklist_entry;
-    
+
+    require!(
+        !config.multisig_enabled,
+        SSSError::DirectExecutionBlockedByMultisig
+    );
     require!(config.enable_transfer_hook, SSSError::ComplianceNotEnabled);
-    require!(config.blacklister == Some(ctx.accounts.blacklister.key()), SSSError::NotBlacklister);
+    require!(
+        config.blacklister == Some(ctx.accounts.blacklister.key()),
+        SSSError::NotBlacklister
+    );
     require!(!entry.removed, SSSError::NotBlacklisted);
 
     entry.removed = true;
@@ -146,11 +158,7 @@ pub fn remove_from_blacklist(
 
     let mint_key = config.mint.key();
     let config_bump = config.bump;
-    let seeds = &[
-        b"sss-config".as_ref(),
-        mint_key.as_ref(),
-        &[config_bump],
-    ];
+    let seeds = &[b"sss-config".as_ref(), mint_key.as_ref(), &[config_bump]];
     let signer = &[&seeds[..]];
 
     // Thaw the account
@@ -165,7 +173,7 @@ pub fn remove_from_blacklist(
     token_2022::thaw_account(cpi_ctx)?;
 
     let removed_at = entry.removed_at.unwrap();
-    
+
     emit!(RemovedFromBlacklist {
         mint: config.mint,
         address: target,

@@ -1,5 +1,6 @@
+use crate::errors::SSSError;
+use crate::state::{MinterConfig, StablecoinConfig};
 use anchor_lang::prelude::*;
-use crate::state::{StablecoinConfig, MinterConfig};
 
 #[derive(Accounts)]
 #[instruction(minter: Pubkey, quota_per_period: u64, period_seconds: i64)]
@@ -62,6 +63,11 @@ pub fn add_minter(
     quota_per_period: u64,
     period_seconds: i64,
 ) -> Result<()> {
+    require!(
+        !ctx.accounts.config.multisig_enabled,
+        SSSError::DirectExecutionBlockedByMultisig
+    );
+
     let minter_config = &mut ctx.accounts.minter_config;
     let current_time = Clock::get()?.unix_timestamp;
 
@@ -81,6 +87,10 @@ pub fn add_minter(
 }
 
 pub fn remove_minter(ctx: Context<RemoveMinter>, _minter: Pubkey) -> Result<()> {
+    require!(
+        !ctx.accounts.config.multisig_enabled,
+        SSSError::DirectExecutionBlockedByMultisig
+    );
     let minter_config = &mut ctx.accounts.minter_config;
     minter_config.is_active = false;
     Ok(())

@@ -83,3 +83,8 @@ To mitigate the risk of internal bad actors or compromised private keys, complia
 | **Seizer** | Executes forced transfers of assets from frozen accounts. | General Counsel / Legal Ops |
 
 This separation of duties ensures that no single operational key holds complete power over the stablecoin ecosystem.
+
+### 5. Multi-Sig & Decentralized Governance (SSS-3)
+
+While SSS-2 introduces the robust compliance primitives, **SSS-3 (Governance)** wraps these mechanisms in multi-signature and DAO-based workflows. 
+In highly-scrutinized environments, a single "Blacklister" or "Seizer" key pair represents a central point of failure. SSS-3 ensures that executing these sensitive compliance operations requires M-of-N signatures from a distributed set of authorized compliance officers, further reducing the risk of unauthorized seizures or censorship.

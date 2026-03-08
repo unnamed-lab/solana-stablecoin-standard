@@ -85,6 +85,8 @@ pub struct StablecoinConfig {
     pub allowlist_count: u32,
     /// Count of active minters
     pub minter_count: u32,
+    /// Whether SSS-3 Multisig governance is enabled
+    pub multisig_enabled: bool,
 }
 
 impl StablecoinConfig {
@@ -127,5 +129,6 @@ impl StablecoinConfig {
         1 + // allowlist_active
         4 + // allowlist_count
         4 + // minter_count
-        32; // Slack space
+        1 + // multisig_enabled
+        31; // Slack space
 }

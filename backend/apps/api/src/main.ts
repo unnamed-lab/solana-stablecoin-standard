@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { ApiModule } from './api.module';
 import { ResponseInterceptor } from './common/response.interceptor';
 import { SssExceptionFilter } from './common/sss-exception.filter';
@@ -16,6 +17,9 @@ async function bootstrap() {
 
   // Global validation — rejects malformed DTOs automatically
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  // Apply HTTP security headers (Helmet)
+  app.use(helmet());
 
   // Standard API response envelope + SDK error handling
   app.useGlobalInterceptors(new ResponseInterceptor());

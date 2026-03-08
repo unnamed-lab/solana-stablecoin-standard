@@ -12,6 +12,7 @@ import { TokenModule } from './token/token.module';
 import { ComplianceModule } from './compliance/compliance.module';
 import { AuditModule } from './audit/audit.module';
 import { WebhookConfigModule } from './webhook-config/webhook-config.module';
+import { GovernanceModule } from './governance/governance.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { WebhookConfigModule } from './webhook-config/webhook-config.module';
     ComplianceModule,
     AuditModule,
     WebhookConfigModule,
+    GovernanceModule,
   ],
   providers: [
     {
@@ -58,5 +60,5 @@ import { WebhookConfigModule } from './webhook-config/webhook-config.module';
     },
   ],
 })
-export class ApiModule {}
+export class ApiModule { }
 

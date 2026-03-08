@@ -1,14 +1,14 @@
-use anchor_lang::prelude::*;
-use crate::state::StablecoinConfig;
 use crate::errors::SSSError;
+use crate::state::StablecoinConfig;
+use anchor_lang::prelude::*;
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct RoleUpdate {
     pub new_pauser: Option<Pubkey>,
     pub new_minter_authority: Option<Pubkey>,
     pub new_burner: Option<Pubkey>,
-    pub new_blacklister: Option<Pubkey>,  // SSS-2 only
-    pub new_seizer: Option<Pubkey>,       // SSS-2 only
+    pub new_blacklister: Option<Pubkey>, // SSS-2 only
+    pub new_seizer: Option<Pubkey>,      // SSS-2 only
 }
 
 #[derive(Accounts)]
@@ -69,18 +69,30 @@ pub fn update_roles(ctx: Context<UpdateRoles>, update: RoleUpdate) -> Result<()>
     let auth = ctx.accounts.master_authority.key();
     let current_time = Clock::get()?.unix_timestamp;
 
+    require!(
+        !config.multisig_enabled,
+        SSSError::DirectExecutionBlockedByMultisig
+    );
+
     if let Some(pauser) = update.new_pauser {
         let old = config.pauser;
         config.pauser = pauser;
         emit_role_update(config.mint, "pauser", old, pauser, auth, current_time);
     }
-    
+
     if let Some(minter_auth) = update.new_minter_authority {
         let old = config.minter_authority;
         config.minter_authority = minter_auth;
-        emit_role_update(config.mint, "minter_authority", old, minter_auth, auth, current_time);
+        emit_role_update(
+            config.mint,
+            "minter_authority",
+            old,
+            minter_auth,
+            auth,
+            current_time,
+        );
     }
-    
+
     if let Some(burner) = update.new_burner {
         let old = config.burner;
         config.burner = burner;
@@ -91,7 +103,14 @@ pub fn update_roles(ctx: Context<UpdateRoles>, update: RoleUpdate) -> Result<()>
         if config.enable_transfer_hook {
             let old = config.blacklister.unwrap_or_default();
             config.blacklister = Some(blacklister);
-            emit_role_update(config.mint, "blacklister", old, blacklister, auth, current_time);
+            emit_role_update(
+                config.mint,
+                "blacklister",
+                old,
+                blacklister,
+                auth,
+                current_time,
+            );
         }
     }
 
@@ -124,22 +143,38 @@ fn emit_role_update(
     });
 }
 
-pub fn propose_authority_transfer(ctx: Context<ProposeTransfer>, new_authority: Pubkey) -> Result<()> {
+pub fn propose_authority_transfer(
+    ctx: Context<ProposeTransfer>,
+    new_authority: Pubkey,
+) -> Result<()> {
     let config = &mut ctx.accounts.config;
+    require!(
+        !config.multisig_enabled,
+        SSSError::DirectExecutionBlockedByMultisig
+    );
     config.pending_master_authority = Some(new_authority);
     Ok(())
 }
 
 pub fn accept_authority_transfer(ctx: Context<AcceptTransfer>) -> Result<()> {
     let config = &mut ctx.accounts.config;
-    let pending = config.pending_master_authority.ok_or(SSSError::NoPendingTransfer)?;
-    
-    require!(ctx.accounts.pending_authority.key() == pending, SSSError::NotPendingAuthority);
-    
+    require!(
+        !config.multisig_enabled,
+        SSSError::DirectExecutionBlockedByMultisig
+    );
+    let pending = config
+        .pending_master_authority
+        .ok_or(SSSError::NoPendingTransfer)?;
+
+    require!(
+        ctx.accounts.pending_authority.key() == pending,
+        SSSError::NotPendingAuthority
+    );
+
     let old_auth = config.master_authority;
     config.master_authority = pending;
     config.pending_master_authority = None;
-    
+
     emit_role_update(
         config.mint,
         "master_authority",
@@ -148,7 +183,7 @@ pub fn accept_authority_transfer(ctx: Context<AcceptTransfer>) -> Result<()> {
         pending,
         Clock::get()?.unix_timestamp,
     );
-    
+
     Ok(())
 }
 

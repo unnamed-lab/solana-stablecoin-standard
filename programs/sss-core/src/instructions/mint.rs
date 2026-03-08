@@ -41,6 +41,11 @@ pub fn mint(ctx: Context<MintTokens>, amount: u64) -> Result<()> {
     let minter_config = &mut ctx.accounts.minter_config;
     let current_time = Clock::get()?.unix_timestamp;
 
+    require!(
+        !config.multisig_enabled,
+        SSSError::DirectExecutionBlockedByMultisig
+    );
+
     // 1. Check if paused
     require!(!config.paused, SSSError::Paused);
 

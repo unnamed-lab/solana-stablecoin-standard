@@ -1,14 +1,31 @@
 {
+  "name": "@stbr/solana-stablecoin-standard",
+  "version": "0.1.0",
   "private": true,
   "workspaces": [
-    "tui",
     "cli",
     "sdk",
     "backend",
-    "sss-oracle-frontend"
+    "frontend",
+    "sss-oracle-frontend",
+    "tui"
   ],
   "license": "MIT",
   "scripts": {
+    "install:all": "yarn install",
+    "install:each": "cd backend && yarn install && cd ../frontend && yarn install && cd ../tui && yarn install && cd ../cli && yarn install && cd ../sdk && yarn install && cd ../sss-oracle-frontend && yarn install",
+    "dev": "npx concurrently \"yarn dev:frontend\" \"yarn dev:backend\"",
+    "build": "yarn workspaces run build",
+    "build:frontend": "yarn workspace frontend run build",
+    "build:backend": "yarn workspace backend run build",
+    "build:sdk": "yarn workspace @stbr/sss-token run build",
+    "build:oracle-frontend": "yarn workspace sss-oracle-frontend run build",
+    "build:cli": "yarn workspace @stbr/sss-cli run build",
+    "dev:frontend": "yarn workspace frontend run dev",
+    "dev:backend": "yarn workspace backend run start:dev",
+    "clean": "yarn workspaces run clean",
+    "test": "anchor test",
+    "test:local": "anchor test --skip-local-validator",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },

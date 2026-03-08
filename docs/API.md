@@ -159,3 +159,23 @@ Simulate a redeem quote (Token input → USD output).
 - **Query Parameters:** `tokenAmount`, `priceScaled`, `feedType`, `redeemFeeBps`, `cpiMultiplier` (optional).
 - **Response `200`:** `{"gross": number, "fee": number, "net": number}` (Results in USD cents)
 
+---
+
+## Governance Endpoints (SSS-3)
+*These endpoints expose the multi-sig administrative features available under the SSS-3 preset.*
+
+### `POST /api/v1/governance/propose`
+Propose a new governance action (MintTo, Seize, UpdateRoles, DelegateToDao) requiring multi-sig approval.
+- **Body:** `ProposeActionDto` (requires proposerKeypair, actionType, params)
+- **Response `201`:** `{"success": true, "txSignature": "string"}`
+
+### `POST /api/v1/governance/approve/:proposalId`
+Submit a cryptographic signature from a multi-sig member to approve a pending proposal.
+- **Path Parameter `proposalId`:** Base58 string of the proposal PDA.
+- **Body:** `ApproveProposalDto` (requires signerKeypair)
+- **Response `200`:** `{"success": true, "txSignature": "string"}`
+
+### `GET /api/v1/governance/proposals`
+List all active and historical governance proposals for the configured stablecoin mint.
+- **Response `200`:** Array of proposal objects with status, approvals, and signatures.
+

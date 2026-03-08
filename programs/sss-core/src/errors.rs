@@ -109,4 +109,26 @@ pub enum SSSError {
     // -- SSS-3: Snapshots --
     #[msg("A supply snapshot has already been taken for today — one per day maximum")]
     SnapshotAlreadyTaken,
+
+    // -- SSS-3: Governance --
+    #[msg("Multisig already initialized for this mint")]
+    MultisigAlreadyInitialized,
+    #[msg("Invalid multisig threshold — must be > 0 and <= number of signers")]
+    InvalidThreshold,
+    #[msg("Signer is not a member of the multisig")]
+    SignerNotMultisigMember,
+    #[msg("Signer has already approved this proposal")]
+    DuplicateApproval,
+    #[msg("Proposal has already been executed")]
+    ProposalAlreadyExecuted,
+    #[msg("Proposal has been cancelled")]
+    ProposalCancelled,
+    #[msg("Proposal is not approved — threshold not met")]
+    ThresholdNotMet,
+    #[msg("Proposal time-lock has not matured yet")]
+    ProposalTimeLockNotMatured,
+    #[msg(
+        "Direct execution blocked — SSS-3 Multisig is active, action must go through a proposal"
+    )]
+    DirectExecutionBlockedByMultisig,
 }

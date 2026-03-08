@@ -5,18 +5,20 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, Users, Shield, FileText,
-  Webhook, Activity, CircleDot, LogOut
+  Webhook, Activity, CircleDot, LogOut, Landmark
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { EASE_OUT_EXPO, SPRING_BOUNCY, Tag } from "./Primitives";
+import Image from "next/image";
 
 const NAV_ITEMS = [
-  { id: "dashboard",  href: "/",            label: "Overview",   icon: <LayoutDashboard size={14} />, group: "ops" },
-  { id: "holders",    href: "/holders",      label: "Holders",    icon: <Users size={14} />,           group: "ops" },
-  { id: "compliance", href: "/compliance",   label: "Compliance", icon: <Shield size={14} />,          group: "ops", badge: "3" },
-  { id: "audit",      href: "/audit-log",    label: "Audit Log",  icon: <FileText size={14} />,        group: "sys" },
-  { id: "webhooks",   href: "/webhooks",     label: "Webhooks",   icon: <Webhook size={14} />,         group: "sys" },
-  { id: "oracle",     href: "/oracle",       label: "Oracle",     icon: <Activity size={14} />,        group: "sys" },
+  { id: "dashboard", href: "/", label: "Overview", icon: <LayoutDashboard size={14} />, group: "ops" },
+  { id: "holders", href: "/holders", label: "Holders", icon: <Users size={14} />, group: "ops" },
+  { id: "compliance", href: "/compliance", label: "Compliance", icon: <Shield size={14} />, group: "ops", badge: "3" },
+  { id: "governance", href: "/governance", label: "Governance", icon: <Landmark size={14} />, group: "ops" },
+  { id: "audit", href: "/audit-log", label: "Audit Log", icon: <FileText size={14} />, group: "sys" },
+  { id: "webhooks", href: "/webhooks", label: "Webhooks", icon: <Webhook size={14} />, group: "sys" },
+  { id: "oracle", href: "/oracle", label: "Oracle", icon: <Activity size={14} />, group: "sys" },
 ];
 
 interface SidebarProps {
@@ -45,13 +47,13 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
   const mobileStyle = isMobile
     ? {
-        position: "fixed" as const,
-        top: 0,
-        left: 0,
-        bottom: 0,
-        zIndex: 60,
-        width: 224,
-      }
+      position: "fixed" as const,
+      top: 0,
+      left: 0,
+      bottom: 0,
+      zIndex: 60,
+      width: 224,
+    }
     : {};
 
   return (
@@ -83,12 +85,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             animate={{ boxShadow: ["0 0 12px rgba(124,92,255,0.3)", "0 0 22px rgba(0,229,160,0.25)", "0 0 12px rgba(124,92,255,0.3)"] }}
             transition={{ duration: 4, repeat: Infinity }}
             style={{
-              width: 34, height: 34, borderRadius: 9,
-              background: "linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%)",
+              width: 40, height: 40, borderRadius: 9,
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
             }}
           >
-            <CircleDot size={15} style={{ color: "#fff" }} />
+            <Image src={"/st-logo.svg"} width={36} height={36} alt="Superteam Logo" />
           </motion.div>
           <div>
             <p style={{ fontWeight: 800, fontSize: 13, letterSpacing: "-0.01em", lineHeight: 1 }}>SSS Admin</p>

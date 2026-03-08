@@ -773,6 +773,92 @@ export class SolanaStablecoin {
             .rpc();
     }
 
+    // ─── SSS-3 Governance Multisig Methods ──────────────────────────────
+
+    /**
+     * Create a new SSS-3 governance proposal for administrative actions.
+     */
+    async createProposal(params: {
+        proposer: Keypair;
+        action: any;
+    }): Promise<string> {
+        const program = this.buildProgram(params.proposer);
+
+        const [multisigPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("sss-multisig"), this.mintAddress.toBuffer()],
+            program.programId
+        );
+
+        const multisigData = await program.account.multisig.fetch(multisigPda);
+        const proposalNonceBytes = new Uint8Array(new BN(multisigData.proposalNonce).toArray('le', 8));
+
+        const [proposalPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("sss-proposal"), multisigPda.toBuffer(), proposalNonceBytes],
+            program.programId
+        );
+
+        return await program.methods
+            .createProposal(params.action)
+            .accounts({
+                proposer: params.proposer.publicKey,
+                multisig: multisigPda,
+                proposal: proposalPda,
+                systemProgram: SystemProgram.programId,
+            } as any)
+            .signers([params.proposer])
+            .rpc();
+    }
+
+    /**
+     * Approve an existing SSS-3 proposal.
+     */
+    async approveProposal(params: {
+        approver: Keypair;
+        proposalParams: { proposalAddress: PublicKey };
+    }): Promise<string> {
+        const program = this.buildProgram(params.approver);
+
+        const [multisigPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("sss-multisig"), this.mintAddress.toBuffer()],
+            program.programId
+        );
+
+        return await program.methods
+            .approveProposal()
+            .accounts({
+                signer: params.approver.publicKey,
+                multisig: multisigPda,
+                proposal: params.proposalParams.proposalAddress,
+                systemProgram: SystemProgram.programId,
+            } as any)
+            .signers([params.approver])
+            .rpc();
+    }
+
+    /**
+     * Fetch all SSS-3 proposals for this mint.
+     */
+    async getProposals(): Promise<any[]> {
+        const program = this.readProgram;
+
+        const [multisigPda] = PublicKey.findProgramAddressSync(
+            [Buffer.from("sss-multisig"), this.mintAddress.toBuffer()],
+            program.programId
+        );
+
+        // Fetch all proposal accounts that belong to this multisig
+        const proposals = await program.account.proposal.all([
+            {
+                memcmp: {
+                    offset: 8, // discriminator
+                    bytes: multisigPda.toBase58(),
+                }
+            }
+        ]);
+
+        return proposals;
+    }
+
     // ── Read-only helpers ────────────────────────────────────────────────
 
     /** @internal Read-only program instance (no wallet/signer needed). */

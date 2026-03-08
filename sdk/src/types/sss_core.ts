@@ -449,6 +449,97 @@ export type SssCore = {
       "args": []
     },
     {
+      "name": "approveProposal",
+      "discriminator": [
+        136,
+        108,
+        102,
+        85,
+        98,
+        114,
+        7,
+        147
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "multisig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  109,
+                  117,
+                  108,
+                  116,
+                  105,
+                  115,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "multisig.mint",
+                "account": "multisig"
+              }
+            ]
+          },
+          "relations": [
+            "proposal"
+          ]
+        },
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "multisig"
+              },
+              {
+                "kind": "account",
+                "path": "proposal.id",
+                "account": "proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "burn",
       "discriminator": [
         116,
@@ -518,6 +609,317 @@ export type SssCore = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "cancelProposal",
+      "discriminator": [
+        106,
+        74,
+        128,
+        146,
+        19,
+        65,
+        39,
+        23
+      ],
+      "accounts": [
+        {
+          "name": "proposer",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "proposal"
+          ]
+        },
+        {
+          "name": "multisig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  109,
+                  117,
+                  108,
+                  116,
+                  105,
+                  115,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "multisig.mint",
+                "account": "multisig"
+              }
+            ]
+          },
+          "relations": [
+            "proposal"
+          ]
+        },
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "multisig"
+              },
+              {
+                "kind": "account",
+                "path": "proposal.id",
+                "account": "proposal"
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "createProposal",
+      "discriminator": [
+        132,
+        116,
+        68,
+        174,
+        216,
+        160,
+        198,
+        22
+      ],
+      "accounts": [
+        {
+          "name": "proposer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "multisig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  109,
+                  117,
+                  108,
+                  116,
+                  105,
+                  115,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "multisig.mint",
+                "account": "multisig"
+              }
+            ]
+          }
+        },
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "multisig"
+              },
+              {
+                "kind": "account",
+                "path": "multisig.proposal_nonce",
+                "account": "multisig"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "action",
+          "type": {
+            "defined": {
+              "name": "governanceAction"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "executeProposal",
+      "discriminator": [
+        186,
+        60,
+        116,
+        133,
+        108,
+        128,
+        111,
+        28
+      ],
+      "accounts": [
+        {
+          "name": "executor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "multisig",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  109,
+                  117,
+                  108,
+                  116,
+                  105,
+                  115,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "multisig.mint",
+                "account": "multisig"
+              }
+            ]
+          },
+          "relations": [
+            "proposal"
+          ]
+        },
+        {
+          "name": "proposal",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  112,
+                  114,
+                  111,
+                  112,
+                  111,
+                  115,
+                  97,
+                  108
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "multisig"
+              },
+              {
+                "kind": "account",
+                "path": "proposal.id",
+                "account": "proposal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "multisig.mint",
+                "account": "multisig"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "writable": true
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+        }
+      ],
+      "args": []
     },
     {
       "name": "freezeAccount",
@@ -656,6 +1058,110 @@ export type SssCore = {
               "name": "initializeParams"
             }
           }
+        }
+      ]
+    },
+    {
+      "name": "initializeMultisig",
+      "discriminator": [
+        220,
+        130,
+        117,
+        21,
+        27,
+        227,
+        78,
+        213
+      ],
+      "accounts": [
+        {
+          "name": "masterAuthority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "multisig",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  115,
+                  115,
+                  45,
+                  109,
+                  117,
+                  108,
+                  116,
+                  105,
+                  115,
+                  105,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "mint"
+              }
+            ]
+          }
+        },
+        {
+          "name": "mint",
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "signers",
+          "type": {
+            "vec": "pubkey"
+          }
+        },
+        {
+          "name": "threshold",
+          "type": "u8"
+        },
+        {
+          "name": "timeLockSecs",
+          "type": "i64"
         }
       ]
     },
@@ -1865,6 +2371,32 @@ export type SssCore = {
       ]
     },
     {
+      "name": "multisig",
+      "discriminator": [
+        224,
+        116,
+        121,
+        186,
+        68,
+        161,
+        79,
+        236
+      ]
+    },
+    {
+      "name": "proposal",
+      "discriminator": [
+        26,
+        94,
+        189,
+        187,
+        116,
+        136,
+        53,
+        33
+      ]
+    },
+    {
       "name": "seizureRecord",
       "discriminator": [
         223,
@@ -2337,6 +2869,51 @@ export type SssCore = {
       "code": 6041,
       "name": "snapshotAlreadyTaken",
       "msg": "A supply snapshot has already been taken for today — one per day maximum"
+    },
+    {
+      "code": 6042,
+      "name": "multisigAlreadyInitialized",
+      "msg": "Multisig already initialized for this mint"
+    },
+    {
+      "code": 6043,
+      "name": "invalidThreshold",
+      "msg": "Invalid multisig threshold — must be > 0 and <= number of signers"
+    },
+    {
+      "code": 6044,
+      "name": "signerNotMultisigMember",
+      "msg": "Signer is not a member of the multisig"
+    },
+    {
+      "code": 6045,
+      "name": "duplicateApproval",
+      "msg": "Signer has already approved this proposal"
+    },
+    {
+      "code": 6046,
+      "name": "proposalAlreadyExecuted",
+      "msg": "Proposal has already been executed"
+    },
+    {
+      "code": 6047,
+      "name": "proposalCancelled",
+      "msg": "Proposal has been cancelled"
+    },
+    {
+      "code": 6048,
+      "name": "thresholdNotMet",
+      "msg": "Proposal is not approved — threshold not met"
+    },
+    {
+      "code": 6049,
+      "name": "proposalTimeLockNotMatured",
+      "msg": "Proposal time-lock has not matured yet"
+    },
+    {
+      "code": 6050,
+      "name": "directExecutionBlockedByMultisig",
+      "msg": "Direct execution blocked — SSS-3 Multisig is active, action must go through a proposal"
     }
   ],
   "types": [
@@ -2800,6 +3377,100 @@ export type SssCore = {
       }
     },
     {
+      "name": "governanceAction",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "mintTo",
+            "fields": [
+              {
+                "name": "amount",
+                "type": "u64"
+              },
+              {
+                "name": "to",
+                "type": "pubkey"
+              }
+            ]
+          },
+          {
+            "name": "seize",
+            "fields": [
+              {
+                "name": "amount",
+                "type": "u64"
+              },
+              {
+                "name": "from",
+                "type": "pubkey"
+              },
+              {
+                "name": "to",
+                "type": "pubkey"
+              }
+            ]
+          },
+          {
+            "name": "updateRoles",
+            "fields": [
+              {
+                "name": "newMasterAuthority",
+                "type": {
+                  "option": "pubkey"
+                }
+              },
+              {
+                "name": "newPauser",
+                "type": {
+                  "option": "pubkey"
+                }
+              },
+              {
+                "name": "newMinterAuthority",
+                "type": {
+                  "option": "pubkey"
+                }
+              },
+              {
+                "name": "newBurner",
+                "type": {
+                  "option": "pubkey"
+                }
+              },
+              {
+                "name": "newBlacklister",
+                "type": {
+                  "option": "pubkey"
+                }
+              },
+              {
+                "name": "newSeizer",
+                "type": {
+                  "option": "pubkey"
+                }
+              },
+              {
+                "name": "newHookAuthority",
+                "type": {
+                  "option": "pubkey"
+                }
+              }
+            ]
+          },
+          {
+            "name": "delegateToDao",
+            "fields": [
+              {
+                "name": "programId",
+                "type": "pubkey"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
       "name": "initializeParams",
       "type": {
         "kind": "struct",
@@ -3053,6 +3724,40 @@ export type SssCore = {
       }
     },
     {
+      "name": "multisig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "signers",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "threshold",
+            "type": "u8"
+          },
+          {
+            "name": "timeLockSecs",
+            "type": "i64"
+          },
+          {
+            "name": "proposalNonce",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
       "name": "pausedEvent",
       "type": {
         "kind": "struct",
@@ -3068,6 +3773,56 @@ export type SssCore = {
           {
             "name": "timestamp",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "proposal",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "multisig",
+            "type": "pubkey"
+          },
+          {
+            "name": "id",
+            "type": "u64"
+          },
+          {
+            "name": "proposer",
+            "type": "pubkey"
+          },
+          {
+            "name": "action",
+            "type": {
+              "defined": {
+                "name": "governanceAction"
+              }
+            }
+          },
+          {
+            "name": "approvals",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "status",
+            "type": "u8"
+          },
+          {
+            "name": "proposedAt",
+            "type": "i64"
+          },
+          {
+            "name": "eta",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -3481,6 +4236,13 @@ export type SssCore = {
               "Count of active minters"
             ],
             "type": "u32"
+          },
+          {
+            "name": "multisigEnabled",
+            "docs": [
+              "Whether SSS-3 Multisig governance is enabled"
+            ],
+            "type": "bool"
           }
         ]
       }

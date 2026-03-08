@@ -22,12 +22,12 @@ import {
 } from "framer-motion";
 import {
   Copy, CheckCircle, ExternalLink, ArrowUp, ArrowDown,
-  RefreshCw, AlertTriangle
+  RefreshCw, AlertTriangle, XCircle
 } from "lucide-react";
 
 /* ── Easing / Spring constants ──────────────────────────────────── */
-export const EASE_OUT_EXPO: [number,number,number,number] = [0.16, 1, 0.3, 1];
-export const EASE_IN_OUT:   [number,number,number,number] = [0.45, 0, 0.55, 1];
+export const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
+export const EASE_IN_OUT: [number, number, number, number] = [0.45, 0, 0.55, 1];
 export const SPRING_SNAPPY = { type: "spring", stiffness: 400, damping: 35 } as const;
 export const SPRING_BOUNCY = { type: "spring", stiffness: 300, damping: 22 } as const;
 export const STAGGER = {
@@ -36,13 +36,17 @@ export const STAGGER = {
 };
 export const FADE_UP = {
   hidden: { opacity: 0, y: 18, filter: "blur(4px)" },
-  show: { opacity: 1, y: 0, filter: "blur(0px)",
-    transition: { duration: 0.55, ease: EASE_OUT_EXPO } },
+  show: {
+    opacity: 1, y: 0, filter: "blur(0px)",
+    transition: { duration: 0.55, ease: EASE_OUT_EXPO }
+  },
 };
 export const FADE_RIGHT = {
   hidden: { opacity: 0, x: -16, filter: "blur(3px)" },
-  show: { opacity: 1, x: 0, filter: "blur(0px)",
-    transition: { duration: 0.45, ease: EASE_OUT_EXPO } },
+  show: {
+    opacity: 1, x: 0, filter: "blur(0px)",
+    transition: { duration: 0.45, ease: EASE_OUT_EXPO }
+  },
 };
 
 /* ── Fonts injector ─────────────────────────────────────────────── */
@@ -150,11 +154,11 @@ type TagVariant = "green" | "red" | "purple" | "warn" | "dim";
 interface TagProps { children: ReactNode; variant?: TagVariant; pulse?: boolean; style?: CSSProperties; }
 export const Tag = ({ children, variant = "dim", pulse = false, style }: TagProps) => {
   const colors: Record<TagVariant, { bg: string; border: string; text: string }> = {
-    green:  { bg: "rgba(0,229,160,0.08)",  border: "rgba(0,229,160,0.2)",   text: "#00E5A0" },
-    red:    { bg: "rgba(255,64,96,0.08)",  border: "rgba(255,64,96,0.2)",   text: "#FF4060" },
-    purple: { bg: "rgba(124,92,255,0.1)",  border: "rgba(124,92,255,0.25)", text: "#A88BFF" },
-    warn:   { bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)",  text: "#F59E0B" },
-    dim:    { bg: "rgba(255,255,255,0.04)",border: "rgba(255,255,255,0.08)",text: "#8888A0" },
+    green: { bg: "rgba(0,229,160,0.08)", border: "rgba(0,229,160,0.2)", text: "#00E5A0" },
+    red: { bg: "rgba(255,64,96,0.08)", border: "rgba(255,64,96,0.2)", text: "#FF4060" },
+    purple: { bg: "rgba(124,92,255,0.1)", border: "rgba(124,92,255,0.25)", text: "#A88BFF" },
+    warn: { bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.2)", text: "#F59E0B" },
+    dim: { bg: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.08)", text: "#8888A0" },
   };
   const c = colors[variant];
   return (
@@ -254,8 +258,10 @@ export const StatCard = ({ label, value, unit, icon, accent, change }: StatCardP
       {/* Change badge — pushed to bottom so cards align */}
       <div style={{ marginTop: 12, minHeight: 20 }}>
         {change !== undefined && (
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11,
-            color: change > 0 ? "var(--accent)" : "var(--danger)" }}>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 5, fontSize: 11,
+            color: change > 0 ? "var(--accent)" : "var(--danger)"
+          }}>
             {change > 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
             <span style={{ fontFamily: "Geist Mono" }}>{Math.abs(change)}%</span>
             <span style={{ color: "var(--sub)" }}>vs 24h</span>
@@ -324,8 +330,8 @@ export const Modal = ({ open, onClose, children, title, subtitle }: ModalProps) 
         />
         <motion.div
           initial={{ opacity: 0, scale: 0.94, y: 20, filter: "blur(8px)" }}
-          animate={{ opacity: 1, scale: 1,    y: 0,  filter: "blur(0px)" }}
-          exit={{   opacity: 0, scale: 0.96,  y: 10, filter: "blur(4px)" }}
+          animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+          exit={{ opacity: 0, scale: 0.96, y: 10, filter: "blur(4px)" }}
           transition={{ duration: 0.3, ease: EASE_OUT_EXPO }}
           style={{
             position: "fixed", left: "50%", top: "50%", transform: "translate(-50%, -50%)",
@@ -356,14 +362,14 @@ interface BtnProps {
 }
 export const Btn = ({ children, variant = "primary", onClick, disabled, style, size = "md" }: BtnProps) => {
   const variants: Record<BtnVariant, CSSProperties> = {
-    primary: { background: "var(--primary)", color: "#fff",          border: "none" },
-    accent:  { background: "var(--accent)",  color: "#000",          border: "none", fontWeight: 700 },
-    ghost:   { background: "transparent",    color: "var(--sub)",    border: "1px solid var(--border2)" },
-    danger:  { background: "transparent",    color: "var(--danger)", border: "1px solid rgba(255,64,96,0.3)" },
+    primary: { background: "var(--primary)", color: "#fff", border: "none" },
+    accent: { background: "var(--accent)", color: "#000", border: "none", fontWeight: 700 },
+    ghost: { background: "transparent", color: "var(--sub)", border: "1px solid var(--border2)" },
+    danger: { background: "transparent", color: "var(--danger)", border: "1px solid rgba(255,64,96,0.3)" },
   };
   const sizes: Record<BtnSize, CSSProperties> = {
-    sm: { padding: "6px 12px",  fontSize: 11 },
-    md: { padding: "9px 18px",  fontSize: 13 },
+    sm: { padding: "6px 12px", fontSize: 11 },
+    md: { padding: "9px 18px", fontSize: 13 },
     lg: { padding: "12px 24px", fontSize: 14 },
   };
   return (
@@ -426,6 +432,62 @@ export const Pagination = ({ page, total, pageSize, onChange }: PaginationProps)
           >{l}</motion.button>
         );
       })}
+    </div>
+  );
+};
+
+/* ── Toast Notifications ─────────────────────────────────────────── */
+type ToastType = "error" | "success" | "info";
+interface ToastMsg { id: string; message: string; type: ToastType; }
+
+export const ToastContainer = () => {
+  const [toasts, setToasts] = useState<ToastMsg[]>([]);
+
+  useEffect(() => {
+    const handleApiError = (e: Event) => {
+      const msg = (e as CustomEvent).detail;
+      const id = Math.random().toString(36).substring(7);
+      setToasts(prev => [...prev, { id, message: msg, type: "error" }]);
+      setTimeout(() => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+      }, 5000);
+    };
+    window.addEventListener("api-error", handleApiError);
+    return () => window.removeEventListener("api-error", handleApiError);
+  }, []);
+
+  return (
+    <div style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, display: "flex", flexDirection: "column", gap: 10 }}>
+      <AnimatePresence>
+        {toasts.map(t => (
+          <motion.div
+            key={t.id}
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            style={{
+              background: "rgba(255,64,96,0.1)",
+              border: "1px solid rgba(255,64,96,0.25)",
+              padding: "12px 18px",
+              borderRadius: 12,
+              backdropFilter: "blur(12px)",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+              color: "var(--danger)",
+              maxWidth: 320
+            }}
+          >
+            <AlertTriangle size={16} />
+            <span style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4, flex: 1 }}>{t.message}</span>
+            <button onClick={() => setToasts(prev => prev.filter(x => x.id !== t.id))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--danger)", display: "flex", padding: 4, borderRadius: 4, opacity: 0.7 }}>
+              <XCircle size={14} />
+            </button>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 };

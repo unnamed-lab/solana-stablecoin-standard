@@ -48,6 +48,10 @@ pub fn seize(ctx: Context<Seize>, amount: u64, reason: String) -> Result<()> {
     let config = &ctx.accounts.config;
     let record = &mut ctx.accounts.seizure_record;
 
+    require!(
+        !config.multisig_enabled,
+        SSSError::DirectExecutionBlockedByMultisig
+    );
     require!(config.enable_transfer_hook, SSSError::ComplianceNotEnabled);
     require!(
         config.enable_permanent_delegate,

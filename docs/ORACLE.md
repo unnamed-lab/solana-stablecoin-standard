@@ -204,6 +204,10 @@ console.log(`≈ ${preview.net / 1e6} BRLUSD tokens`);
 // ≈ 570.284 BRLUSD tokens
 ```
 
+### Oracle Frontend UI
+
+To quickly visualize and test these capabilities, the repository includes the `sss-oracle-frontend` (Next.js application). It consumes the `OracleModule` SDK directly to provide a frictionless dashboard for simulating quotes from live Switchboard feeds prior to any on-chain actions.
+
 ---
 
 ## Known Switchboard Feed Addresses

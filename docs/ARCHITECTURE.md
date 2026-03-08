@@ -8,10 +8,11 @@ The SSS is built using the **Solana Token-2022** standard. This provides a rich 
 
 By relying on Solana's core audited deployments, the SSS guarantees maximum security, composability within DeFi, and throughput efficiency.
 
-The project is split into two primary Anchor programs:
+The project is split into three primary Anchor programs:
 
-1. **sss-core**: The main program that serves as the administrative controller and state manager for stablecoins. It handles issuance (minting), redemption (burning), role management, and triggering legal/compliance actions.
-2. **sss-transfer-hook**: An optional but critical compliance engine for SSS-2 (Regulated) tokens. It enforces pre-transfer logic, acting as an invisible firewall validating sender and recipient addresses against on-chain blacklists before allowing any token transfer to settle.
+1. **`sss-core`**: The main program that serves as the administrative controller and state manager for stablecoins. It handles issuance (minting), redemption (burning), role management, and triggering legal/compliance actions.
+2. **`sss-transfer-hook`**: An optional but critical compliance engine for SSS-2 (Regulated) and SSS-3 (Governance) tokens. It enforces pre-transfer logic, acting as an invisible firewall validating sender and recipient addresses against on-chain blacklists before allowing any token transfer to settle.
+3. **`sss-oracle`**: An independent pricing layer that calculates stablecoin minting/redemption amounts based on live Switchboard data feeds (e.g., for non-USD currencies or CPI-indexed tokens), preventing slippage and providing exact quotes.
 
 ## Core Components
 
@@ -30,6 +31,13 @@ This program intercepts every single peer-to-peer transaction on the network.
 *   **How it works**: When a transfer is initiated by any user on any platform, the Token-2022 program automatically asks `sss-transfer-hook` for permission *before* moving any funds.
 *   **Validation**: The hook derives the identities of the sender and recipient, then cross-references them against the `BlacklistEntry` registries. If an active match is found, the transaction is immediately blocked and an event is emitted for off-chain alerting.
 
+### 3. `sss-oracle` Program
+
+This program solves the challenge of dynamic pricing.
+
+*   **How it works**: It directly reads localized Switchboard v2 data feeds (e.g., BRL/USD, EUR/USD).
+*   **Atomic Quotes**: Users request quotes, which are stored on-chain in a `PendingQuote` PDA. The user then executes the mint/burn within a short validity window, ensuring zero slippage or extreme volatility risk.
+
 ## Component Interaction Diagram
 
 ```mermaid
@@ -43,6 +51,7 @@ graph TD
     subgraph Smart Contracts
         Core[SSS-Core Program]
         Hook[SSS-Transfer-Hook Program]
+        Oracle[SSS-Oracle Program]
     end
 
     subgraph Solana Native
@@ -74,10 +83,16 @@ graph TD
     Hook -.->|Read Status| BPDA1
     Hook -.->|Read Status| BPDA2
     Hook -.->|Return Allow/Deny Result| TokenEx
+
+    %% Oracle workflow
+    User -->|Request Quote / Mint| Oracle
+    Oracle -.->|Read Price| Switchboard[(Switchboard Feed)]
+    Oracle -->|CPI: Execute Mint/Burn| Core
 ```
 
 ## Security & Governance Posture
 
 *   **No Direct Mint Authority**: Nobody holds the raw private key for the Mint. The `StablecoinConfig` smart contract is the sole Mint authority. Therefore, all minting must flow through the contract, strictly enforcing the algorithmic quotas and emergency pause rules mathematically.
+*   **SSS-3 Governance**: The SSS-3 preset introduces multi-sig DAO governance. In highly regulated environments, executing sensitive functions like `seize` or `update_roles` requires M-of-N signatures or community voting delays natively on-chain.
 *   **Two-Step Authority Handover**: To prevent fat-finger mistakes causing the accidental loss of the entire stablecoin configuration, transferring the "God Mode" `master_authority` requires a `propose` transaction by the current owner and an explicit `accept` transaction by the receiver.
 *   **Cryptographic Derivations**: The transfer hook mathematically guarantees that the blacklist databases it queries are authentically signed by the `sss-core` program, preventing spoofed hacker accounts from bypassing corporate compliance checks.

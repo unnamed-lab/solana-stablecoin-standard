@@ -53,14 +53,16 @@ console.log(info.name, info.totalSupply);
 
 ## Presets
 
-| Preset | Transfer Hook | Permanent Delegate | Default Frozen | Compliance |
-|--------|:---:|:---:|:---:|:---:|
-| **SSS-1** | ✗ | ✗ | ✗ | ✗ |
-| **SSS-2** | ✓ | ✓ | ✓ | ✓ |
-| **CUSTOM** | configurable | configurable | configurable | configurable |
+| Preset | Transfer Hook | Permanent Delegate | Default Frozen | Compliance | Governance |
+|--------|:---:|:---:|:---:|:---:|:---:|
+| **SSS-1** | ✗ | ✗ | ✗ | ✗ | ✗ |
+| **SSS-2** | ✓ | ✓ | ✓ | ✓ | ✗ |
+| **SSS-3**| ✓ | ✓ | ✓ | ✓ | ✓ |
+| **CUSTOM** | configurable | configurable | configurable | configurable | configurable |
 
 - **SSS-1** — Lightweight token: mint, burn, pause, freeze/thaw. No compliance features.
 - **SSS-2** — Full regulatory compliance: adds blacklisting, asset seizure, and transfer hook enforcement.
+- **SSS-3** — Governance focus: embeds native multi-signature proposals and strict administrative command blocking.
 - **CUSTOM** — Starts with SSS-1 defaults; override individual extensions via `config.extensions`.
 
 ---

@@ -1,6 +1,7 @@
 pub mod blacklist;
 pub mod burn;
 pub mod freeze;
+pub mod governance;
 pub mod initialize;
 pub mod mint;
 pub mod minter;
@@ -12,6 +13,7 @@ pub mod sss3;
 pub use blacklist::*;
 pub use burn::*;
 pub use freeze::*;
+pub use governance::*;
 pub use initialize::*;
 pub use mint::*;
 pub use minter::*;

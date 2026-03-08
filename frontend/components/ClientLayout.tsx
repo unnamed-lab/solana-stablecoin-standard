@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
-import { AmbientBg, Fonts, EASE_OUT_EXPO } from "./Primitives";
+import { AmbientBg, Fonts, EASE_OUT_EXPO, ToastContainer } from "./Primitives";
+
+import { KeyStoreProvider } from "./KeyStoreProvider";
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -26,7 +28,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   }, [isMobile]);
 
   return (
-    <>
+    <KeyStoreProvider>
       <Fonts />
       <AmbientBg />
 
@@ -59,8 +61,8 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
               <motion.div
                 key={pathname}
                 initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
-                animate={{ opacity: 1, y: 0,  filter: "blur(0px)" }}
-                exit={{   opacity: 0, y: -10, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
                 transition={{ duration: 0.3, ease: EASE_OUT_EXPO }}
               >
                 {children}
@@ -69,6 +71,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
           </main>
         </div>
       </div>
-    </>
+      <ToastContainer />
+    </KeyStoreProvider>
   );
 }

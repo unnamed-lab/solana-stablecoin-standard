@@ -1,5 +1,5 @@
-const BACKEND = "http://localhost:3000/api/v1";
-const ORACLE  = "http://localhost:3003";
+const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000/api/v1";
+const ORACLE = process.env.NEXT_PUBLIC_ORACLE_URL || "http://localhost:3003";
 
 async function apiFetch<T>(base: string, path: string, opts?: RequestInit): Promise<T> {
   const res = await fetch(`${base}${path}`, {
@@ -8,18 +8,22 @@ async function apiFetch<T>(base: string, path: string, opts?: RequestInit): Prom
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw Object.assign(new Error(body?.message ?? `HTTP ${res.status}`), { status: res.status, body });
+    const message = body?.message || body?.error || `HTTP Error ${res.status}`;
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("api-error", { detail: message }));
+    }
+    throw Object.assign(new Error(message), { status: res.status, body });
   }
   return res.json() as Promise<T>;
 }
 
 /* ── Backend API ─────────────────────────────────────────────────── */
 export const backendApi = {
-  get:    <T>(path: string) => apiFetch<T>(BACKEND, path),
-  post:   <T>(path: string, body: unknown) =>
-    apiFetch<T>(BACKEND, path, { method: "POST",   body: JSON.stringify(body) }),
-  put:    <T>(path: string, body: unknown) =>
-    apiFetch<T>(BACKEND, path, { method: "PUT",    body: JSON.stringify(body) }),
+  get: <T>(path: string) => apiFetch<T>(BACKEND, path),
+  post: <T>(path: string, body: unknown) =>
+    apiFetch<T>(BACKEND, path, { method: "POST", body: JSON.stringify(body) }),
+  put: <T>(path: string, body: unknown) =>
+    apiFetch<T>(BACKEND, path, { method: "PUT", body: JSON.stringify(body) }),
   delete: <T>(path: string, query?: Record<string, string>) =>
     apiFetch<T>(BACKEND, `${path}${query ? "?" + new URLSearchParams(query) : ""}`, { method: "DELETE" }),
   getWithQuery: <T>(path: string, query: Record<string, string>) =>
@@ -28,7 +32,7 @@ export const backendApi = {
 
 /* ── Oracle API ──────────────────────────────────────────────────── */
 export const oracleApi = {
-  get:  <T>(path: string) => apiFetch<T>(ORACLE, path),
+  get: <T>(path: string) => apiFetch<T>(ORACLE, path),
   post: <T>(path: string, body: unknown) =>
     apiFetch<T>(ORACLE, path, { method: "POST", body: JSON.stringify(body) }),
   getWithQuery: <T>(path: string, query: Record<string, string>) =>

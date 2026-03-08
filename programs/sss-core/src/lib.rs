@@ -125,4 +125,36 @@ pub mod sss_core {
     pub fn take_supply_snapshot(ctx: Context<TakeSupplySnapshot>, day_number: u32) -> Result<()> {
         instructions::sss3::take_supply_snapshot(ctx, day_number)
     }
+
+    // ── SSS-3 Governance Multisig Actions ──────────────────────────────────
+
+    pub fn initialize_multisig(
+        ctx: Context<InitializeMultisig>,
+        signers: Vec<Pubkey>,
+        threshold: u8,
+        time_lock_secs: i64,
+    ) -> Result<()> {
+        instructions::governance::initialize_multisig(ctx, signers, threshold, time_lock_secs)
+    }
+
+    pub fn create_proposal(
+        ctx: Context<CreateProposal>,
+        action: crate::state::GovernanceAction,
+    ) -> Result<()> {
+        instructions::governance::create_proposal(ctx, action)
+    }
+
+    pub fn approve_proposal(ctx: Context<ApproveProposal>) -> Result<()> {
+        instructions::governance::approve_proposal(ctx)
+    }
+
+    pub fn execute_proposal<'info>(
+        ctx: Context<'_, '_, '_, 'info, ExecuteProposal<'info>>,
+    ) -> Result<()> {
+        instructions::governance::execute_proposal(ctx)
+    }
+
+    pub fn cancel_proposal(ctx: Context<CancelProposal>) -> Result<()> {
+        instructions::governance::cancel_proposal(ctx)
+    }
 }
