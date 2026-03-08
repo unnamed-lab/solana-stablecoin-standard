@@ -41,7 +41,7 @@ export function registerComplianceCommands(program: Command): void {
                     const res = await text({
                         message: 'Enter wallet address to blacklist:',
                         placeholder: 'Address',
-                        validate: (v: string) => {
+                        validate: (v: string | undefined) => {
                             if (!v) return 'Address is required';
                             try { new PublicKey(v); } catch { return 'Invalid public key'; }
                         }
@@ -54,7 +54,7 @@ export function registerComplianceCommands(program: Command): void {
                     const res = await text({
                         message: 'Enter reason for blacklisting:',
                         placeholder: 'e.g. Regulatory compliance',
-                        validate: (v: string) => !v ? 'Reason is required' : undefined
+                        validate: (v: string | undefined) => !v ? 'Reason is required' : undefined
                     });
                     if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
                     reason = res as string;
@@ -250,7 +250,7 @@ export function registerComplianceCommands(program: Command): void {
                     const res = await text({
                         message: 'Enter wallet address to allowlist:',
                         placeholder: 'Address',
-                        validate: (v: string) => {
+                        validate: (v: string | undefined) => {
                             if (!v) return 'Address is required';
                             try { new PublicKey(v); } catch { return 'Invalid public key'; }
                         }
@@ -289,7 +289,7 @@ export function registerComplianceCommands(program: Command): void {
                     const res = await text({
                         message: 'Enter reason for allowlisting:',
                         placeholder: 'e.g. KYC Verified',
-                        validate: (v: string) => !v ? 'Reason is required' : undefined
+                        validate: (v: string | undefined) => !v ? 'Reason is required' : undefined
                     });
                     if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
                     reason = res as string;

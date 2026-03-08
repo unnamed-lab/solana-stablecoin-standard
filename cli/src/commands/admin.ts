@@ -86,7 +86,7 @@ export function registerAddMinterCommand(program: Command): void {
                 const res = await text({
                     message: 'Enter public key of the new minter:',
                     placeholder: 'Address',
-                    validate: (v: string) => {
+                    validate: (v: string | undefined) => {
                         if (!v) return 'Minter address is required';
                         try { new PublicKey(v); } catch { return 'Invalid public key'; }
                     }
@@ -139,7 +139,7 @@ export function registerRemoveMinterCommand(program: Command): void {
                 const res = await text({
                     message: 'Enter public key of the minter to remove:',
                     placeholder: 'Address',
-                    validate: (v: string) => {
+                    validate: (v: string | undefined) => {
                         if (!v) return 'Minter address is required';
                         try { new PublicKey(v); } catch { return 'Invalid public key'; }
                     }
@@ -215,7 +215,7 @@ export function registerUpdateRolesCommand(program: Command): void {
                 for (const role of (selected as string[])) {
                     const res = await text({
                         message: `Enter new address for ${role}:`,
-                        validate: (v: string) => {
+                        validate: (v: string | undefined) => {
                             if (!v) return 'Address is required';
                             try { new PublicKey(v); } catch { return 'Invalid public key'; }
                         }
@@ -270,7 +270,7 @@ export function registerProposeTransferCommand(program: Command): void {
                 const res = await text({
                     message: 'Enter public key of the proposed new authority:',
                     placeholder: 'Address',
-                    validate: (v: string) => {
+                    validate: (v: string | undefined) => {
                         if (!v) return 'Address is required';
                         try { new PublicKey(v); } catch { return 'Invalid public key'; }
                     }

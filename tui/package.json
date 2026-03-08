@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "yarn tsx src/index.tsx",
     "start": "yarn tsx src/index.tsx",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",
@@ -28,10 +28,15 @@
     "toml": "^3.0.0"
   },
   "devDependencies": {
+    "@testing-library/react": "16.2.0",
     "@types/node": "^25.3.2",
     "@types/react": "^19.2.14",
+    "@vitest/coverage-v8": "^4.0.18",
+    "ink-testing-library": "^4.0.0",
+    "react-test-renderer": "^19.2.4",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }
