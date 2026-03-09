@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/sss_transfer_hook.json`.
  */
 export type SssTransferHook = {
-  "address": "9Vu21Cy4yShn7SukayuArDRy36fVzXMjsnJiTG2ZZDxF",
+  "address": "H4jdofPy83igVaSyZkKFjzb3nGQXvbvmJqZTtWDFJwpn",
   "metadata": {
     "name": "sssTransferHook",
     "version": "0.1.0",
@@ -372,38 +372,38 @@ export type SssTransferHook = {
             "program": {
               "kind": "const",
               "value": [
-                22,
-                53,
-                65,
-                240,
-                145,
-                181,
-                28,
-                184,
-                2,
-                164,
-                212,
-                238,
-                85,
-                86,
-                189,
-                70,
-                229,
-                90,
-                229,
-                36,
-                225,
-                5,
-                243,
-                156,
-                14,
-                57,
+                140,
+                250,
+                140,
+                13,
+                25,
+                80,
                 68,
-                15,
-                83,
-                8,
-                111,
-                96
+                152,
+                150,
+                61,
+                54,
+                95,
+                148,
+                2,
+                144,
+                201,
+                76,
+                91,
+                242,
+                87,
+                160,
+                13,
+                131,
+                158,
+                34,
+                2,
+                171,
+                121,
+                185,
+                50,
+                52,
+                15
               ]
             }
           }
@@ -823,6 +823,13 @@ export type SssTransferHook = {
               "Count of active minters"
             ],
             "type": "u32"
+          },
+          {
+            "name": "multisigEnabled",
+            "docs": [
+              "Whether SSS-3 Multisig governance is enabled"
+            ],
+            "type": "bool"
           }
         ]
       }

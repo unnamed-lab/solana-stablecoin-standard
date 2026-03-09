@@ -21,11 +21,12 @@ import {
     PRICE_SCALE,
     CPI_SCALE,
 } from "../../sdk/src/modules/oracle";
+import oracleIdl from "../../sdk/src/idl/sss_oracle.json";
 import { SolanaNetwork } from "../../sdk/src/types";
 
-// Oracle Program ID (from Anchor.toml / environment)
+// Oracle Program ID (from Anchor.toml / environment / IDL)
 const ORACLE_PROGRAM_ID = new PublicKey(
-    process.env.ORACLE_PROGRAM_ID ?? "Brj7RU6jcmWXqCSfBa6o3v5bHS48Z6uDyKZUfG8ZbQoD"
+    process.env.ORACLE_PROGRAM_ID ?? (oracleIdl as any).address
 );
 
 // Devnet Switchboard feed address for BRL/USD

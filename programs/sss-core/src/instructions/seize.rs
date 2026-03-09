@@ -1,9 +1,10 @@
 use crate::errors::SSSError;
 use crate::state::{SeizureRecord, StablecoinConfig};
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::program::invoke_signed;
 use anchor_spl::token_2022::{
-    self, spl_token_2022::state::AccountState, FreezeAccount, ThawAccount, Token2022,
-    TransferChecked,
+    self, spl_token_2022, spl_token_2022::state::AccountState, FreezeAccount, ThawAccount,
+    Token2022,
 };
 use anchor_spl::token_interface::TokenAccount;
 
@@ -105,17 +106,29 @@ pub fn seize(ctx: Context<Seize>, amount: u64, reason: String) -> Result<()> {
     token_2022::thaw_account(thaw_ctx)?;
 
     // Step 2: Transfer using the config PDA as the permanent delegate authority.
-    let transfer_ctx = CpiContext::new_with_signer(
-        ctx.accounts.token_program.to_account_info(),
-        TransferChecked {
-            from: ctx.accounts.source_account.to_account_info(),
-            mint: ctx.accounts.mint.to_account_info(),
-            to: ctx.accounts.destination_account.to_account_info(),
-            authority: config.to_account_info(),
-        },
+    // We use raw invoke_signed with spl_token_2022::instruction::transfer_checked
+    // because the permanent delegate must be encoded as the authority in the instruction
+    // data itself — Anchor's TransferChecked wrapper does not handle this correctly.
+    let transfer_ix = spl_token_2022::instruction::transfer_checked(
+        &ctx.accounts.token_program.key(),
+        &ctx.accounts.source_account.key(),
+        &ctx.accounts.mint.key(),
+        &ctx.accounts.destination_account.key(),
+        &config.key(),
+        &[],
+        amount,
+        config.decimals,
+    )?;
+    invoke_signed(
+        &transfer_ix,
+        &[
+            ctx.accounts.source_account.to_account_info(),
+            ctx.accounts.mint.to_account_info(),
+            ctx.accounts.destination_account.to_account_info(),
+            config.to_account_info(),
+        ],
         signer,
-    );
-    token_2022::transfer_checked(transfer_ctx, amount, config.decimals)?;
+    )?;
 
     // Step 3: Re-freeze the source account to preserve the seized/locked state.
     let freeze_ctx = CpiContext::new_with_signer(

@@ -1,5 +1,5 @@
-use anchor_lang::prelude::*;
 use crate::prelude::*;
+use anchor_lang::prelude::*;
 
 #[derive(AnchorSerialize, AnchorDeserialize)]
 pub struct InitializeParams {
@@ -26,9 +26,9 @@ pub struct InitializeParams {
 pub struct Initialize<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
-    
+
     pub master_authority: Signer<'info>,
-    
+
     #[account(
         init,
         payer = payer,
@@ -37,9 +37,10 @@ pub struct Initialize<'info> {
         mint::freeze_authority = config,
         extensions::metadata_pointer::authority = config,
         extensions::metadata_pointer::metadata_address = mint,
+        extensions::permanent_delegate::delegate = config,
     )]
     pub mint: Box<InterfaceAccount<'info, Mint>>,
-    
+
     #[account(
         init,
         payer = payer,
@@ -48,7 +49,7 @@ pub struct Initialize<'info> {
         bump
     )]
     pub config: Account<'info, StablecoinConfig>,
-    
+
     pub token_program: Program<'info, Token2022>,
     pub system_program: Program<'info, System>,
     pub rent: Sysvar<'info, Rent>,
@@ -57,8 +58,11 @@ pub struct Initialize<'info> {
 pub fn initialize(ctx: Context<Initialize>, params: InitializeParams) -> Result<()> {
     // 1. Validate inputs
     require!(params.name.len() <= MAX_NAME_LENGTH, SSSError::NameTooLong);
-    require!(params.symbol.len() <= MAX_SYMBOL_LENGTH, SSSError::SymbolTooLong);
-    
+    require!(
+        params.symbol.len() <= MAX_SYMBOL_LENGTH,
+        SSSError::SymbolTooLong
+    );
+
     let config = &mut ctx.accounts.config;
     config.version = 1;
     config.preset = params.preset.clone();
@@ -67,14 +71,14 @@ pub fn initialize(ctx: Context<Initialize>, params: InitializeParams) -> Result<
     config.symbol = params.symbol;
     config.uri = params.uri;
     config.decimals = params.decimals;
-    
+
     // Set Roles
     config.master_authority = ctx.accounts.master_authority.key();
     config.pending_master_authority = None;
     config.pauser = params.pauser;
     config.minter_authority = params.minter_authority;
     config.burner = params.burner;
-    
+
     if params.preset == StablecoinPreset::SSS2 {
         config.enable_permanent_delegate = params.enable_permanent_delegate;
         config.enable_transfer_hook = params.enable_transfer_hook;
@@ -92,13 +96,13 @@ pub fn initialize(ctx: Context<Initialize>, params: InitializeParams) -> Result<
         config.hook_program_id = None;
         config.hook_authority = None;
     }
-    
+
     config.paused = false;
     config.total_supply = 0;
     config.total_minted_all_time = 0;
     config.total_burned_all_time = 0;
     config.blacklist_count = 0;
-    
+
     config.created_at = Clock::get()?.unix_timestamp;
     config.last_updated_at = config.created_at;
     config.bump = ctx.bumps.config;

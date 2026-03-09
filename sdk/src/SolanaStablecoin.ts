@@ -13,7 +13,7 @@ import {
 import {
     TOKEN_2022_PROGRAM_ID,
     getAssociatedTokenAddressSync,
-    createTransferCheckedInstruction,
+    transferChecked,
     getMint,
 } from '@solana/spl-token';
 import { SssCore } from './types/sss_core';
@@ -436,33 +436,27 @@ export class SolanaStablecoin {
      * ```
      */
     async transfer(params: TransferParams): Promise<string> {
-        const { Transaction } = await import('@solana/web3.js');
-        // Fetch on-chain decimals so transfer_checked has the correct value
-        const mintInfo = await getMint(this.connection, this.mintAddress, 'confirmed', TOKEN_2022_PROGRAM_ID);
-
-        const ix = createTransferCheckedInstruction(
-            params.fromAta,
+        const mintInfo = await getMint(
+            this.connection,
             this.mintAddress,
-            params.toAta,
-            params.sender.publicKey,
-            BigInt(params.amount),
-            mintInfo.decimals,
-            [],
+            'confirmed',
             TOKEN_2022_PROGRAM_ID,
         );
 
-        const tx = new Transaction().add(ix);
-        const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash('confirmed');
-        tx.recentBlockhash = blockhash;
-        tx.lastValidBlockHeight = lastValidBlockHeight;
-        tx.feePayer = params.sender.publicKey;
-        tx.sign(params.sender);
+        const sig = await transferChecked(
+            this.connection,
+            params.sender,            // payer & signer
+            params.fromAta,           // source ATA
+            this.mintAddress,         // mint
+            params.toAta,             // destination ATA
+            params.sender.publicKey,  // owner of source ATA
+            BigInt(params.amount),
+            mintInfo.decimals,        // actual mint decimals
+            [],
+            { commitment: 'confirmed' },
+            TOKEN_2022_PROGRAM_ID,
+        );
 
-        const sig = await this.connection.sendRawTransaction(tx.serialize(), {
-            skipPreflight: false,
-            preflightCommitment: 'confirmed',
-        });
-        await this.connection.confirmTransaction({ signature: sig, blockhash, lastValidBlockHeight }, 'confirmed');
         return sig;
     }
 
