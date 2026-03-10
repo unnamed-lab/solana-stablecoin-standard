@@ -10,7 +10,7 @@ pub mod switchboard;
 use instructions::*;
 use state::*;
 
-declare_id!("Brj7RU6jcmWXqCSfBa6o3v5bHS48Z6uDyKZUfG8ZbQoD");
+declare_id!("4zWRVk1pfuF63XztGceNExpTNKF7EdNsAdyQcxMwb5jU");
 
 #[program]
 pub mod sss_oracle {

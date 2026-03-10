@@ -5,16 +5,16 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-sss_core = "2Vh56aB6CX2SsHyLVwGQpt8Z9jWqYKNzjf5BXjgM2F5y"
-sss_oracle = "Brj7RU6jcmWXqCSfBa6o3v5bHS48Z6uDyKZUfG8ZbQoD"
-sss_transfer_hook = "9Vu21Cy4yShn7SukayuArDRy36fVzXMjsnJiTG2ZZDxF"
+[programs.devnet]
+sss_core = "GadHhHigc12B86Q1SiWCLL9RAKpziACqrFP2jcjHiyja"
+sss_oracle = "4zWRVk1pfuF63XztGceNExpTNKF7EdNsAdyQcxMwb5jU"
+sss_transfer_hook = "rb1x3TyqYSWAE5JtLnZm4yAvvsLNaHZWMF2YiD3kB75"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
