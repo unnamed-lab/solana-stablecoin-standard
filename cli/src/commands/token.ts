@@ -15,24 +15,100 @@ import { saveToken, setActiveToken, loadConfig, type TokenEntry } from '../confi
 
 import { intro, outro, text, select, isCancel, cancel } from '@clack/prompts';
 
-export function registerCreateCommand(program: Command): void {
+import * as fs from 'fs';
+import * as path from 'path';
+import * as toml from 'toml';
+
+export function registerInitCommand(program: Command): void {
     program
-        .command('create')
-        .description('Deploy a new stablecoin to the blockchain')
+        .command('init')
+        .description('Deploy a new stablecoin to the blockchain or view existing')
         .option('--name <name>', 'Token name (e.g. "ACME USD")')
         .option('--symbol <symbol>', 'Token symbol (e.g. "AUSD")')
         .option('--uri <uri>', 'Metadata URI (e.g. "https://example.com/meta.json")')
         .option('--decimals <number>', 'Number of decimal places', '6')
-        .option('--preset <preset>', 'Preset: sss1, sss2, s, or custom', 'sss1')
+        .option('--preset <preset>', 'Preset: sss1, sss2, sss3, or custom')
+        .option('--custom <path>', 'Initialize from a TOML or JSON config file')
         .option('--keypair <path>', 'Path to authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .option('--blacklister <pubkey>', 'Blacklister public key (SSS-2 only)')
         .option('--seizer <pubkey>', 'Seizer public key (SSS-2 only)')
         .action(async (opts) => {
-            let { name, symbol, uri, decimals, preset: presetName, network: networkName, keypair: keypairPath, blacklister, seizer } = opts;
+            const config = loadConfig();
 
-            // Check if we should enter interactive mode
-            const isInteractive = !name || !symbol || !uri;
+            // If a token exists and no intent to create a new one via flags/args
+            if (config.activeToken && !opts.preset && !opts.custom && !opts.name && !opts.symbol) {
+                const active = config.tokens[config.activeToken];
+                console.log(chalk.green(`\n✓ Active Token Found`));
+                console.log(chalk.gray(`  Mint:    ${config.activeToken}`));
+                console.log(chalk.gray(`  Network: ${active.network}  |  Preset: ${active.preset.toUpperCase()}`));
+                
+                console.log(chalk.bold('\nAvailable Commands:\n'));
+                console.log(chalk.cyan('Operations'));
+                console.log('  sss-token mint <recipient> <amount>');
+                console.log('  sss-token burn <amount>');
+                console.log('  sss-token transfer <sender> <recipient> <amount>');
+                console.log('  sss-token holders');
+                console.log('  sss-token info');
+                
+                if (active.preset === 'sss2' || active.preset === 'sss3') {
+                    console.log(chalk.cyan('\nCompliance'));
+                    console.log('  sss-token freeze <address>');
+                    console.log('  sss-token thaw <address>');
+                    console.log('  sss-token pause');
+                    console.log('  sss-token unpause');
+                }
+                
+                console.log(chalk.cyan('\nManagement'));
+                console.log('  sss-token add-minter <pubkey>');
+                console.log('  sss-token remove-minter <pubkey>');
+                console.log('  sss-token use');
+                console.log('  sss-token list\n');
+                
+                process.exit(0);
+            }
+
+            // If a token exists and user passed flags to imply creating a new one
+            if (config.activeToken) {
+                const confirm = await select({
+                    message: `An active token (${config.activeToken}) already exists. Initialize a new one?`,
+                    options: [
+                        { value: false, label: 'No, exit' },
+                        { value: true, label: 'Yes, proceed' }
+                    ]
+                });
+                if (!confirm || isCancel(confirm)) {
+                    cancel('Operation cancelled.');
+                    process.exit(0);
+                }
+            }
+
+            let { name, symbol, uri, decimals, preset: presetName, network: networkName, keypair: keypairPath, blacklister, seizer, custom } = opts;
+
+            if (custom) {
+                const customPath = path.resolve(custom);
+                if (!fs.existsSync(customPath)) {
+                    printError('Custom configuration file not found', new Error(`Path: ${customPath}`));
+                    process.exit(1);
+                }
+                const content = fs.readFileSync(customPath, 'utf-8');
+                let parsed: any;
+                if (customPath.endsWith('.toml')) {
+                    parsed = toml.parse(content);
+                } else {
+                    parsed = JSON.parse(content);
+                }
+                name = name || parsed.name;
+                symbol = symbol || parsed.symbol;
+                uri = uri || parsed.uri || '';
+                decimals = decimals !== '6' ? decimals : (parsed.decimals?.toString() || '6');
+                presetName = presetName || parsed.preset || 'custom';
+                networkName = networkName !== 'devnet' ? networkName : (parsed.network || 'devnet');
+                keypairPath = parsed.keypair || keypairPath;
+            }
+
+            // Enter interactive mode if missing required fields, even if a preset was picked
+            const isInteractive = !name || !symbol || !decimals || (!presetName && !custom);
 
             if (isInteractive) {
                 console.log();
@@ -46,10 +122,7 @@ export function registerCreateCommand(program: Command): void {
                             if (!value) return 'Name is required';
                         },
                     });
-                    if (isCancel(res)) {
-                        cancel('Operation cancelled.');
-                        process.exit(0);
-                    }
+                    if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
                     name = res;
                 }
 
@@ -61,10 +134,7 @@ export function registerCreateCommand(program: Command): void {
                             if (!value) return 'Symbol is required';
                         },
                     });
-                    if (isCancel(res)) {
-                        cancel('Operation cancelled.');
-                        process.exit(0);
-                    }
+                    if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
                     symbol = res;
                 }
 
@@ -72,18 +142,12 @@ export function registerCreateCommand(program: Command): void {
                     const res = await text({
                         message: 'What is the metadata URI?',
                         placeholder: 'e.g. https://example.com/meta.json',
-                        validate: (value: string | undefined) => {
-                            if (!value) return 'Metadata URI is required';
-                        },
                     });
-                    if (isCancel(res)) {
-                        cancel('Operation cancelled.');
-                        process.exit(0);
-                    }
-                    uri = res;
+                    if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
+                    uri = res || '';
                 }
 
-                if (opts.decimals === '6') { // only prompt if default
+                if (!decimals || decimals === '6') {
                     const res = await text({
                         message: 'How many decimal places?',
                         initialValue: '6',
@@ -91,14 +155,11 @@ export function registerCreateCommand(program: Command): void {
                             if (!value || isNaN(parseInt(value))) return 'Must be a number';
                         },
                     });
-                    if (isCancel(res)) {
-                        cancel('Operation cancelled.');
-                        process.exit(0);
-                    }
+                    if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
                     decimals = res;
                 }
 
-                if (opts.preset === 'sss1') { // only prompt if default
+                if (!presetName) {
                     const res = await select({
                         message: 'Select a stablecoin preset:',
                         options: [
@@ -108,14 +169,11 @@ export function registerCreateCommand(program: Command): void {
                             { value: 'custom', label: 'Custom' },
                         ],
                     });
-                    if (isCancel(res)) {
-                        cancel('Operation cancelled.');
-                        process.exit(0);
-                    }
+                    if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
                     presetName = res as string;
                 }
 
-                if (opts.network === 'devnet') { // only prompt if default
+                if (opts.network === 'devnet') {
                     const res = await select({
                         message: 'Select target network:',
                         options: [
@@ -125,14 +183,10 @@ export function registerCreateCommand(program: Command): void {
                             { value: 'localnet', label: 'Localnet' },
                         ],
                     });
-                    if (isCancel(res)) {
-                        cancel('Operation cancelled.');
-                        process.exit(0);
-                    }
+                    if (isCancel(res)) { cancel('Operation cancelled.'); process.exit(0); }
                     networkName = res as string;
                 }
 
-                // Advanced options for SSS-2 & SSS-3
                 if ((presetName === 'sss2' || presetName === 'sss3') && !blacklister && !seizer) {
                     const configureAdvanced = await select({
                         message: `Configure advanced ${presetName.toUpperCase()} roles (blacklister, seizer)?`,
@@ -217,7 +271,6 @@ export function registerCreateCommand(program: Command): void {
                 printField('Network', network);
                 printSuccess('Deployment details', txSig);
 
-                // ── Persist to ~/.sss/config.json ──
                 const mint58 = mintAddress.toBase58();
                 const entry: TokenEntry = {
                     name,

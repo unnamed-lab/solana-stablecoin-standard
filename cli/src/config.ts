@@ -71,7 +71,7 @@ export function resolveMint(optsMint?: string): string {
         throw new Error(
             'No --mint flag provided and no active token set.\n' +
             '  Either pass --mint <pubkey> or run:\n' +
-            '    sss-token create ...   (auto-sets active token)\n' +
+            '    sss-token init ...     (auto-sets active token)\n' +
             '    sss-token use <mint>   (sets an existing token as active)'
         );
     }

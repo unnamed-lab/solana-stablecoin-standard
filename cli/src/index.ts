@@ -3,7 +3,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import {
-    registerCreateCommand,
+    registerInitCommand,
     registerInfoCommand,
     registerListCommand,
     registerUseCommand,
@@ -35,7 +35,7 @@ program
     .version('0.1.0');
 
 // ── Token Lifecycle ─────────────────────────────────────────────────────
-registerCreateCommand(program);
+registerInitCommand(program);
 registerInfoCommand(program);
 registerListCommand(program);
 registerUseCommand(program);
