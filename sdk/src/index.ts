@@ -6,6 +6,7 @@ export * from './modules/transfer-hook';
 export * from './modules/oracle';
 export * from './modules/sss3';
 export * from './modules/analytics';
+export * from './config-schema';
 
 // Presets
 export * from './presets/SSS1';

@@ -12,12 +12,9 @@ import {
     printError,
 } from '../utils';
 import { saveToken, setActiveToken, loadConfig, type TokenEntry } from '../config';
-
+import { parseAndValidateConfigFile } from '../config-validator';
 import { intro, outro, text, select, isCancel, cancel } from '@clack/prompts';
 
-import * as fs from 'fs';
-import * as path from 'path';
-import * as toml from 'toml';
 
 export function registerInitCommand(program: Command): void {
     program
@@ -86,27 +83,33 @@ export function registerInitCommand(program: Command): void {
             let { name, symbol, uri, decimals, preset: presetName, network: networkName, keypair: keypairPath, blacklister, seizer, custom } = opts;
 
             if (custom) {
-                const customPath = path.resolve(custom);
-                if (!fs.existsSync(customPath)) {
-                    printError('Custom configuration file not found', new Error(`Path: ${customPath}`));
+                const result = parseAndValidateConfigFile(custom);
+
+                if (!result.ok) {
+                    console.error(chalk.red(`\n  ✗ Your config file has the following issues:\n`));
+                    result.errors.forEach((e) => {
+                        console.error(chalk.red(`    · ${e}`));
+                    });
+                    console.error(
+                        chalk.gray(`\n  Tip: Run  sss-token config example --preset sss2 > config.toml  to generate a valid template\n`)
+                    );
                     process.exit(1);
                 }
-                const content = fs.readFileSync(customPath, 'utf-8');
-                let parsed: any;
-                if (customPath.endsWith('.toml')) {
-                    parsed = toml.parse(content);
-                } else {
-                    parsed = JSON.parse(content);
-                }
-                name = name || parsed.name;
-                symbol = symbol || parsed.symbol;
-                uri = uri || parsed.uri || '';
-                decimals = decimals !== '6' ? decimals : (parsed.decimals?.toString() || '6');
-                presetName = presetName || parsed.preset || 'custom';
-                networkName = networkName !== 'devnet' ? networkName : (parsed.network || 'devnet');
-                keypairPath = parsed.keypair || keypairPath;
-            }
 
+                const cfg = result.config;
+                name        = cfg.name;
+                symbol      = cfg.symbol;
+                uri         = cfg.uri;
+                decimals    = cfg.decimals.toString();
+                presetName  = cfg.preset;
+                networkName = cfg.network;
+                keypairPath = cfg.authorities.keypair.replace(/^~/, process.env.HOME ?? '~');
+
+                if (cfg.authorities.blacklister) blacklister = cfg.authorities.blacklister;
+                if (cfg.authorities.seizer)      seizer      = cfg.authorities.seizer;
+
+                console.log(chalk.green(`\n  ✓ Config file valid — deploying from "${custom}"\n`));
+            }
             // Enter interactive mode if missing required fields, even if a preset was picked
             const isInteractive = !name || !symbol || !decimals || (!presetName && !custom);
 

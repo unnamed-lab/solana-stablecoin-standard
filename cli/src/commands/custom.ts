@@ -4,6 +4,7 @@ import * as toml from 'toml';
 import chalk from 'chalk';
 import ora from 'ora';
 import { printError, printHeader } from '../utils';
+import { generateExampleConfig } from '../config-validator';
 
 // Helper to determine parsing
 function parseFile(filePath: string) {
@@ -34,6 +35,34 @@ export function registerConfigCommands(program: Command): void {
                 printError('Failed to read and parse presets file', err);
             }
         });
+
+
+    // ── Example ─────────────────────────────────────────────────────────────
+    customCmd
+    .command('example')
+    .description('Print an example config.toml to stdout — pipe it to a file to get started')
+    .option(
+        '--preset <preset>',
+        'Generate example for a specific preset: sss1, sss2, sss3, custom',
+        'sss2'
+    )
+    .action((opts) => {
+        const allowed = ['sss1', 'sss2', 'sss3', 'custom'];
+        if (!allowed.includes(opts.preset)) {
+            console.error(chalk.red(`\n  ✗ Unknown preset "${opts.preset}". Use: ${allowed.join(', ')}\n`));
+            process.exit(1);
+        }
+        const example = generateExampleConfig(opts.preset as 'sss1' | 'sss2' | 'sss3' | 'custom');
+        console.log(example);
+        // Usage hint only when stdout is a TTY (i.e. user did not pipe output)
+        if (process.stdout.isTTY) {
+            console.error(
+                chalk.gray(`\n  Tip: Pipe this to a file:  sss-token config --example --preset sss2 > config.toml\n`)
+            );
+        }
+    });
+
+
 
     // ── Minters ─────────────────────────────────────────────────────────────
     customCmd
