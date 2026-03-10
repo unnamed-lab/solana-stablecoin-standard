@@ -85,7 +85,7 @@ export default function DashboardView() {
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <Tag variant="green" pulse>LIVE</Tag>
-          <Tag variant="dim">Mainnet-Beta</Tag>
+          <Tag variant="dim">DEVNET</Tag>
         </div>
       </motion.div>
 

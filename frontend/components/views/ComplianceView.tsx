@@ -96,7 +96,7 @@ export default function ComplianceView() {
         {TABS.map(t => (
           <motion.button key={t.id} onClick={() => setTab(t.id)} whileTap={{ scale: 0.97 }} layout
             style={{
-              padding: "7px 16px", borderRadius: 7, fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
+              padding: "7px 16px", borderRadius: 7, fontSize: 11, fontWeight: 600, border: "none", cursor: "pointer",
               background: tab === t.id ? "var(--surface2)" : "transparent", color: tab === t.id ? "var(--text)" : "var(--sub)",
               display: "flex", alignItems: "center", gap: 6
             }}>

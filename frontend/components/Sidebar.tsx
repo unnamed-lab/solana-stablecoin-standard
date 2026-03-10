@@ -113,7 +113,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             transition={{ duration: 1.8, repeat: Infinity }}
             style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", flexShrink: 0 }}
           />
-          <span style={{ fontSize: 10, fontFamily: "Geist Mono", fontWeight: 600, color: "var(--accent)" }}>MAINNET-BETA</span>
+          <span style={{ fontSize: 10, fontFamily: "Geist Mono", fontWeight: 600, color: "var(--accent)" }}>DEVNET</span>
           <span style={{ marginLeft: "auto", fontSize: 9, color: "var(--sub)", fontFamily: "Geist Mono" }}>≈ 248ms</span>
         </motion.div>
       </div>
