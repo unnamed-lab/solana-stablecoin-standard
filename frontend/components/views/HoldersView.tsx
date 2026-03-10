@@ -1,39 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Filter, ExternalLink } from "lucide-react";
 import { STAGGER, FADE_UP, FADE_RIGHT, EASE_OUT_EXPO, CountUp, DepthCard, Tag, CopyBtn, useBreakpoint } from "../Primitives";
-import { backendApi } from "../../lib/api";
 import { truncAddr } from "../../lib/utils";
+import { useSupply, useHoldersCount, useHoldersLargest } from "../../lib/queries";
 
 interface Holder { address: string; amount: string; decimals: number; uiAmount: number; uiAmountString: string; }
-
-const MOCK_HOLDERS: Holder[] = [
-  { address: "7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU", uiAmountString: "45,000.00", amount: "45000000000", decimals: 6, uiAmount: 45000 },
-  { address: "3Kzg7p3CW87d97TXJSDpbD5jBkhe3qA83TZRu9osgBsP", uiAmountString: "32,000.00", amount: "32000000000", decimals: 6, uiAmount: 32000 },
-  { address: "9mNXtg2CW87d97TXJSDpbD5jBkhe3qA83TZRuJosgCsQ", uiAmountString: "18,500.00", amount: "18500000000", decimals: 6, uiAmount: 18500 },
-  { address: "5yLKtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgDtR", uiAmountString: "12,750.00", amount: "12750000000", decimals: 6, uiAmount: 12750 },
-  { address: "2wMKtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgEuS", uiAmountString: "9,900.00", amount: "9900000000", decimals: 6, uiAmount: 9900 },
-  { address: "8nOKtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgFvT", uiAmountString: "6,400.00", amount: "6400000000", decimals: 6, uiAmount: 6400 },
-];
 
 export default function HoldersView() {
   const isMobile = useBreakpoint();
   const [minAmt, setMinAmt] = useState("");
-  const [holders, setHolders] = useState<Holder[]>(MOCK_HOLDERS);
-  const [count, setCount] = useState(1500);
-  const [totalSupply, setTotalSupply] = useState("125000000000000");
 
-  useEffect(() => {
-    backendApi.get<{ totalSupply: string }>("/supply").then(s => setTotalSupply(s.totalSupply)).catch(() => { });
-    const q: Record<string, string> = {};
-    if (minAmt) q.minAmount = minAmt;
-    backendApi.getWithQuery<Holder[]>("/holders/largest", q).then(d => { if (d?.length) setHolders(d); }).catch(() => { });
-    backendApi.get<{ count: number }>("/holders/count").then(r => setCount(r.count)).catch(() => { });
-  }, [minAmt]);
+  const { data: supply } = useSupply();
+  const { data: count = 0 } = useHoldersCount();
+  const { data: holders = [] } = useHoldersLargest(minAmt || undefined);
 
-  const filtered = minAmt ? holders.filter(h => Number(h.amount) >= Number(minAmt)) : holders;
+  const totalSupply = supply?.totalSupply ?? "0";
+  const filtered = minAmt ? (holders as Holder[]).filter(h => Number(h.amount) >= Number(minAmt)) : (holders as Holder[]);
 
   return (
     <motion.div variants={STAGGER} initial="hidden" animate="show" style={{ display: "flex", flexDirection: "column", gap: 24 }}>

@@ -14,9 +14,13 @@ trident-tests/
 │   ├── fuzz_accounts.rs   # All account address slots used by fuzz_0
 │   └── types.rs           # Auto-generated instruction builders (DO NOT EDIT)
 │
-└── fuzz_1/                # sss-oracle fuzz target
-    ├── test_fuzz.rs       # Flows: register_feed, initialize_oracle, update_cpi_multiplier
-    └── fuzz_accounts.rs   # Account address slots used by fuzz_1
+├── fuzz_1/                # sss-oracle fuzz target
+│   ├── test_fuzz.rs       # Flows: register_feed, initialize_oracle, update_cpi_multiplier
+│   └── fuzz_accounts.rs   # Account address slots used by fuzz_1
+│
+└── fuzz_2/                # sss-core (SSS-3 extensions) fuzz target
+    ├── test_fuzz.rs       # Flows: SSS-3 initialize, allowlist, confidential, governance
+    └── fuzz_accounts.rs   # Account address slots used by fuzz_2
 ```
 
 ## Prerequisites
@@ -41,6 +45,9 @@ trident fuzz run fuzz_0
 
 # Fuzz sss-oracle (register_feed, initialize_oracle, update_cpi_multiplier)
 trident fuzz run fuzz_1
+
+# Fuzz sss-core (SSS-3 extensions: allowlist, confidential, governance)
+trident fuzz run fuzz_2
 ```
 
 Crashes, if found, are saved to `trident-tests/fuzzing/crashes/`.
@@ -62,6 +69,13 @@ Crashes, if found, are saved to `trident-tests/fuzzing/crashes/`.
 | Registry pre-condition | Feeds and oracle configs require an initialized registry |
 | Fee bounds | Fees are clamped to [0, 500 bps] before submission |
 | CPI multiplier | A zero-value multiplier must be rejected |
+
+### fuzz_2 (sss-core SSS-3 Extensions)
+| Invariant | Description |
+|---|---|
+| Allowlist integrity | Unauthorized accounts cannot be added to allowlist |
+| Proposal lifecycle | Valid execute sequence (create -> approve -> execute) does not panic |
+| Confidential config | Approve confidential account doesn't panic on normal operation |
 
 ## Regenerating types.rs
 

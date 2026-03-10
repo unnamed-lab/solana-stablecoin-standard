@@ -26,6 +26,10 @@
     "clean": "yarn workspaces run clean",
     "test": "anchor test",
     "test:local": "anchor test --skip-local-validator",
+    "test:fuzz": "cd trident-tests && trident fuzz run fuzz_0 && trident fuzz run fuzz_1 && trident fuzz run fuzz_2",
+    "test:fuzz:0": "cd trident-tests && trident fuzz run fuzz_0",
+    "test:fuzz:1": "cd trident-tests && trident fuzz run fuzz_1",
+    "test:fuzz:2": "cd trident-tests && trident fuzz run fuzz_2",
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
     "lint": "prettier */*.js \"*/**/*{.js,.ts}\" --check"
   },

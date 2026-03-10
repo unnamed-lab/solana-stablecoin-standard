@@ -1,26 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Search, Zap, ArrowUp, ArrowDown } from "lucide-react";
 import { STAGGER, FADE_UP, EASE_OUT_EXPO, DepthCard, Tag, CopyBtn, Btn, Spinner, useBreakpoint } from "../Primitives";
 import { oracleApi } from "../../lib/api";
 import { truncAddr } from "../../lib/utils";
+import { useOracleFeeds, useInvalidateOracleFeeds } from "../../lib/queries";
 
-interface FeedEntry { symbol: string; feedType: string; baseCurrency?: string; quoteCurrency?: string; decimals: number; switchboardFeed: string; }
 interface OracleConfig { feedSymbol: string; maxStalenessSecs: number; mintFeeBps: number; redeemFeeBps: number; maxConfidenceBps: number; quoteValiditySecs: number; }
 interface QuoteResult { gross: number; fee: number; net: number; }
 
-const MOCK_FEEDS: FeedEntry[] = [
-  { symbol: "SOL/USD", feedType: "pull", decimals: 9, switchboardFeed: "GvDMxPzN8Hjgc3dqMkY7LtNbLR1VFphHJTkrc4JcFV3" },
-  { symbol: "BTC/USD", feedType: "pull", decimals: 9, switchboardFeed: "8SXvChNYFhRq4EZuZvnhjrB3jF2E7iBxQCJtExV89c7" },
-  { symbol: "ETH/USD", feedType: "pull", decimals: 9, switchboardFeed: "JBu1AL4obBcCMqKBBxhpWCNUt136ijcuMZLFvTP7iWdB" },
-];
-
 export default function OracleView() {
   const isMobile = useBreakpoint();
+  const invalidateOracleFeeds = useInvalidateOracleFeeds();
+  const { data: feeds = [] } = useOracleFeeds();
+
   const [tab, setTab] = useState<"feeds" | "config" | "simulator">("feeds");
-  const [feeds, setFeeds] = useState<FeedEntry[]>(MOCK_FEEDS);
   const [config, setConfig] = useState<OracleConfig | null>(null);
   const [configMint, setConfigMint] = useState("");
   const [loadingConfig, setLoadingConfig] = useState(false);
@@ -37,8 +33,6 @@ export default function OracleView() {
   const [redeemQ, setRedeemQ] = useState({ tokenAmount: "", priceScaled: "", feedType: "pull", redeemFeeBps: "30" });
   const [redeemR, setRedeemR] = useState<QuoteResult | null>(null);
 
-  useEffect(() => { oracleApi.get<FeedEntry[]>("/feeds").then(d => { if (d?.length) setFeeds(d); }).catch(() => {}); }, []);
-
   const fetchConfig = async () => {
     if (!configMint) return;
     setLoadingConfig(true);
@@ -48,7 +42,7 @@ export default function OracleView() {
     setRegLoading(true);
     try {
       await oracleApi.post("/feeds/register", { symbol: rSymbol, feedType: rType, baseCurrency: rBase, quoteCurrency: rQuote, decimals: Number(rDecimals), switchboardFeed: rFeed });
-      setFeeds(f => [...f, { symbol: rSymbol, feedType: rType, baseCurrency: rBase, quoteCurrency: rQuote, decimals: Number(rDecimals), switchboardFeed: rFeed }]);
+      invalidateOracleFeeds();
     } catch { } finally { setRegLoading(false); }
   };
   const handleInitConfig = async () => {
@@ -57,12 +51,20 @@ export default function OracleView() {
     catch { } finally { setInitLoading(false); }
   };
   const simulateMint = async () => {
-    try { setMintR(await oracleApi.getWithQuery<QuoteResult>("/quotes/mint/simulate", { usdCents: mintQ.usdCents, priceScaled: mintQ.priceScaled, feedType: mintQ.feedType, mintFeeBps: mintQ.mintFeeBps })); }
-    catch { const cents = Number(mintQ.usdCents), price = Number(mintQ.priceScaled) || 1e8, fee = Number(mintQ.mintFeeBps); const gross = (cents * 1e6) / price; setMintR({ gross, fee: gross * fee / 10000, net: gross - gross * fee / 10000 }); }
+    try {
+      const res = await oracleApi.getWithQuery<QuoteResult>("/quotes/mint/simulate", { usdCents: mintQ.usdCents, priceScaled: mintQ.priceScaled, feedType: mintQ.feedType, mintFeeBps: mintQ.mintFeeBps });
+      setMintR(res);
+    } catch {
+      setMintR(null);
+    }
   };
   const simulateRedeem = async () => {
-    try { setRedeemR(await oracleApi.getWithQuery<QuoteResult>("/quotes/redeem/simulate", { tokenAmount: redeemQ.tokenAmount, priceScaled: redeemQ.priceScaled, feedType: redeemQ.feedType, redeemFeeBps: redeemQ.redeemFeeBps })); }
-    catch { const tokens = Number(redeemQ.tokenAmount), price = Number(redeemQ.priceScaled) || 1e8, fee = Number(redeemQ.redeemFeeBps); const gross = (tokens * price) / 1e6; setRedeemR({ gross, fee: gross * fee / 10000, net: gross - gross * fee / 10000 }); }
+    try {
+      const res = await oracleApi.getWithQuery<QuoteResult>("/quotes/redeem/simulate", { tokenAmount: redeemQ.tokenAmount, priceScaled: redeemQ.priceScaled, feedType: redeemQ.feedType, redeemFeeBps: redeemQ.redeemFeeBps });
+      setRedeemR(res);
+    } catch {
+      setRedeemR(null);
+    }
   };
 
   const TABS = [{ id: "feeds" as const, l: "Price Feeds" }, { id: "config" as const, l: "Oracle Config" }, { id: "simulator" as const, l: "Simulator" }];

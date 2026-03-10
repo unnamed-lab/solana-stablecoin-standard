@@ -10,7 +10,7 @@ pub mod switchboard;
 use instructions::*;
 use state::*;
 
-declare_id!("4zWRVk1pfuF63XztGceNExpTNKF7EdNsAdyQcxMwb5jU");
+declare_id!("CUKfNWS1uWT29GccLKtGMoRB1sqascAjH7GoEddHSfEi");
 
 #[program]
 pub mod sss_oracle {
@@ -24,10 +24,7 @@ pub mod sss_oracle {
     }
 
     /// Register a new price feed (e.g. BRLUSD, EURUSD, JPYUSD)
-    pub fn register_feed(
-        ctx: Context<RegisterFeed>,
-        params: RegisterFeedParams,
-    ) -> Result<()> {
+    pub fn register_feed(ctx: Context<RegisterFeed>, params: RegisterFeedParams) -> Result<()> {
         instructions::registry::register_feed(ctx, params)
     }
 

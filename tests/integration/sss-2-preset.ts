@@ -209,10 +209,8 @@ describe("SSS-2 Preset Integration — mint → blacklist → seize", () => {
     it("Step 5: Authority freezes suspect account in preparation for seize", async () => {
         expect(sdk, "sdk not initialized").to.exist;
 
-        const tx = await sdk.freeze(authority, suspectAta);
-        expect(tx).to.be.a("string");
-        console.log("  → freeze tx:", tx);
-
+        // blacklistAdd (Step 3) already freezes the target account on-chain,
+        // so we just verify it is frozen rather than attempting a redundant freeze.
         const suspectAccount = await getAccount(
             connection,
             suspectAta,
@@ -220,7 +218,7 @@ describe("SSS-2 Preset Integration — mint → blacklist → seize", () => {
             TOKEN_2022_PROGRAM_ID
         );
         expect(suspectAccount.isFrozen).to.be.true;
-        console.log("  → Account frozen:", suspectAccount.isFrozen);
+        console.log("  → Account already frozen by blacklistAdd:", suspectAccount.isFrozen);
     });
 
     // ─── 6. Seize Tokens from Frozen Blacklisted Account ─────────────────────────

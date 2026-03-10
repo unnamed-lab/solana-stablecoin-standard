@@ -1,12 +1,28 @@
-import { Controller, Get, Query, Res, Header } from '@nestjs/common';
+import { Controller, Get, Query, Header } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
-import { Response } from 'express';
 import { AuditService } from './audit.service';
 
 @ApiTags('Audit')
 @Controller('api/v1/audit-log')
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
+
+  @Get('recent')
+  @ApiOperation({ summary: 'Get recent activity entries for dashboard' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Max number of entries (default: 10, max: 50)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Recent activity entries with timestamp and amount as string',
+  })
+  async getRecentActivities(@Query('limit') limit?: string) {
+    const n = limit ? parseInt(limit, 10) : undefined;
+    return this.auditService.getRecentActivities(n);
+  }
 
   @Get()
   @ApiOperation({ summary: 'Get paginated audit log entries' })

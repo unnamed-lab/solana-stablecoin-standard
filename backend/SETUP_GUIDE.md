@@ -32,20 +32,25 @@ solana-test-validator --ledger ./test-ledger --reset
 
 The backend requires keypairs in **Base58** format for administrative actions (minting, burning, etc.).
 
-### Convert existing JSON keypairs
-Most Solana CLI wallets are stored as JSON arrays. Convert them using the provided utility:
+### Create or Convert JSON keypairs
+Most Solana CLI wallets are stored as JSON arrays. You can use the utility to convert existing keys or **generate and save** new ones if the file doesn't exist:
 
 ```bash
 cd backend
-# Convert admin keypair
-npx ts-node scripts/generate-b58-keypair.ts ../test-keys/admin.json
+# Convert or create admin keypair (it will create the directory if missing)
+npx tsx scripts/generate-b58-keypair.ts ../test-keys/admin.json
 
-# Convert burner or minter keypairs
-npx ts-node scripts/generate-b58-keypair.ts ../test-keys/minter.json
+# Convert or create burner/minter keypairs
+npx tsx scripts/generate-b58-keypair.ts ../test-keys/minter.json
 ```
+
+> [!NOTE]
+> Using `npx tsx` is recommended for local development as it's faster and requires less configuration than `ts-node`.
 
 **Output Example:**
 ```text
+Path not found. Creating directory and generating new keypair at: .../test-keys/admin.json
+✅ Generated and saved NEW Keypair.
 Public Key (Base58): 7H7f...
 Secret Key (Base58): 4R3W...  <-- Use this for .env and API requests
 ```

@@ -10,6 +10,8 @@ import {
 import { useEffect, useState } from "react";
 import { EASE_OUT_EXPO, SPRING_BOUNCY, Tag } from "./Primitives";
 import Image from "next/image";
+import { useBackendConfig, useBackendHealth } from "../lib/queries";
+import { useKeyStore } from "./KeyStoreProvider";
 
 const NAV_ITEMS = [
   { id: "dashboard", href: "/", label: "Overview", icon: <LayoutDashboard size={14} />, group: "ops" },
@@ -29,6 +31,9 @@ interface SidebarProps {
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
+  const { data: config } = useBackendConfig();
+  const { data: health } = useBackendHealth();
+  const { lock, keys } = useKeyStore();
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -113,8 +118,12 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             transition={{ duration: 1.8, repeat: Infinity }}
             style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", flexShrink: 0 }}
           />
-          <span style={{ fontSize: 10, fontFamily: "Geist Mono", fontWeight: 600, color: "var(--accent)" }}>DEVNET</span>
-          <span style={{ marginLeft: "auto", fontSize: 9, color: "var(--sub)", fontFamily: "Geist Mono" }}>≈ 248ms</span>
+          <span style={{ fontSize: 10, fontFamily: "Geist Mono", fontWeight: 600, color: "var(--accent)" }}>
+            {config?.network ?? "MAINNET-BETA"}
+          </span>
+          <span style={{ marginLeft: "auto", fontSize: 9, color: "var(--sub)", fontFamily: "Geist Mono" }}>
+            {health?.latencyMs != null ? `≈ ${health.latencyMs}ms` : "—"}
+          </span>
         </motion.div>
       </div>
 
@@ -197,7 +206,12 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             <p style={{ fontSize: 12, fontWeight: 600 }}>Admin</p>
             <p style={{ fontFamily: "Geist Mono", fontSize: 10, color: "var(--sub)" }}>7xKX…AsU</p>
           </div>
-          <motion.div whileHover={{ color: "var(--danger)" }} style={{ color: "var(--dim)", cursor: "pointer" }}>
+          <motion.div
+            whileHover={{ color: keys ? "var(--danger)" : "var(--dim)" }}
+            onClick={() => keys && lock()}
+            style={{ color: "var(--dim)", cursor: keys ? "pointer" : "default" }}
+            title={keys ? "Lock vault (log out)" : "Vault already locked"}
+          >
             <LogOut size={12} />
           </motion.div>
         </motion.div>

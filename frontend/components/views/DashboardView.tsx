@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Coins, BarChart3, Flame, Users, Eye, EyeOff, ArrowUp, CheckCircle } from "lucide-react";
 import {
@@ -11,27 +11,20 @@ import {
 import { backendApi } from "../../lib/api";
 import { fmt, fmtTime } from "../../lib/utils";
 import { useKeyStore } from "../KeyStoreProvider";
-
-interface Supply { totalSupply: string; maxSupply: string | null; burnSupply: string; decimals: number; }
-interface AuditEntry { action: string; actor: string; amount?: string; txSignature?: string; timestamp: string; }
-interface Info { name: string; symbol: string; mint: string; paused: boolean; preset: string; }
-
-const MOCK_AUDIT: AuditEntry[] = [
-  { action: "MINT", actor: "7xKXtg…AsU", amount: "5000", txSignature: "5Kz7xYpQ1a", timestamp: "2025-01-22T15:04:00Z" },
-  { action: "BURN", actor: "3Kzg7p…BsP", amount: "1200", txSignature: "3wCXURH82b", timestamp: "2025-01-22T14:32:00Z" },
-  { action: "FREEZE", actor: "9mNXtg…CsQ", txSignature: "9pQkLMN23c", timestamp: "2025-01-22T13:15:00Z" },
-  { action: "SEIZE", actor: "5yLKtg…DtR", amount: "850", txSignature: "7rTmVWX44d", timestamp: "2025-01-22T12:00:00Z" },
-  { action: "MINT", actor: "2wMKtg…EuS", amount: "20000", txSignature: "2sPnYZ115e", timestamp: "2025-01-21T18:45:00Z" },
-  { action: "BURN", actor: "8nOKtg…FvT", amount: "300", txSignature: "8qUoAB556f", timestamp: "2025-01-21T16:22:00Z" },
-];
+import { useSupply, useInfo, useHoldersCount, useRecentActivity, useInvalidateDashboard, useBackendConfig, useBackendHealth } from "../../lib/queries";
 
 export default function DashboardView() {
   const isMobile = useBreakpoint();
-  const { keys } = useKeyStore();
-  const [supply, setSupply] = useState<Supply | null>(null);
-  const [info, setInfo] = useState<Info | null>(null);
-  const [holderCount, setHolderCount] = useState(0);
-  const [recentActivity, setRecentActivity] = useState<AuditEntry[]>(MOCK_AUDIT);
+  const { keys } = useKeyStore();   
+  const invalidateDashboard = useInvalidateDashboard();
+
+  const { data: supply } = useSupply();
+  const { data: info } = useInfo();
+  const { data: holderCount = 0 } = useHoldersCount();
+  const { data: recentActivity = [] } = useRecentActivity(6);
+  const { data: config } = useBackendConfig();
+  const { data: health, isSuccess: healthChecked } = useBackendHealth();
+
   const [mintAmt, setMintAmt] = useState("");
   const [showMintKey, setShowMintKey] = useState(false);
   const [loading, setLoading] = useState<"MINT" | "BURN" | null>(null);
@@ -41,14 +34,6 @@ export default function DashboardView() {
   const [burnAmt, setBurnAmt] = useState("");
   const [burnSource, setBurnSource] = useState("");
   const [burnKeypair, setBurnKeypair] = useState("");
-
-  useEffect(() => {
-    backendApi.get<Info>("/info").then(setInfo).catch(() => { });
-    backendApi.get<Supply>("/supply").then(setSupply).catch(() => { });
-    backendApi.get<{ count: number }>("/holders/count").then(r => setHolderCount(r.count)).catch(() => { });
-    backendApi.getWithQuery<{ items: AuditEntry[] }>("/audit-log", { pageSize: "6" })
-      .then(r => { if (r?.items?.length) setRecentActivity(r.items); }).catch(() => { });
-  }, []);
 
   const dec = supply?.decimals ?? 6;
   const symbol = info?.symbol ?? "USDS";
@@ -63,6 +48,7 @@ export default function DashboardView() {
     try {
       const res = await backendApi.post<{ txSignature: string }>("/mint", { recipient: mintRecipient, amount: Number(mintAmt), minterKeypair: finalKeypair });
       setTxBanner({ type: "MINT", sig: res.txSignature });
+      invalidateDashboard();
     } catch { setTxBanner({ type: "MINT", sig: "error" }); } finally { setLoading(null); }
   };
 
@@ -73,6 +59,7 @@ export default function DashboardView() {
     try {
       const res = await backendApi.post<{ txSignature: string }>("/burn", { amount: Number(burnAmt), burnerKeypair: finalKeypair, ...(burnSource ? { source: burnSource } : {}) });
       setTxBanner({ type: "BURN", sig: res.txSignature });
+      invalidateDashboard();
     } catch { setTxBanner({ type: "BURN", sig: "error" }); } finally { setLoading(null); }
   };
 
@@ -83,9 +70,12 @@ export default function DashboardView() {
           <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1 }}>{info?.name ?? "Overview"}</h1>
           <p style={{ color: "var(--sub)", fontSize: 13, marginTop: 6, fontFamily: "Geist Mono" }}>{info?.symbol ?? "Token"} lifecycle · real-time</p>
         </div>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          {healthChecked && !health?.isHealthy && (
+            <Tag variant="red">Backend offline</Tag>
+          )}
           <Tag variant="green" pulse>LIVE</Tag>
-          <Tag variant="dim">DEVNET</Tag>
+          <Tag variant="dim">{config?.network ?? "Mainnet-Beta"}</Tag>
         </div>
       </motion.div>
 
@@ -211,14 +201,14 @@ export default function DashboardView() {
             <Tag variant="dim">{recentActivity.length} events</Tag>
           </div>
           <motion.div variants={STAGGER} initial="hidden" animate="show">
-            {recentActivity.map((r, i) => (
+            {recentActivity.map((r, i: number) => (
               <motion.div key={i} whileHover={{ x: 3, background: "rgba(255,255,255,0.02)" }}
                 style={{ display: "flex", alignItems: "center", gap: isMobile ? 8 : 14, padding: "11px 4px", borderBottom: i < recentActivity.length - 1 ? "1px solid var(--border)" : "none", borderRadius: 6 }}>
-                <ActionBadge action={r.action} />
+                <ActionBadge action={r.action.replaceAll("_", " ")} />
                 {!isMobile && <span style={{ fontFamily: "Geist Mono", fontSize: 11, color: "var(--sub)", flex: 1 }}>{r.actor}</span>}
-                <span style={{ fontFamily: "Geist Mono", fontSize: 11, flex: isMobile ? 1 : undefined }}>{r.amount ? `${Number(r.amount).toLocaleString()} ${symbol}` : <span style={{ color: "var(--dim)" }}>—</span>}</span>
+                <span style={{ fontFamily: "Geist Mono", fontSize: 11, flex: isMobile ? 1 : undefined }}>{r.amount ? `${fmt(r.amount, dec).replace(/,/g, "")} ${symbol}` : <span style={{ color: "var(--dim)" }}>—</span>}</span>
                 {r.txSignature && <TxLink sig={r.txSignature} />}
-                {!isMobile && <span style={{ fontSize: 10, color: "var(--dim)", fontFamily: "Geist Mono", minWidth: 100, textAlign: "right" }}>{fmtTime(r.timestamp)}</span>}
+                {!isMobile && <span style={{ fontSize: 10, color: "var(--dim)", fontFamily: "Geist Mono", minWidth: 100, textAlign: "right" }}>{fmtTime(r.timestamp ?? (r as { createdAt?: string }).createdAt ?? "")}</span>}
               </motion.div>
             ))}
           </motion.div>

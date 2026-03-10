@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/sss_core.json`.
  */
 export type SssCore = {
-  "address": "2Vh56aB6CX2SsHyLVwGQpt8Z9jWqYKNzjf5BXjgM2F5y",
+  "address": "AVKfSdE7SLvR4NzK7C8kcSRK4BauKwSoUApZaUC5US9c",
   "metadata": {
     "name": "sssCore",
     "version": "0.1.0",

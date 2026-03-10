@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/sss_oracle.json`.
  */
 export type SssOracle = {
-  "address": "Brj7RU6jcmWXqCSfBa6o3v5bHS48Z6uDyKZUfG8ZbQoD",
+  "address": "CUKfNWS1uWT29GccLKtGMoRB1sqascAjH7GoEddHSfEi",
   "metadata": {
     "name": "sssOracle",
     "version": "0.1.0",

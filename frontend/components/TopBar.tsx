@@ -6,6 +6,8 @@ import { Globe, Zap, Bell, Menu, Lock, Unlock, ShieldCheck } from "lucide-react"
 import { EASE_OUT_EXPO } from "./Primitives";
 import { useKeyStore } from "./KeyStoreProvider";
 import KeyManagerModal from "./KeyManagerModal";
+import { useBackendConfig } from "../lib/queries";
+import { getOracleDisplayHost } from "../lib/api";
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -15,6 +17,9 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const { keys, hasVault, lock } = useKeyStore();
+  const { data: config } = useBackendConfig();
+  const rpcLabel = config?.rpcEndpoint ?? "api.solana.com";
+  const oracleLabel = getOracleDisplayHost();
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -56,8 +61,8 @@ export default function TopBar({ onMenuClick }: TopBarProps) {
         <div style={{ flex: 1 }} />
 
         {[
-          { icon: <Globe size={11} />, label: "api.solana.com" },
-          { icon: <Zap size={11} />, label: "oracle:3003" },
+          { icon: <Globe size={11} />, label: rpcLabel },
+          { icon: <Zap size={11} />, label: oracleLabel },
         ].map(({ icon, label }) => (
           <motion.div
             key={label}
