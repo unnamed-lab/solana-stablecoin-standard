@@ -1,5 +1,5 @@
 export { registerCreateCommand, registerInfoCommand, registerListCommand, registerUseCommand } from './token';
-export { registerMintCommand, registerBurnCommand, registerFreezeCommand, registerThawCommand } from './operations';
+export { registerMintCommand, registerBurnCommand, registerFreezeCommand, registerThawCommand, registerHoldersCommand } from './operations';
 export {
     registerPauseCommand,
     registerUnpauseCommand,

@@ -225,3 +225,48 @@ export function registerThawCommand(program: Command): void {
             }
         });
 }
+
+export function registerHoldersCommand(program: Command): void {
+    program
+        .command('holders')
+        .description('Get token holders list and count')
+        .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
+        .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
+        .option('--min <amount>', 'Minimum amount to filter largest holders', '0')
+        .action(async (opts) => {
+            const spinner = ora('Fetching holders...').start();
+            try {
+                const mintPubkey = new PublicKey(resolveMint(opts.mint));
+                const network = opts.network as SolanaNetwork;
+                const sdk = await SolanaStablecoin.load(network, mintPubkey);
+
+                const count = await sdk.getHoldersCount();
+                const largestHolders = await sdk.getLargestHolders(parseInt(opts.min));
+
+                spinner.stop();
+                console.log(chalk.bold(`\nTotal Holders: ${count}`));
+                
+                if (largestHolders.length > 0) {
+                    console.log(chalk.bold('\nLargest Holders:'));
+                    largestHolders.forEach((h, i) => {
+                        console.log(`  ${i + 1}. ${h.address.toBase58()} - ${h.uiAmountString != null ? h.uiAmountString : h.amount} tokens`);
+                    });
+                } else {
+                    console.log(chalk.gray('\nNo top holders found matching criteria.'));
+                }
+                console.log();
+            } catch (err) {
+                spinner.fail('Failed to fetch holders');
+                printError('Could not get holders info', err);
+                process.exit(1);
+            }
+        });
+}
+export function registerHolderCommand(program: Command): void{
+    program
+    .command('holder')
+    .description('Holder commands')
+    .action(async () => {
+        
+    })
+}

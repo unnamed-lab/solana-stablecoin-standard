@@ -11,6 +11,7 @@ import {
     registerBurnCommand,
     registerFreezeCommand,
     registerThawCommand,
+    registerHoldersCommand,
     registerPauseCommand,
     registerUnpauseCommand,
     registerAddMinterCommand,
@@ -44,6 +45,7 @@ registerMintCommand(program);
 registerBurnCommand(program);
 registerFreezeCommand(program);
 registerThawCommand(program);
+registerHoldersCommand(program);
 
 // ── Admin & Roles ───────────────────────────────────────────────────────
 registerPauseCommand(program);
