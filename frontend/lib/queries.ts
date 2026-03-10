@@ -1,11 +1,49 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { backendApi } from "./api";
+import { backendApi, getBackendBase } from "./api";
 import { oracleApi } from "./api";
 import type { Supply, Info, AuditEntry, BlacklistEntry } from "@/types";
 
+export interface BackendConfig {
+  network: string;
+  rpcEndpoint: string;
+}
+
+export interface BackendHealth {
+  isHealthy: boolean;
+  latencyMs?: number;
+  status?: string;
+}
+
+const HEALTH_POLL_MS = 5 * 60 * 1000; // 5 minutes
+
+async function fetchBackendConfig() {
+  return backendApi.get<BackendConfig>("/config");
+}
+
+async function fetchBackendHealth(): Promise<BackendHealth> {
+  const base = getBackendBase();
+  const start = Date.now();
+  try {
+    const res = await fetch(`${base}/health`, { method: "GET" });
+    const latencyMs = Date.now() - start;
+    const data = await res.json().catch(() => ({}));
+    const inner = data?.data ?? data;
+    const ok = res.ok && (inner?.status === "ok" || inner?.status === "up");
+    return {
+      isHealthy: !!ok,
+      latencyMs,
+      status: inner?.status ?? data?.status,
+    };
+  } catch {
+    return { isHealthy: false, latencyMs: Date.now() - start };
+  }
+}
+
 const BACKEND_KEYS = {
+  config: ["api", "config"] as const,
+  health: ["api", "health"] as const,
   info: ["api", "info"] as const,
   supply: ["api", "supply"] as const,
   holdersCount: ["api", "holders", "count"] as const,
@@ -109,6 +147,23 @@ export interface FeedEntry {
 async function fetchOracleFeeds() {
   const r = await oracleApi.get<FeedEntry[]>("/feeds");
   return Array.isArray(r) ? r : [];
+}
+
+export function useBackendConfig() {
+  return useQuery({
+    queryKey: BACKEND_KEYS.config,
+    queryFn: fetchBackendConfig,
+    staleTime: 60_000,
+  });
+}
+
+export function useBackendHealth() {
+  return useQuery({
+    queryKey: BACKEND_KEYS.health,
+    queryFn: fetchBackendHealth,
+    refetchInterval: HEALTH_POLL_MS,
+    staleTime: HEALTH_POLL_MS,
+  });
 }
 
 export function useInfo() {

@@ -47,6 +47,7 @@ import { GovernanceModule } from './governance/governance.module';
 
     // Feature modules
     HealthModule,
+    ConfigModule,
     TokenModule,
     ComplianceModule,
     AuditModule,

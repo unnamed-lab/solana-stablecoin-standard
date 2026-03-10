@@ -11,7 +11,7 @@ import {
 import { backendApi } from "../../lib/api";
 import { fmt, fmtTime } from "../../lib/utils";
 import { useKeyStore } from "../KeyStoreProvider";
-import { useSupply, useInfo, useHoldersCount, useRecentActivity, useInvalidateDashboard } from "../../lib/queries";
+import { useSupply, useInfo, useHoldersCount, useRecentActivity, useInvalidateDashboard, useBackendConfig, useBackendHealth } from "../../lib/queries";
 
 export default function DashboardView() {
   const isMobile = useBreakpoint();
@@ -22,6 +22,8 @@ export default function DashboardView() {
   const { data: info } = useInfo();
   const { data: holderCount = 0 } = useHoldersCount();
   const { data: recentActivity = [] } = useRecentActivity(6);
+  const { data: config } = useBackendConfig();
+  const { data: health, isSuccess: healthChecked } = useBackendHealth();
 
   const [mintAmt, setMintAmt] = useState("");
   const [showMintKey, setShowMintKey] = useState(false);
@@ -68,9 +70,12 @@ export default function DashboardView() {
           <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1 }}>{info?.name ?? "Overview"}</h1>
           <p style={{ color: "var(--sub)", fontSize: 13, marginTop: 6, fontFamily: "Geist Mono" }}>{info?.symbol ?? "Token"} lifecycle · real-time</p>
         </div>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+          {healthChecked && !health?.isHealthy && (
+            <Tag variant="red">Backend offline</Tag>
+          )}
           <Tag variant="green" pulse>LIVE</Tag>
-          <Tag variant="dim">Mainnet-Beta</Tag>
+          <Tag variant="dim">{config?.network ?? "Mainnet-Beta"}</Tag>
         </div>
       </motion.div>
 
@@ -199,7 +204,7 @@ export default function DashboardView() {
             {recentActivity.map((r, i) => (
               <motion.div key={i} whileHover={{ x: 3, background: "rgba(255,255,255,0.02)" }}
                 style={{ display: "flex", alignItems: "center", gap: isMobile ? 8 : 14, padding: "11px 4px", borderBottom: i < recentActivity.length - 1 ? "1px solid var(--border)" : "none", borderRadius: 6 }}>
-                <ActionBadge action={r.action} />
+                <ActionBadge action={r.action.replaceAll("_", " ")} />
                 {!isMobile && <span style={{ fontFamily: "Geist Mono", fontSize: 11, color: "var(--sub)", flex: 1 }}>{r.actor}</span>}
                 <span style={{ fontFamily: "Geist Mono", fontSize: 11, flex: isMobile ? 1 : undefined }}>{r.amount ? `${fmt(r.amount, dec).replace(/,/g, "")} ${symbol}` : <span style={{ color: "var(--dim)" }}>—</span>}</span>
                 {r.txSignature && <TxLink sig={r.txSignature} />}

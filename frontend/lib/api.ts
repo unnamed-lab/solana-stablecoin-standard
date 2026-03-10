@@ -1,6 +1,24 @@
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000/api/v1";
 const ORACLE = process.env.NEXT_PUBLIC_ORACLE_URL || "http://localhost:3003";
 
+/** Base URL of the backend (no /api/v1) for health and config. */
+export function getBackendBase(): string {
+  try {
+    return new URL(BACKEND).origin;
+  } catch {
+    return "http://localhost:4000";
+  }
+}
+
+/** Oracle host for display (e.g. "localhost:3003"). */
+export function getOracleDisplayHost(): string {
+  try {
+    return new URL(ORACLE).host;
+  } catch {
+    return "oracle:3003";
+  }
+}
+
 async function apiFetch<T>(base: string, path: string, opts?: RequestInit, includeMeta?: boolean): Promise<T> {
   const res = await fetch(`${base}${path}`, {
     headers: { "Content-Type": "application/json" },
