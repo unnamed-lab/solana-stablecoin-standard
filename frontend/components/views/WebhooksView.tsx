@@ -1,22 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Trash2, ChevronRight } from "lucide-react";
 import { STAGGER, FADE_UP, SPRING_SNAPPY, EASE_OUT_EXPO, DepthCard, Tag, Modal, Btn, Spinner, useBreakpoint } from "../Primitives";
 import { backendApi } from "../../lib/api";
+import { useWebhooks, useInvalidateWebhooks } from "../../lib/queries";
 
 interface Webhook { id: string; url: string; events: string[]; active: boolean; }
-const MOCK_WEBHOOKS: Webhook[] = [
-  { id: "wh_1", url: "https://api.myservice.com/solana/hook", events: ["Minted", "Burned"], active: true },
-  { id: "wh_2", url: "https://monitor.example.io/events",    events: ["*"],                active: true },
-  { id: "wh_3", url: "https://legacy.oldapp.com/webhook",    events: ["Seized"],           active: false },
-];
 const ALL_EVENTS = ["Minted", "Burned", "Seized", "PausedEvent"];
 
 export default function WebhooksView() {
   const isMobile = useBreakpoint();
-  const [hooks, setHooks] = useState<Webhook[]>(MOCK_WEBHOOKS);
+  const invalidateWebhooks = useInvalidateWebhooks();
+  const { data: hooks = [] } = useWebhooks();
+
   const [createModal, setCreateModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -25,29 +23,29 @@ export default function WebhooksView() {
   const [newSecret, setNewSecret] = useState("");
   const [newEvents, setNewEvents] = useState<string[]>([]);
 
-  useEffect(() => {
-    backendApi.get<Webhook[]>("/webhooks").then(d => { if (d?.length) setHooks(d); }).catch(() => {});
-  }, []);
-
   const toggleActive = async (id: string) => {
-    const wh = hooks.find(w => w.id === id);
+    const wh = hooks.find((w: Webhook) => w.id === id);
     if (!wh) return;
-    try { await backendApi.put(`/webhooks/${id}`, { active: !wh.active }); } catch { }
-    setHooks(h => h.map(w => w.id === id ? { ...w, active: !w.active } : w));
+    try {
+      await backendApi.put(`/webhooks/${id}`, { active: !wh.active });
+      invalidateWebhooks();
+    } catch { }
   };
   const handleCreate = async () => {
     setLoading(true);
     try {
       const events = newEvents.length === 0 ? ["*"] : newEvents;
-      const created = await backendApi.post<Webhook>("/webhooks", { url: newUrl, events, secret: newSecret, active: true });
-      setHooks(h => [...h, created ?? { id: `wh_${Date.now()}`, url: newUrl, events, active: true }]);
+      await backendApi.post<Webhook>("/webhooks", { url: newUrl, events, secret: newSecret, active: true });
+      invalidateWebhooks();
       setCreateModal(false); setNewUrl(""); setNewSecret(""); setNewEvents([]);
     } catch { } finally { setLoading(false); }
   };
   const handleDelete = async (id: string) => {
     setLoading(true);
-    try { await backendApi.delete(`/webhooks/${id}`); } catch { }
-    setHooks(h => h.filter(w => w.id !== id));
+    try {
+      await backendApi.delete(`/webhooks/${id}`);
+      invalidateWebhooks();
+    } catch { }
     setLoading(false); setDeleteModal(null);
   };
   const toggleEvent = (e: string) => setNewEvents(prev => prev.includes(e) ? prev.filter(x => x !== e) : [...prev, e]);

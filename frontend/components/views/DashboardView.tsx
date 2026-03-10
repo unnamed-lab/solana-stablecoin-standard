@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Coins, BarChart3, Flame, Users, Eye, EyeOff, ArrowUp, CheckCircle } from "lucide-react";
 import {
@@ -11,16 +11,18 @@ import {
 import { backendApi } from "../../lib/api";
 import { fmt, fmtTime } from "../../lib/utils";
 import { useKeyStore } from "../KeyStoreProvider";
-import { Supply, AuditEntry, Info } from "@/types";
-
+import { useSupply, useInfo, useHoldersCount, useRecentActivity, useInvalidateDashboard } from "../../lib/queries";
 
 export default function DashboardView() {
   const isMobile = useBreakpoint();
   const { keys } = useKeyStore();
-  const [supply, setSupply] = useState<Supply | null>(null);
-  const [info, setInfo] = useState<Info | null>(null);
-  const [holderCount, setHolderCount] = useState(0);
-  const [recentActivity, setRecentActivity] = useState<AuditEntry[]>([]);
+  const invalidateDashboard = useInvalidateDashboard();
+
+  const { data: supply } = useSupply();
+  const { data: info } = useInfo();
+  const { data: holderCount = 0 } = useHoldersCount();
+  const { data: recentActivity = [] } = useRecentActivity(6);
+
   const [mintAmt, setMintAmt] = useState("");
   const [showMintKey, setShowMintKey] = useState(false);
   const [loading, setLoading] = useState<"MINT" | "BURN" | null>(null);
@@ -30,14 +32,6 @@ export default function DashboardView() {
   const [burnAmt, setBurnAmt] = useState("");
   const [burnSource, setBurnSource] = useState("");
   const [burnKeypair, setBurnKeypair] = useState("");
-
-  useEffect(() => {
-    backendApi.get<Info>("/info").then(setInfo).catch(() => { });
-    backendApi.get<Supply>("/supply").then(setSupply).catch(() => { });
-    backendApi.get<{ count: number }>("/holders/count").then(r => setHolderCount(r.count)).catch(() => { });
-    backendApi.getWithQuery<{ items: AuditEntry[] }>("/audit-log", { pageSize: "6" })
-      .then(r => { if (r?.items?.length) setRecentActivity(r.items); }).catch(() => { });
-  }, []);
 
   const dec = supply?.decimals ?? 6;
   const symbol = info?.symbol ?? "USDS";
@@ -52,6 +46,7 @@ export default function DashboardView() {
     try {
       const res = await backendApi.post<{ txSignature: string }>("/mint", { recipient: mintRecipient, amount: Number(mintAmt), minterKeypair: finalKeypair });
       setTxBanner({ type: "MINT", sig: res.txSignature });
+      invalidateDashboard();
     } catch { setTxBanner({ type: "MINT", sig: "error" }); } finally { setLoading(null); }
   };
 
@@ -62,6 +57,7 @@ export default function DashboardView() {
     try {
       const res = await backendApi.post<{ txSignature: string }>("/burn", { amount: Number(burnAmt), burnerKeypair: finalKeypair, ...(burnSource ? { source: burnSource } : {}) });
       setTxBanner({ type: "BURN", sig: res.txSignature });
+      invalidateDashboard();
     } catch { setTxBanner({ type: "BURN", sig: "error" }); } finally { setLoading(null); }
   };
 
@@ -205,9 +201,9 @@ export default function DashboardView() {
                 style={{ display: "flex", alignItems: "center", gap: isMobile ? 8 : 14, padding: "11px 4px", borderBottom: i < recentActivity.length - 1 ? "1px solid var(--border)" : "none", borderRadius: 6 }}>
                 <ActionBadge action={r.action} />
                 {!isMobile && <span style={{ fontFamily: "Geist Mono", fontSize: 11, color: "var(--sub)", flex: 1 }}>{r.actor}</span>}
-                <span style={{ fontFamily: "Geist Mono", fontSize: 11, flex: isMobile ? 1 : undefined }}>{r.amount ? `${Number(r.amount).toLocaleString()} ${symbol}` : <span style={{ color: "var(--dim)" }}>—</span>}</span>
+                <span style={{ fontFamily: "Geist Mono", fontSize: 11, flex: isMobile ? 1 : undefined }}>{r.amount ? `${fmt(r.amount, dec).replace(/,/g, "")} ${symbol}` : <span style={{ color: "var(--dim)" }}>—</span>}</span>
                 {r.txSignature && <TxLink sig={r.txSignature} />}
-                {!isMobile && <span style={{ fontSize: 10, color: "var(--dim)", fontFamily: "Geist Mono", minWidth: 100, textAlign: "right" }}>{fmtTime(r.timestamp)}</span>}
+                {!isMobile && <span style={{ fontSize: 10, color: "var(--dim)", fontFamily: "Geist Mono", minWidth: 100, textAlign: "right" }}>{fmtTime(r.timestamp ?? (r as { createdAt?: string }).createdAt ?? "")}</span>}
               </motion.div>
             ))}
           </motion.div>

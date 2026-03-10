@@ -9,6 +9,27 @@ export class AuditService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
+   * Get recent activity entries (for dashboard widget).
+   * Returns last N entries with a stable shape for the frontend (timestamp, amount as string).
+   */
+  async getRecentActivities(limit = 10) {
+    const pageSize = Math.min(50, Math.max(1, limit));
+    const entries = await this.prisma.auditLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: pageSize,
+    });
+    return {
+      data: entries.map((e) => ({
+        action: e.action,
+        actor: e.actor,
+        amount: e.amount != null ? e.amount.toString() : undefined,
+        txSignature: e.txSignature,
+        timestamp: e.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  /**
    * Get paginated audit log entries.
    */
   async getAuditLog(params: {

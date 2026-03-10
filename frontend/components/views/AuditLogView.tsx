@@ -1,43 +1,38 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download } from "lucide-react";
 import { STAGGER, FADE_UP, FADE_RIGHT, DepthCard, Tag, TxLink, ActionBadge, Btn, Pagination, useBreakpoint } from "../Primitives";
-import { backendApi, downloadCsv } from "../../lib/api";
+import { downloadCsv } from "../../lib/api";
 import { fmt, fmtTime } from "../../lib/utils";
-import { Supply, Info } from "@/types";
+import { useAuditLog, useInfo, useSupply } from "../../lib/queries";
 
 interface AuditEntry { action: string; actor: string; amount?: string; txSignature?: string; timestamp: string; }
 
+const PAGE_SIZE = 50;
+
 export default function AuditLogView() {
   const isMobile = useBreakpoint();
-  const [entries, setEntries] = useState<AuditEntry[]>([]);
-  const [total, setTotal] = useState(6);
-  const [supply, setSupply] = useState<Supply | null>(null);
   const [actionFilter, setActionFilter] = useState("");
   const [actorFilter, setActorFilter] = useState("");
   const [mintFilter, setMintFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [symbol, setSymbol] = useState("USDS");
-  const PAGE_SIZE = 50;
 
-  useEffect(() => {
-    backendApi.get<{ symbol: string }>("/info").then(i => { setSymbol(i.symbol); }).catch(() => { });
-    backendApi.get<Supply>("/supply").then(setSupply).catch(() => { });
-  }, []);
+  const { data: info } = useInfo();
+  const { data: supply } = useSupply();
+  const { data: auditData } = useAuditLog({
+    action: actionFilter || undefined,
+    actor: actorFilter || undefined,
+    mint: mintFilter || undefined,
+    page,
+    pageSize: PAGE_SIZE,
+  });
 
+  const entries = auditData?.data ?? [];
+  const total = auditData?.total ?? 0;
+  const symbol = info?.symbol ?? "USDS";
   const dec = supply?.decimals ?? 6;
-
-  useEffect(() => {
-    const q: Record<string, string> = { page: String(page), pageSize: String(PAGE_SIZE) };
-    if (actionFilter) q.action = actionFilter;
-    if (actorFilter) q.actor = actorFilter;
-    if (mintFilter) q.mint = mintFilter;
-    backendApi.getWithQuery<{ data: AuditEntry[], meta: { total: number } }>("/audit-log", q, true)
-      .then(r => { if (r?.data?.length) { setEntries(r.data); setTotal(r.meta.total); } })
-      .catch(() => { });
-  }, [actionFilter, actorFilter, mintFilter, page]);
 
   const handleExport = () => {
     const q: Record<string, string> = {};
@@ -46,8 +41,7 @@ export default function AuditLogView() {
     downloadCsv("/audit-log/export", q);
   };
 
-  const displayEntries = entries.length > 0 ? entries
-    : [];
+  const displayEntries = entries;
 
   return (
     <motion.div variants={STAGGER} initial="hidden" animate="show" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -102,7 +96,7 @@ export default function AuditLogView() {
                 <span style={{ fontFamily: "Geist Mono", fontSize: 11, color: "var(--sub)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.actor}</span>
                 {!isMobile && <span style={{ fontFamily: "Geist Mono", fontSize: 11 }}>{r.amount ? `${fmt(r.amount, dec).replace(/,/g, "")} ${symbol}` : <span style={{ color: "var(--dim)" }}>—</span>}</span>}
                 {r.txSignature ? <TxLink sig={r.txSignature} /> : <span style={{ color: "var(--dim)", fontSize: 11, fontFamily: "Geist Mono" }}>—</span>}
-                {!isMobile && <span style={{ fontFamily: "Geist Mono", fontSize: 10, color: "var(--dim)" }}>{fmtTime(r.timestamp)}</span>}
+                {!isMobile && <span style={{ fontFamily: "Geist Mono", fontSize: 10, color: "var(--dim)" }}>{fmtTime(r.timestamp ?? (r as { createdAt?: string }).createdAt ?? "")}</span>}
               </motion.div>
             ))}
           </motion.div>

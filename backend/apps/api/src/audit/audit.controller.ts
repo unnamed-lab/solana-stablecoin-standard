@@ -8,6 +8,23 @@ import { AuditService } from './audit.service';
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
+  @Get('recent')
+  @ApiOperation({ summary: 'Get recent activity entries for dashboard' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Max number of entries (default: 10, max: 50)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Recent activity entries with timestamp and amount as string',
+  })
+  async getRecentActivities(@Query('limit') limit?: string) {
+    const n = limit ? parseInt(limit, 10) : undefined;
+    return this.auditService.getRecentActivities(n);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get paginated audit log entries' })
   @ApiQuery({

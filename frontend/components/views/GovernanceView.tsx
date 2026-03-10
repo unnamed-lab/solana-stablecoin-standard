@@ -1,73 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Landmark, ArrowUpRight, Flame, KeyRound, Globe, Pencil } from "lucide-react";
-import { STAGGER, FADE_UP, DepthCard, Tag, TxLink, Btn, ActionBadge, Spinner, KeypairWarning } from "../Primitives";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowUpRight, Flame, KeyRound, Globe, Pencil } from "lucide-react";
+import { STAGGER, FADE_UP, DepthCard, Tag, Btn, Spinner, KeypairWarning } from "../Primitives";
 import { backendApi } from "../../lib/api";
-import { fmtTime } from "../../lib/utils";
 import { useKeyStore } from "../KeyStoreProvider";
-
-interface Proposal {
-    id: string; // The base58 string
-    proposer: string;
-    status: string; // "PENDING", "APPROVED", "EXECUTED", "CANCELLED"
-    eta: number;
-    approvalCount: number;
-    threshold: number;
-    action: {
-        type: "MintTo" | "Seize" | "UpdateRoles" | "DelegateToDao";
-        amount?: string;
-        to?: string;
-        from?: string;
-        details?: string;
-    };
-}
+import { useGovernanceProposals, useInvalidateGovernance, type Proposal } from "../../lib/queries";
 
 export default function GovernanceView() {
     const { keys } = useKeyStore();
-    const [proposals, setProposals] = useState<Proposal[]>([]);
-    const [loading, setLoading] = useState(true);
+    const invalidateGovernance = useInvalidateGovernance();
 
-    // New Proposal Form State
+    const { data: proposals = [], isLoading: loading } = useGovernanceProposals();
+
     const [actionType, setActionType] = useState<"MintTo" | "Seize" | "UpdateRoles" | "DelegateToDao">("MintTo");
     const [amount, setAmount] = useState("");
     const [recipient, setRecipient] = useState("");
     const [targetAccount, setTargetAccount] = useState("");
     const [submitLoading, setSubmitLoading] = useState(false);
     const [formKeypair, setFormKeypair] = useState("");
-
     const [actingOn, setActingOn] = useState<string | null>(null);
-
-    useEffect(() => {
-        fetchProposals();
-    }, []);
-
-    const fetchProposals = async () => {
-        try {
-            // In a real app, this should map to your GET /api/v1/governance/proposals endpoint
-            // Using mock data for UI display if backend doesn't return immediately
-            const res = await backendApi.get<{ items: Proposal[] }>("/governance/proposals");
-            if (res?.items) {
-                setProposals(res.items);
-            }
-        } catch (e) {
-            console.warn("Failed to fetch proposals", e);
-            // Fallback UI
-            setProposals([
-                {
-                    id: "3wCXURH82b...URH8", proposer: "7xKXtg…AsU", status: "PENDING", eta: Date.now() / 1000 + 86400, approvalCount: 1, threshold: 3,
-                    action: { type: "MintTo", amount: "500000000", to: "9mNXtg…CsQ" }
-                },
-                {
-                    id: "5Kz7xYpQ1a...xYpQ", proposer: "3Kzg7p…BsP", status: "EXECUTED", eta: Date.now() / 1000 - 86400, approvalCount: 3, threshold: 3,
-                    action: { type: "UpdateRoles", details: "New Pauser: 5yLKtg…DtR" }
-                }
-            ]);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handlePropose = async () => {
         const signer = keys?.governanceKeypair || formKeypair;
@@ -92,7 +45,7 @@ export default function GovernanceView() {
 
             await backendApi.post("/governance/propose", payload);
             setAmount(""); setRecipient(""); setTargetAccount("");
-            fetchProposals();
+            invalidateGovernance();
         } catch (e) {
             console.error(e);
             alert("Failed to create proposal");
@@ -111,7 +64,7 @@ export default function GovernanceView() {
         setActingOn(proposalId);
         try {
             await backendApi.post(`/governance/approve/${proposalId}`, { signerKeypair: signer });
-            fetchProposals();
+            invalidateGovernance();
         } catch (e) {
             console.error(e);
             alert("Failed to approve proposal");
@@ -141,7 +94,7 @@ export default function GovernanceView() {
                     <DepthCard>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
                             <p style={{ fontWeight: 700, fontSize: 15 }}>Proposals</p>
-                            <Btn variant="ghost" onClick={fetchProposals} disabled={loading} style={{ padding: "4px 10px", fontSize: 11 }}>
+                            <Btn variant="ghost" onClick={() => invalidateGovernance()} disabled={loading} style={{ padding: "4px 10px", fontSize: 11 }}>
                                 {loading ? "Loading..." : "Refresh"}
                             </Btn>
                         </div>

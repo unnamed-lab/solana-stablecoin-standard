@@ -1,31 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Filter, ExternalLink } from "lucide-react";
 import { STAGGER, FADE_UP, FADE_RIGHT, EASE_OUT_EXPO, CountUp, DepthCard, Tag, CopyBtn, useBreakpoint } from "../Primitives";
-import { backendApi } from "../../lib/api";
 import { truncAddr } from "../../lib/utils";
+import { useSupply, useHoldersCount, useHoldersLargest } from "../../lib/queries";
 
 interface Holder { address: string; amount: string; decimals: number; uiAmount: number; uiAmountString: string; }
-
 
 export default function HoldersView() {
   const isMobile = useBreakpoint();
   const [minAmt, setMinAmt] = useState("");
-  const [holders, setHolders] = useState<Holder[]>([]);
-  const [count, setCount] = useState(1500);
-  const [totalSupply, setTotalSupply] = useState("125000000000000");
 
-  useEffect(() => {
-    backendApi.get<{ totalSupply: string }>("/supply").then(s => setTotalSupply(s.totalSupply)).catch(() => { });
-    const q: Record<string, string> = {};
-    if (minAmt) q.minAmount = minAmt;
-    backendApi.getWithQuery<Holder[]>("/holders/largest", q).then(d => { if (d?.length) setHolders(d); }).catch(() => { });
-    backendApi.get<{ count: number }>("/holders/count").then(r => setCount(r.count)).catch(() => { });
-  }, [minAmt]);
+  const { data: supply } = useSupply();
+  const { data: count = 0 } = useHoldersCount();
+  const { data: holders = [] } = useHoldersLargest(minAmt || undefined);
 
-  const filtered = minAmt ? holders.filter(h => Number(h.amount) >= Number(minAmt)) : holders;
+  const totalSupply = supply?.totalSupply ?? "0";
+  const filtered = minAmt ? (holders as Holder[]).filter(h => Number(h.amount) >= Number(minAmt)) : (holders as Holder[]);
 
   return (
     <motion.div variants={STAGGER} initial="hidden" animate="show" style={{ display: "flex", flexDirection: "column", gap: 24 }}>

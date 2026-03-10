@@ -1,22 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Lock, Unlock, Search, AlertTriangle, CheckCircle, XCircle } from "lucide-react";
 import {
   STAGGER, FADE_UP, FADE_RIGHT, EASE_OUT_EXPO,
-  DepthCard, Tag, CopyBtn, Modal, Btn, Spinner, useBreakpoint
+  DepthCard, Tag, CopyBtn, Modal, Btn, Spinner, KeypairWarning, useBreakpoint
 } from "../Primitives";
 import { backendApi } from "../../lib/api";
 import { truncAddr, fmtTime } from "../../lib/utils";
 import { useKeyStore } from "../KeyStoreProvider";
-import { BlacklistEntry } from "@/types";
+import { useBlacklist, useInvalidateBlacklist, useInvalidateDashboard } from "../../lib/queries";
 
 export default function ComplianceView() {
   const isMobile = useBreakpoint();
   const { keys } = useKeyStore();
+  const invalidateBlacklist = useInvalidateBlacklist();
+  const invalidateDashboard = useInvalidateDashboard();
+
+  const { data: blacklist = [] } = useBlacklist();
+
   const [tab, setTab] = useState<"blacklist" | "check" | "seize">("blacklist");
-  const [blacklist, setBlacklist] = useState<BlacklistEntry[]>([]);
   const [addModal, setAddModal] = useState(false);
   const [removeModal, setRemoveModal] = useState<string | null>(null);
   const [seizeModal, setSeizeModal] = useState(false);
@@ -34,10 +38,6 @@ export default function ComplianceView() {
   const [seizeKeypair, setSeizeKeypair] = useState("");
   const [removeKeypair, setRemoveKeypair] = useState("");
 
-  useEffect(() => {
-    backendApi.get<BlacklistEntry[]>("/blacklist").then(d => { if (d?.length) setBlacklist(d); }).catch(() => { });
-  }, []);
-
   const handleCheck = async () => {
     try { const r = await backendApi.get<{ blacklisted: boolean }>(`/blacklist/check/${checkAddr}`); setCheckResult(r.blacklisted ? "blacklisted" : "clean"); }
     catch { setCheckResult("clean"); }
@@ -48,7 +48,7 @@ export default function ComplianceView() {
     setLoading(true);
     try {
       await backendApi.post("/blacklist", { address: addAddress, reason: addReason, blacklisterKeypair: finalKeypair });
-      setBlacklist(b => [...b, { address: addAddress, reason: addReason, timestamp: new Date().toISOString() }]);
+      invalidateBlacklist();
       setAddModal(false); setAddAddress(""); setAddReason(""); setAddKeypair("");
     } catch { } finally { setLoading(false); }
   };
@@ -58,7 +58,7 @@ export default function ComplianceView() {
     setLoading(true);
     try {
       await backendApi.delete(`/blacklist/${removeModal}`, { blacklisterKeypair: finalKeypair });
-      setBlacklist(b => b.filter(e => e.address !== removeModal));
+      invalidateBlacklist();
       setRemoveModal(null); setRemoveKeypair("");
     } catch { } finally { setLoading(false); }
   };
@@ -68,6 +68,7 @@ export default function ComplianceView() {
     setLoading(true);
     try {
       await backendApi.post("/seize", { from: seizeFrom, to: seizeTo, amount: Number(seizeAmt), reason: seizeReason, seizerKeypair: finalKeypair });
+      invalidateDashboard();
       setSeizeModal(false); setSeizeText("");
     } catch { } finally { setLoading(false); }
   };
@@ -192,7 +193,10 @@ export default function ComplianceView() {
                       ✓ Provided by Secure Vault
                     </div>
                   ) : (
-                    <input className="input" type="password" placeholder="Base58 keypair…" value={seizeKeypair} onChange={e => setSeizeKeypair(e.target.value)} />
+                    <>
+                      <input className="input" type="password" placeholder="Base58 keypair…" value={seizeKeypair} onChange={e => setSeizeKeypair(e.target.value)} />
+                      <KeypairWarning />
+                    </>
                   )}
                 </div>
                 <Btn variant="danger" onClick={() => setSeizeModal(true)} style={{ width: "100%", justifyContent: "center", marginTop: 4, borderRadius: 9, padding: "10px" }}>
@@ -227,7 +231,10 @@ export default function ComplianceView() {
               ✓ Provided by Secure Vault
             </div>
           ) : (
-            <input className="input" type="password" placeholder="Base58 keypair…" value={addKeypair} onChange={e => setAddKeypair(e.target.value)} />
+            <>
+              <input className="input" type="password" placeholder="Base58 keypair…" value={addKeypair} onChange={e => setAddKeypair(e.target.value)} />
+              <KeypairWarning />
+            </>
           )}
         </div>
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 6 }}>
@@ -247,7 +254,10 @@ export default function ComplianceView() {
               ✓ Provided by Secure Vault
             </div>
           ) : (
-            <input className="input" type="password" placeholder="Base58 keypair…" value={removeKeypair} onChange={e => setRemoveKeypair(e.target.value)} />
+            <>
+              <input className="input" type="password" placeholder="Base58 keypair…" value={removeKeypair} onChange={e => setRemoveKeypair(e.target.value)} />
+              <KeypairWarning />
+            </>
           )}
         </div>
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
