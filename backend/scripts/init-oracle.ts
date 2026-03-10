@@ -17,7 +17,7 @@ async function run() {
     const authority = Keypair.fromSecretKey(bs58.decode(secretKey));
 
     // 3. Load Program ID from .env
-    const programIdStr = process.env.ORACLE_PROGRAM_ID || 'Brj7RU6jcmWXqCSfBa6o3v5bHS48Z6uDyKZUfG8ZbQoD';
+    const programIdStr = process.env.ORACLE_PROGRAM_ID || 'CUKfNWS1uWT29GccLKtGMoRB1sqascAjH7GoEddHSfEi';
     const programId = new PublicKey(programIdStr);
 
     console.log(`Target Network: ${network}`);

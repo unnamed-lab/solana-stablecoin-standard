@@ -10,20 +10,13 @@ import {
 import { backendApi } from "../../lib/api";
 import { truncAddr, fmtTime } from "../../lib/utils";
 import { useKeyStore } from "../KeyStoreProvider";
-
-interface BlacklistEntry { address: string; reason: string; timestamp: string; }
-
-const MOCK_BLACKLIST: BlacklistEntry[] = [
-  { address: "Bad1xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU", reason: "Sanctioned entity — OFAC list", timestamp: "2025-01-15T10:23:00Z" },
-  { address: "Bad23Kzg7p3CW87d97TXJSDpbD5jBkhe3qA83TZRuJosgBs", reason: "Suspected wash trading", timestamp: "2025-01-18T14:05:00Z" },
-  { address: "Bad39mNXtg2CW87d97TXJSDpbD5jBkhe3qA83TZRuJosgCs", reason: "KYC failure — frozen pending", timestamp: "2025-01-22T09:11:00Z" },
-];
+import { BlacklistEntry } from "@/types";
 
 export default function ComplianceView() {
   const isMobile = useBreakpoint();
   const { keys } = useKeyStore();
   const [tab, setTab] = useState<"blacklist" | "check" | "seize">("blacklist");
-  const [blacklist, setBlacklist] = useState<BlacklistEntry[]>(MOCK_BLACKLIST);
+  const [blacklist, setBlacklist] = useState<BlacklistEntry[]>([]);
   const [addModal, setAddModal] = useState(false);
   const [removeModal, setRemoveModal] = useState<string | null>(null);
   const [seizeModal, setSeizeModal] = useState(false);

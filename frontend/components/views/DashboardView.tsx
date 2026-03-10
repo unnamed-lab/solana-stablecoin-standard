@@ -11,19 +11,8 @@ import {
 import { backendApi } from "../../lib/api";
 import { fmt, fmtTime } from "../../lib/utils";
 import { useKeyStore } from "../KeyStoreProvider";
+import { Supply, AuditEntry, Info } from "@/types";
 
-interface Supply { totalSupply: string; maxSupply: string | null; burnSupply: string; decimals: number; }
-interface AuditEntry { action: string; actor: string; amount?: string; txSignature?: string; timestamp: string; }
-interface Info { name: string; symbol: string; mint: string; paused: boolean; preset: string; }
-
-const MOCK_AUDIT: AuditEntry[] = [
-  { action: "MINT", actor: "7xKXtg…AsU", amount: "5000", txSignature: "5Kz7xYpQ1a", timestamp: "2025-01-22T15:04:00Z" },
-  { action: "BURN", actor: "3Kzg7p…BsP", amount: "1200", txSignature: "3wCXURH82b", timestamp: "2025-01-22T14:32:00Z" },
-  { action: "FREEZE", actor: "9mNXtg…CsQ", txSignature: "9pQkLMN23c", timestamp: "2025-01-22T13:15:00Z" },
-  { action: "SEIZE", actor: "5yLKtg…DtR", amount: "850", txSignature: "7rTmVWX44d", timestamp: "2025-01-22T12:00:00Z" },
-  { action: "MINT", actor: "2wMKtg…EuS", amount: "20000", txSignature: "2sPnYZ115e", timestamp: "2025-01-21T18:45:00Z" },
-  { action: "BURN", actor: "8nOKtg…FvT", amount: "300", txSignature: "8qUoAB556f", timestamp: "2025-01-21T16:22:00Z" },
-];
 
 export default function DashboardView() {
   const isMobile = useBreakpoint();
@@ -31,7 +20,7 @@ export default function DashboardView() {
   const [supply, setSupply] = useState<Supply | null>(null);
   const [info, setInfo] = useState<Info | null>(null);
   const [holderCount, setHolderCount] = useState(0);
-  const [recentActivity, setRecentActivity] = useState<AuditEntry[]>(MOCK_AUDIT);
+  const [recentActivity, setRecentActivity] = useState<AuditEntry[]>([]);
   const [mintAmt, setMintAmt] = useState("");
   const [showMintKey, setShowMintKey] = useState(false);
   const [loading, setLoading] = useState<"MINT" | "BURN" | null>(null);
