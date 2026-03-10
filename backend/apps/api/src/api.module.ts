@@ -13,6 +13,7 @@ import { ComplianceModule } from './compliance/compliance.module';
 import { AuditModule } from './audit/audit.module';
 import { WebhookConfigModule } from './webhook-config/webhook-config.module';
 import { GovernanceModule } from './governance/governance.module';
+import { ConfigModule as ConfigControllerModule } from './config/config.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { GovernanceModule } from './governance/governance.module';
     AuditModule,
     WebhookConfigModule,
     GovernanceModule,
+    ConfigControllerModule,
   ],
   providers: [
     {
