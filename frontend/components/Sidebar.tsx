@@ -10,13 +10,13 @@ import {
 import { useEffect, useState } from "react";
 import { EASE_OUT_EXPO, SPRING_BOUNCY, Tag } from "./Primitives";
 import Image from "next/image";
-import { useBackendConfig, useBackendHealth } from "../lib/queries";
+import { useBackendConfig, useBackendHealth, useBlacklist } from "../lib/queries";
 import { useKeyStore } from "./KeyStoreProvider";
 
 const NAV_ITEMS = [
   { id: "dashboard", href: "/", label: "Overview", icon: <LayoutDashboard size={14} />, group: "ops" },
   { id: "holders", href: "/holders", label: "Holders", icon: <Users size={14} />, group: "ops" },
-  { id: "compliance", href: "/compliance", label: "Compliance", icon: <Shield size={14} />, group: "ops", badge: "3" },
+  { id: "compliance", href: "/compliance", label: "Compliance", icon: <Shield size={14} />, group: "ops" },
   { id: "governance", href: "/governance", label: "Governance", icon: <Landmark size={14} />, group: "ops" },
   { id: "audit", href: "/audit-log", label: "Audit Log", icon: <FileText size={14} />, group: "sys" },
   { id: "webhooks", href: "/webhooks", label: "Webhooks", icon: <Webhook size={14} />, group: "sys" },
@@ -33,6 +33,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const [isMobile, setIsMobile] = useState(false);
   const { data: config } = useBackendConfig();
   const { data: health } = useBackendHealth();
+  const { data: blacklist } = useBlacklist();
   const { lock, keys } = useKeyStore();
 
   useEffect(() => {
@@ -166,7 +167,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                     )}
                     <span style={{ opacity: active ? 1 : 0.6 }}>{item.icon}</span>
                     {item.label}
-                    {item.badge && (
+                    {(item.id === "compliance" ? (blacklist?.length ? String(blacklist.length) : undefined) : null) && (
                       <motion.span
                         animate={{ scale: [1, 1.15, 1] }}
                         transition={{ duration: 2.5, repeat: Infinity }}
@@ -176,7 +177,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                           padding: "2px 6px", fontFamily: "Geist Mono", fontWeight: 700
                         }}
                       >
-                        {item.badge}
+                        {item.id === "compliance" ? String(blacklist?.length) : null}
                       </motion.span>
                     )}
                   </motion.div>

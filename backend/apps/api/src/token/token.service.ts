@@ -170,22 +170,12 @@ export class TokenService {
   async getMintersList(): Promise<Array<{ pubkey: string; note: string; }>> {
     try {
       const sdk = await this.sdkService.getSdk();
-      const info = await sdk.getInfo();
+      const minters = await sdk.getMinters();
 
-      // TODO - SSS1 / SSS2 basic extraction. In advanced forms, we pull exact rules or extensions.
-      // Current SDK getInfo typically returns basic context. Let's return the generalized info.
-      // Without explicit export of complex fetchers, we map the available info.
-
-      const minters: Array<{ pubkey: string; note: string; }> = [];
-      if (info.mint) {
-        // Generic response until complex SSS metadata indexing triggers
-        minters.push({
-          pubkey: info.mint.toBase58(),
-          note: "Primary mint context (full tracking reliant on off-chain hooks)"
-        });
-      }
-
-      return minters;
+      return minters.map((m) => ({
+        pubkey: m.minter.toBase58(),
+        note: `Quota: ${m.quota} | Active: ${m.isActive}`,
+      }));
     } catch (err) {
       this.logger.error("Failed to fetch minter list", err);
       return [];

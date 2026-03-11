@@ -67,3 +67,23 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       NODE_ENV: production
+
+  oracle:
+    build:
+      context: ../
+      dockerfile: backend/apps/oracle/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+    depends_on:
+      redis: { condition: service_healthy }
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file: .env
+    environment:
+      # Override DATABASE_URL to point at host Postgres from inside Docker
+      DATABASE_URL: postgresql://postgres:admin@host.docker.internal:5432/sss?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      NODE_ENV: production
+      PORT: 4001

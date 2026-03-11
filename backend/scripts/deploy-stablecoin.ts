@@ -39,6 +39,7 @@ async function main() {
     console.log(`🔑 Loading authority from ${keypairPath}`);
     const keyData = JSON.parse(fs.readFileSync(keypairPath, 'utf-8'));
     authority = Keypair.fromSecretKey(new Uint8Array(keyData));
+    console.log({privateKey: authority.secretKey.toString()})
   } else if (process.env.ADMIN_WALLET_SECRET_KEY) {
     console.log('🔑 Loading authority from process.env.ADMIN_WALLET_SECRET_KEY');
     authority = Keypair.fromSecretKey(bs58.decode(process.env.ADMIN_WALLET_SECRET_KEY));
@@ -100,6 +101,7 @@ async function main() {
     (bs58 as unknown as { default: { encode: (a: Uint8Array) => string } })
       .default.encode;
   const authoritySecretB58 = encode(authority.secretKey);
+  console.log({ authoritySecretB58 })
 
   console.log('\n── Paste these into your backend .env ──────────────');
   console.log(`MINT_ADDRESS=${mintAddress.toBase58()}`);

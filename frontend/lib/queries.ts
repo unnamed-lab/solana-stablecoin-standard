@@ -166,10 +166,15 @@ export function useBackendHealth() {
   });
 }
 
+const DEFAULT_STALE_TIME = 10_000;
+const DEFAULT_GC_TIME = 20_000;
+
 export function useInfo() {
   return useQuery({
     queryKey: BACKEND_KEYS.info,
     queryFn: fetchInfo,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -177,6 +182,8 @@ export function useSupply() {
   return useQuery({
     queryKey: BACKEND_KEYS.supply,
     queryFn: fetchSupply,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -184,6 +191,8 @@ export function useHoldersCount() {
   return useQuery({
     queryKey: BACKEND_KEYS.holdersCount,
     queryFn: fetchHoldersCount,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -191,6 +200,8 @@ export function useHoldersLargest(minAmount?: string) {
   return useQuery({
     queryKey: BACKEND_KEYS.holdersLargest(minAmount),
     queryFn: () => fetchHoldersLargest(minAmount),
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -198,6 +209,8 @@ export function useRecentActivity(limit = 6) {
   return useQuery({
     queryKey: BACKEND_KEYS.recentActivity(limit),
     queryFn: () => fetchRecentActivity(limit),
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -205,6 +218,8 @@ export function useAuditLog(params: AuditLogParams) {
   return useQuery({
     queryKey: BACKEND_KEYS.auditLog(params),
     queryFn: () => fetchAuditLog(params),
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -212,6 +227,8 @@ export function useBlacklist() {
   return useQuery({
     queryKey: BACKEND_KEYS.blacklist,
     queryFn: fetchBlacklist,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -219,6 +236,8 @@ export function useWebhooks() {
   return useQuery({
     queryKey: BACKEND_KEYS.webhooks,
     queryFn: fetchWebhooks,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -226,6 +245,8 @@ export function useGovernanceProposals() {
   return useQuery({
     queryKey: BACKEND_KEYS.governanceProposals,
     queryFn: fetchGovernanceProposals,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -233,6 +254,8 @@ export function useOracleFeeds() {
   return useQuery({
     queryKey: BACKEND_KEYS.oracleFeeds,
     queryFn: fetchOracleFeeds,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 

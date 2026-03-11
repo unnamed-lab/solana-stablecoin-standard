@@ -36,7 +36,7 @@ export default function DashboardView() {
   const [burnKeypair, setBurnKeypair] = useState("");
 
   const dec = supply?.decimals ?? 6;
-  const symbol = info?.symbol ?? "USDS";
+  const symbol = info?.symbol ?? "XXX";
   const totalSupplyNum = supply ? Number(fmt(supply.totalSupply, dec).replace(/,/g, "")) : 0;
   const maxSupplyNum = supply?.maxSupply ? Number(fmt(supply.maxSupply, dec).replace(/,/g, "")) : 0;
   const burnedNum = supply ? Number(fmt(supply.burnSupply, dec).replace(/,/g, "")) : 0;
@@ -74,16 +74,18 @@ export default function DashboardView() {
           {healthChecked && !health?.isHealthy && (
             <Tag variant="red">Backend offline</Tag>
           )}
-          <Tag variant="green" pulse>LIVE</Tag>
+          {healthChecked && health?.isHealthy && (
+            <Tag variant="green" pulse>LIVE</Tag>
+          )}
           <Tag variant="dim">{config?.network ?? "Mainnet-Beta"}</Tag>
         </div>
       </motion.div>
 
       <motion.div variants={STAGGER} style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 14, alignItems: "stretch" }}>
-        <StatCard label="Total Supply" value={<CountUp to={totalSupplyNum} />} unit={symbol} icon={<Coins size={15} />} accent="purple" change={2.4} />
+        <StatCard label="Total Supply" value={<CountUp to={totalSupplyNum} />} unit={symbol} icon={<Coins size={15} />} accent="purple" />
         <StatCard label="Max Supply" value={<CountUp to={maxSupplyNum} />} unit={symbol} icon={<BarChart3 size={15} />} />
-        <StatCard label="Total Burned" value={<CountUp to={burnedNum} />} unit={symbol} icon={<Flame size={15} />} accent="red" change={-0.8} />
-        <StatCard label="Holders" value={<CountUp to={holderCount} />} unit="accounts" icon={<Users size={15} />} accent="green" change={5.1} />
+        <StatCard label="Total Burned" value={<CountUp to={burnedNum} />} unit={symbol} icon={<Flame size={15} />} accent="red" />
+        <StatCard label="Holders" value={<CountUp to={holderCount} />} unit="accounts" icon={<Users size={15} />} accent="green" />
       </motion.div>
 
       <AnimatePresence>
@@ -170,7 +172,20 @@ export default function DashboardView() {
               </div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div><label className="label">Amount (base units)</label><input className="input" type="number" placeholder="1000000" value={burnAmt} onChange={e => setBurnAmt(e.target.value)} /></div>
+              <div>
+                <label className="label">Amount (base units)</label>
+                <div style={{ position: "relative" }}>
+                  <input className="input" type="number" placeholder="1000000" value={burnAmt} onChange={e => setBurnAmt(e.target.value)} style={{ paddingRight: 90 }} />
+                  <AnimatePresence>
+                    {burnAmt && (
+                      <motion.span initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                        style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "var(--danger)", fontFamily: "Geist Mono", pointerEvents: "none" }}>
+                        = {(Number(burnAmt) / Math.pow(10, dec)).toFixed(2)} {symbol}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
               <div><label className="label">Source Account <span style={{ textTransform: "none", letterSpacing: 0, fontWeight: 400, color: "var(--dim)" }}>(optional)</span></label><input className="input" placeholder="Defaults to burner ATA…" value={burnSource} onChange={e => setBurnSource(e.target.value)} /></div>
               <div>
                 <label className="label">Burner Keypair</label>

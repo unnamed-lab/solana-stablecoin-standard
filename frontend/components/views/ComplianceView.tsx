@@ -8,9 +8,9 @@ import {
   DepthCard, Tag, CopyBtn, Modal, Btn, Spinner, KeypairWarning, useBreakpoint
 } from "../Primitives";
 import { backendApi } from "../../lib/api";
-import { truncAddr, fmtTime } from "../../lib/utils";
+import { truncAddr, fmtTime, fmt } from "../../lib/utils";
 import { useKeyStore } from "../KeyStoreProvider";
-import { useBlacklist, useInvalidateBlacklist, useInvalidateDashboard } from "../../lib/queries";
+import { useBlacklist, useInvalidateBlacklist, useInvalidateDashboard, useSupply, useInfo } from "../../lib/queries";
 
 export default function ComplianceView() {
   const isMobile = useBreakpoint();
@@ -37,6 +37,11 @@ export default function ComplianceView() {
   const [seizeReason, setSeizeReason] = useState("");
   const [seizeKeypair, setSeizeKeypair] = useState("");
   const [removeKeypair, setRemoveKeypair] = useState("");
+
+  const { data: supply } = useSupply();
+  const { data: info } = useInfo();
+  const dec = supply?.decimals ?? 6;
+  const symbol = info?.symbol ?? "XXX";
 
   const handleCheck = async () => {
     try { const r = await backendApi.get<{ blacklisted: boolean }>(`/blacklist/check/${checkAddr}`); setCheckResult(r.blacklisted ? "blacklisted" : "clean"); }
@@ -178,12 +183,24 @@ export default function ComplianceView() {
                 </div>
                 {[{ label: "From (frozen account)", ph: "Frozen token account…", val: seizeFrom, set: setSeizeFrom },
                 { label: "To (destination)", ph: "Destination account…", val: seizeTo, set: setSeizeTo },
-                { label: "Amount (base units)", ph: "e.g. 1000000", val: seizeAmt, set: setSeizeAmt, type: "number" },
+                { label: "Amount (base units)", ph: "e.g. 1000000", val: seizeAmt, set: setSeizeAmt, type: "number", adornment: true },
                 { label: "Reason (max 200 chars)", ph: "Legal justification…", val: seizeReason, set: setSeizeReason },
                 ].map((f, i) => (
                   <div key={i} style={{ marginBottom: 12 }}>
                     <label className="label">{f.label}</label>
-                    <input className="input" placeholder={f.ph} type={f.type || "text"} value={f.val} onChange={e => f.set(e.target.value)} />
+                    <div style={{ position: "relative" }}>
+                      <input className="input" placeholder={f.ph} type={f.type || "text"} value={f.val} onChange={e => f.set(e.target.value)} style={f.adornment ? { paddingRight: 90 } : undefined} />
+                      {f.adornment && (
+                        <AnimatePresence>
+                          {f.val && (
+                            <motion.span initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
+                              style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "var(--danger)", fontFamily: "Geist Mono", pointerEvents: "none" }}>
+                              = {(Number(f.val) / Math.pow(10, dec)).toFixed(2)} {symbol}
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      )}
+                    </div>
                   </div>
                 ))}
                 <div style={{ marginBottom: 12 }}>

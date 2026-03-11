@@ -976,15 +976,46 @@ export class SolanaStablecoin {
         uiAmountString?: string;
     }>> {
         const response = await this.connection.getTokenLargestAccounts(this.mintAddress);
-        return response.value
-            .filter((account) => Number(account.amount) >= minAmount)
-            .map((account) => ({
-                address: account.address,
+        const holders = response.value.filter((account) => Number(account.amount) >= minAmount);
+
+        // Fetch parsed account info to get the actual wallet owner of the token account
+        const accountsToFetch = holders.map((h) => h.address);
+        const parsedAccounts = await this.connection.getMultipleParsedAccounts(accountsToFetch);
+
+        return holders.map((account, index) => {
+            const parsedData = parsedAccounts.value[index]?.data as any;
+            const ownerString = parsedData?.parsed?.info?.owner;
+            const address = ownerString ? new PublicKey(ownerString) : account.address;
+
+            return {
+                address,
                 amount: account.amount,
                 decimals: account.decimals,
                 uiAmount: account.uiAmount,
                 uiAmountString: account.uiAmountString,
-            }));
+            };
+        });
+    }
+
+    /**
+     * Get all minters for this stablecoin from on-chain minter configs.
+     * 
+     * @returns Array of minter authorities and their quotas.
+     */
+    async getMinters(): Promise<Array<{ minter: PublicKey, isActive: boolean, quota: number }>> {
+        const minters = await this.readProgram.account.minterConfig.all([
+            {
+                memcmp: {
+                    offset: 8, // 8 byte discriminator
+                    bytes: this.mintAddress.toBase58(),
+                }
+            }
+        ]);
+        return minters.map((m) => ({
+            minter: m.account.minter,
+            isActive: m.account.isActive,
+            quota: m.account.quotaPerPeriod.toNumber(),
+        }));
     }
 
     /**

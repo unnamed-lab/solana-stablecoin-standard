@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Filter, ExternalLink } from "lucide-react";
 import { STAGGER, FADE_UP, FADE_RIGHT, EASE_OUT_EXPO, CountUp, DepthCard, Tag, CopyBtn, useBreakpoint } from "../Primitives";
 import { truncAddr } from "../../lib/utils";
-import { useSupply, useHoldersCount, useHoldersLargest } from "../../lib/queries";
+import { useSupply, useHoldersCount, useHoldersLargest, useBackendConfig } from "../../lib/queries";
 
 interface Holder { address: string; amount: string; decimals: number; uiAmount: number; uiAmountString: string; }
 
@@ -16,6 +16,11 @@ export default function HoldersView() {
   const { data: supply } = useSupply();
   const { data: count = 0 } = useHoldersCount();
   const { data: holders = [] } = useHoldersLargest(minAmt || undefined);
+  const { data: config } = useBackendConfig();
+
+  const clusterParam = config?.network && config.network !== "mainnet-beta" && config.network !== "mainnet"
+    ? `?cluster=${config.network}`
+    : "";
 
   const totalSupply = supply?.totalSupply ?? "0";
   const filtered = minAmt ? (holders as Holder[]).filter(h => Number(h.amount) >= Number(minAmt)) : (holders as Holder[]);
@@ -56,7 +61,7 @@ export default function HoldersView() {
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <span style={{ fontFamily: "Geist Mono", fontSize: 12 }}>{truncAddr(h.address)}</span>
                     <CopyBtn value={h.address} />
-                    <motion.a whileHover={{ color: "var(--primary)" }} href={`https://solscan.io/account/${h.address}`} target="_blank" rel="noreferrer" style={{ color: "var(--dim)" }}>
+                    <motion.a whileHover={{ color: "var(--primary)" }} href={`https://solscan.io/account/${h.address}${clusterParam}`} target="_blank" rel="noreferrer" style={{ color: "var(--dim)" }}>
                       <ExternalLink size={10} />
                     </motion.a>
                   </div>

@@ -1,31 +1,37 @@
-# apps/api/Dockerfile
 FROM node:20-slim AS builder
-
 WORKDIR /app
 
-# 1. Build SDK
-COPY sdk/package.json sdk/yarn.lock ./sdk/
-RUN cd sdk && yarn install --frozen-lockfile
-COPY sdk ./sdk
-RUN cd sdk && npx tsc
+# Copy root workspace manifest + the ONE lock file
+COPY package.json yarn.lock ./
 
-# 2. Build Backend
-COPY backend/package.json backend/yarn.lock ./backend/
-WORKDIR /app/backend
+# Copy each workspace's package.json so Yarn can resolve the graph
+COPY sdk/package.json ./sdk/
+COPY backend/package.json ./backend/
+
+# Install everything from root (hoisted, uses root yarn.lock)
 RUN yarn install --frozen-lockfile
 
-# Copy the rest of backend
-COPY backend .
+# Copy source
+COPY sdk ./sdk
+COPY backend ./backend
+
+# Build SDK first
+RUN cd sdk && npx tsc
+
+# Generate Prisma client (skip migrate during build — no DB at build time)
+WORKDIR /app/backend
 RUN npx prisma generate
-RUN yarn build:api
+# Call nest directly to bypass yarn lifecycle scripts (prebuild runs prisma migrate
+# which requires a live DB — not available at image build time)
+RUN npx nest build api
 
 FROM node:20-slim AS runner
 WORKDIR /app/backend
-COPY --from=builder /app/backend/dist ./dist
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules /app/node_modules
 COPY --from=builder /app/backend/node_modules ./node_modules
 COPY --from=builder /app/backend/prisma ./prisma
 COPY --from=builder /app/backend/generated ./generated
 COPY --from=builder /app/sdk /app/sdk
-
-EXPOSE 3000
+EXPOSE 4000
 CMD ["node", "dist/apps/api/main.js"]

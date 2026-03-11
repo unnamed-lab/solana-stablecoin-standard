@@ -22,6 +22,10 @@ export default function GovernanceView() {
     const [formKeypair, setFormKeypair] = useState("");
     const [actingOn, setActingOn] = useState<string | null>(null);
 
+    const [roleToUpdate, setRoleToUpdate] = useState("newMasterAuthority");
+    const [newRoleAddress, setNewRoleAddress] = useState("");
+    const [programId, setProgramId] = useState("");
+
     const handlePropose = async () => {
         const signer = keys?.governanceKeypair || formKeypair;
         if (!signer) return;
@@ -41,10 +45,17 @@ export default function GovernanceView() {
                 payload.params.amount = Number(amount);
                 payload.params.from = targetAccount;
                 payload.params.to = recipient;
+            } else if (actionType === "UpdateRoles") {
+                if (roleToUpdate && newRoleAddress) {
+                    payload.params[roleToUpdate] = newRoleAddress;
+                }
+            } else if (actionType === "DelegateToDao") {
+                payload.params.programId = programId;
             }
 
             await backendApi.post("/governance/propose", payload);
             setAmount(""); setRecipient(""); setTargetAccount("");
+            setNewRoleAddress(""); setProgramId("");
             invalidateGovernance();
         } catch (e) {
             console.error(e);
@@ -190,6 +201,34 @@ export default function GovernanceView() {
                                 <div>
                                     <label className="label">Recipient (To)</label>
                                     <input type="text" className="input" value={recipient} onChange={e => setRecipient(e.target.value)} placeholder="Base58 Wallet" />
+                                </div>
+                            )}
+
+                            {actionType === "UpdateRoles" && (
+                                <>
+                                    <div>
+                                        <label className="label">Role to Update</label>
+                                        <select className="input" value={roleToUpdate} onChange={e => setRoleToUpdate(e.target.value)}>
+                                            <option value="newMasterAuthority">Master Authority</option>
+                                            <option value="newPauser">Pauser</option>
+                                            <option value="newMinterAuthority">Minter Authority</option>
+                                            <option value="newBurner">Burner</option>
+                                            <option value="newBlacklister">Blacklister</option>
+                                            <option value="newSeizer">Seizer</option>
+                                            <option value="newHookAuthority">Hook Authority</option>
+                                        </select>
+                                    </div>
+                                    <div style={{ marginTop: 14 }}>
+                                        <label className="label">New Address</label>
+                                        <input type="text" className="input" value={newRoleAddress} onChange={e => setNewRoleAddress(e.target.value)} placeholder="Base58 Wallet" />
+                                    </div>
+                                </>
+                            )}
+
+                            {actionType === "DelegateToDao" && (
+                                <div>
+                                    <label className="label">DAO Program ID</label>
+                                    <input type="text" className="input" value={programId} onChange={e => setProgramId(e.target.value)} placeholder="Base58 SP22 Program Address" />
                                 </div>
                             )}
 

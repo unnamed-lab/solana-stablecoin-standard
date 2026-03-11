@@ -24,6 +24,7 @@ import {
   Copy, CheckCircle, ExternalLink, ArrowUp, ArrowDown,
   RefreshCw, AlertTriangle, XCircle
 } from "lucide-react";
+import { useBackendConfig } from "../lib/queries";
 
 /* ── Easing / Spring constants ──────────────────────────────────── */
 export const EASE_OUT_EXPO: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -254,40 +255,33 @@ export const StatCard = ({ label, value, unit, icon, accent, change }: StatCardP
         </p>
         <p style={{ fontSize: 11, color: "var(--sub)", marginTop: 6, fontFamily: "Geist Mono" }}>{unit}</p>
       </div>
-
-      {/* Change badge — pushed to bottom so cards align */}
-      <div style={{ marginTop: 12, minHeight: 20 }}>
-        {change !== undefined && (
-          <div style={{
-            display: "flex", alignItems: "center", gap: 5, fontSize: 11,
-            color: change > 0 ? "var(--accent)" : "var(--danger)"
-          }}>
-            {change > 0 ? <ArrowUp size={11} /> : <ArrowDown size={11} />}
-            <span style={{ fontFamily: "Geist Mono" }}>{Math.abs(change)}%</span>
-            <span style={{ color: "var(--sub)" }}>vs 24h</span>
-          </div>
-        )}
-      </div>
     </DepthCard>
   </motion.div>
 );
 
 
 /* ── Tx link ─────────────────────────────────────────────────────── */
-export const TxLink = ({ sig }: { sig: string }) => (
-  <motion.a
-    href={`https://solscan.io/tx/${sig}`}
-    target="_blank"
-    rel="noreferrer"
-    whileHover={{ color: "#A88BFF" }}
-    style={{
-      color: "var(--primary)", display: "inline-flex", alignItems: "center",
-      gap: 3, fontSize: 11, fontFamily: "Geist Mono, monospace", textDecoration: "none"
-    }}
-  >
-    {sig.slice(0, 8)}… <ExternalLink size={9} />
-  </motion.a>
-);
+export const TxLink = ({ sig }: { sig: string }) => {
+  const { data: config } = useBackendConfig();
+  const clusterParam = config?.network && config.network !== "mainnet-beta" && config.network !== "mainnet"
+    ? `?cluster=${config.network}`
+    : "";
+
+  return (
+    <motion.a
+      href={`https://solscan.io/tx/${sig}${clusterParam}`}
+      target="_blank"
+      rel="noreferrer"
+      whileHover={{ color: "#A88BFF" }}
+      style={{
+        color: "var(--primary)", display: "inline-flex", alignItems: "center",
+        gap: 3, fontSize: 11, fontFamily: "Geist Mono, monospace", textDecoration: "none"
+      }}
+    >
+      {sig.slice(0, 8)}… <ExternalLink size={9} />
+    </motion.a>
+  );
+};
 
 /* ── Copy button ─────────────────────────────────────────────────── */
 export const CopyBtn = ({ value }: { value: string }) => {
