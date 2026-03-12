@@ -211,8 +211,36 @@ export class ComplianceModule {
     ): Promise<string> {
         const program = this.buildProgram(authority);
 
+        // Resolve 'from': if it's a wallet address, derive ATA
+        let sourceAccount = from;
+        const fromInfo = await this.connection.getAccountInfo(from);
+        const isFromToken = fromInfo?.owner?.equals(TOKEN_2022_PROGRAM_ID);
+        if (!isFromToken) {
+            const { getAssociatedTokenAddressSync } = await import('@solana/spl-token');
+            sourceAccount = getAssociatedTokenAddressSync(
+                this.mint,
+                from,
+                false,
+                TOKEN_2022_PROGRAM_ID,
+            );
+        }
+
+        // Resolve 'to': if it's a wallet address, derive ATA
+        let destinationAccount = to;
+        const toInfo = await this.connection.getAccountInfo(to);
+        const isToToken = toInfo?.owner?.equals(TOKEN_2022_PROGRAM_ID);
+        if (!isToToken) {
+            const { getAssociatedTokenAddressSync } = await import('@solana/spl-token');
+            destinationAccount = getAssociatedTokenAddressSync(
+                this.mint,
+                to,
+                false,
+                TOKEN_2022_PROGRAM_ID,
+            );
+        }
+
         const [seizureRecord] = PublicKey.findProgramAddressSync(
-            [Buffer.from("sss-seizure"), this.mint.toBuffer(), from.toBuffer()],
+            [Buffer.from("sss-seizure"), this.mint.toBuffer(), sourceAccount.toBuffer()],
             this.programId,
         );
 
@@ -222,8 +250,8 @@ export class ComplianceModule {
                 seizer: authority.publicKey,
                 config: this.config,
                 seizureRecord,
-                sourceAccount: from,
-                destinationAccount: to,
+                sourceAccount,
+                destinationAccount,
                 mint: this.mint,
                 systemProgram: SystemProgram.programId,
                 tokenProgram: TOKEN_2022_PROGRAM_ID,

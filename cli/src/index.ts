@@ -48,6 +48,8 @@ registerBurnCommand(program);
 registerFreezeCommand(program);
 registerThawCommand(program);
 registerHoldersCommand(program);
+registerDeleteAllCommand(program);
+registerDeleteCommand(program);
 
 // ── Admin & Roles ───────────────────────────────────────────────────────
 registerPauseCommand(program);

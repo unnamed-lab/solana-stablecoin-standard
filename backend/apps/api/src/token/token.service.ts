@@ -1,12 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { BlockchainService, SdkService } from '@app/blockchain';
-import { PublicKey, Transaction } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import { PrismaService } from '@app/database';
-import {
-  getAssociatedTokenAddressSync,
-  createAssociatedTokenAccountInstruction,
-  TOKEN_2022_PROGRAM_ID,
-} from '@solana/spl-token';
 import { MintDto } from './dto/mint.dto';
 import { BurnDto } from './dto/burn.dto';
 
@@ -37,41 +32,9 @@ export class TokenService {
     const minter = this.sdkService.decodeKeypair(dto.minterKeypair);
     const recipientWallet = new PublicKey(dto.recipient);
 
-    // Derive the Token-2022 ATA for this wallet + mint
-    const recipientAta = getAssociatedTokenAddressSync(
-      sdk.mintAddress,
-      recipientWallet,
-      false,
-      TOKEN_2022_PROGRAM_ID,
-    );
-
-    // Create the ATA if it doesn't exist yet
-    const connection = this.blockchainService.getConnection();
-    const ataInfo = await connection.getAccountInfo(recipientAta);
-    if (!ataInfo) {
-      this.logger.log(`Creating ATA for ${dto.recipient}...`);
-      const createAtaTx = new Transaction().add(
-        createAssociatedTokenAccountInstruction(
-          minter.publicKey, // payer
-          recipientAta,
-          recipientWallet,
-          sdk.mintAddress,
-          TOKEN_2022_PROGRAM_ID,
-        ),
-      );
-      const latestBlockhash = await connection.getLatestBlockhash();
-      createAtaTx.recentBlockhash = latestBlockhash.blockhash;
-      createAtaTx.feePayer = minter.publicKey;
-      createAtaTx.sign(minter);
-      const ataSignature = await connection.sendRawTransaction(
-        createAtaTx.serialize(),
-      );
-      await connection.confirmTransaction(ataSignature, 'confirmed');
-      this.logger.log(`✅ ATA created: ${recipientAta.toBase58()}`);
-    }
-
+    // The SDK now handles ATA derivation and creation automatically
     const txSignature = await sdk.mint({
-      recipient: recipientAta,
+      recipient: recipientWallet,
       amount: dto.amount,
       minter,
     });
@@ -92,22 +55,11 @@ export class TokenService {
     const sdk = await this.sdkService.getSdk();
     const burner = this.sdkService.decodeKeypair(dto.burnerKeypair);
 
-    // Derive the source ATA — either from the supplied address or the burner's wallet
-    const sourceWallet = dto.source
-      ? new PublicKey(dto.source)
-      : burner.publicKey;
-
-    const sourceAta = getAssociatedTokenAddressSync(
-      sdk.mintAddress,
-      sourceWallet,
-      false,
-      TOKEN_2022_PROGRAM_ID,
-    );
-
+    // The SDK now handles wallet-to-ATA derivation automatically
     const txSignature = await sdk.burn({
       amount: dto.amount,
       burner,
-      source: sourceAta,
+      source: dto.source ? new PublicKey(dto.source) : undefined,
     });
 
     this.logger.log(`✅ Burn tx: ${txSignature}`);

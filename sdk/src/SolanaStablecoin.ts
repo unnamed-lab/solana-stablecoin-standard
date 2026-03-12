@@ -4,6 +4,7 @@ import {
     Keypair,
     SystemProgram,
     SYSVAR_RENT_PUBKEY,
+    Transaction,
 } from '@solana/web3.js';
 import {
     Program,
@@ -13,6 +14,7 @@ import {
 import {
     TOKEN_2022_PROGRAM_ID,
     getAssociatedTokenAddressSync,
+    createAssociatedTokenAccountInstruction,
     transferChecked,
     getMint,
 } from '@solana/spl-token';
@@ -349,6 +351,45 @@ export class SolanaStablecoin {
     async mint(params: MintParams): Promise<string> {
         const program = this.buildProgram(params.minter); // ✅ minter signs
 
+        // Resolve recipient: if it's a wallet address (not a token account),
+        // derive the Token-2022 ATA and create it if it doesn't exist.
+        let destination = params.recipient;
+        const recipientInfo = await this.connection.getAccountInfo(destination);
+        const isExistingTokenAccount = recipientInfo?.owner?.equals(TOKEN_2022_PROGRAM_ID);
+
+        if (!isExistingTokenAccount) {
+            // Treat recipient as a wallet address — derive ATA
+            const recipientWallet = destination;
+            destination = getAssociatedTokenAddressSync(
+                this.mintAddress,
+                recipientWallet,
+                false,
+                TOKEN_2022_PROGRAM_ID,
+            );
+
+            // Create the ATA if it doesn't exist yet
+            const ataInfo = await this.connection.getAccountInfo(destination);
+            if (!ataInfo) {
+                const createAtaTx = new Transaction().add(
+                    createAssociatedTokenAccountInstruction(
+                        params.minter.publicKey, // payer
+                        destination,
+                        recipientWallet,
+                        this.mintAddress,
+                        TOKEN_2022_PROGRAM_ID,
+                    ),
+                );
+                const latestBlockhash = await this.connection.getLatestBlockhash();
+                createAtaTx.recentBlockhash = latestBlockhash.blockhash;
+                createAtaTx.feePayer = params.minter.publicKey;
+                createAtaTx.sign(params.minter);
+                const ataSignature = await this.connection.sendRawTransaction(
+                    createAtaTx.serialize(),
+                );
+                await this.connection.confirmTransaction(ataSignature, 'confirmed');
+            }
+        }
+
         const [minterConfig] = PublicKey.findProgramAddressSync(
             [Buffer.from("sss-minter"), this.mintAddress.toBuffer(), params.minter.publicKey.toBuffer()],
             program.programId,
@@ -361,7 +402,7 @@ export class SolanaStablecoin {
                 config: this.config,
                 minterConfig,
                 mint: this.mintAddress,
-                destination: params.recipient,
+                destination,
                 tokenProgram: TOKEN_2022_PROGRAM_ID,
             } as any)
             .signers([params.minter])
@@ -393,13 +434,31 @@ export class SolanaStablecoin {
     async burn(params: BurnParams): Promise<string> {
         const program = this.buildProgram(params.burner); // ✅ burner signs
 
-        const source = params.source
-            || getAssociatedTokenAddressSync(
+        let source: PublicKey;
+        if (params.source) {
+            // Check if the provided source is a token account or a wallet address
+            const sourceInfo = await this.connection.getAccountInfo(params.source);
+            const isTokenAccount = sourceInfo?.owner?.equals(TOKEN_2022_PROGRAM_ID);
+            if (isTokenAccount) {
+                source = params.source;
+            } else {
+                // Treat it as a wallet address — derive the ATA
+                source = getAssociatedTokenAddressSync(
+                    this.mintAddress,
+                    params.source,
+                    false,
+                    TOKEN_2022_PROGRAM_ID,
+                );
+            }
+        } else {
+            // Default to the burner's own ATA
+            source = getAssociatedTokenAddressSync(
                 this.mintAddress,
                 params.burner.publicKey,
                 false,
                 TOKEN_2022_PROGRAM_ID,
             );
+        }
 
         return await program.methods
             .burn(new BN(params.amount))
@@ -443,12 +502,61 @@ export class SolanaStablecoin {
             TOKEN_2022_PROGRAM_ID,
         );
 
+        // Resolve fromAta: if it's a wallet address, derive ATA
+        let fromAta = params.fromAta;
+        const fromInfo = await this.connection.getAccountInfo(fromAta);
+        const isFromToken = fromInfo?.owner?.equals(TOKEN_2022_PROGRAM_ID);
+        if (!isFromToken) {
+            fromAta = getAssociatedTokenAddressSync(
+                this.mintAddress,
+                params.fromAta,
+                false,
+                TOKEN_2022_PROGRAM_ID,
+            );
+        }
+
+        // Resolve toAta: if it's a wallet address, derive ATA and create if needed
+        let toAta = params.toAta;
+        const toInfo = await this.connection.getAccountInfo(toAta);
+        const isToToken = toInfo?.owner?.equals(TOKEN_2022_PROGRAM_ID);
+        if (!isToToken) {
+            const recipientWallet = toAta;
+            toAta = getAssociatedTokenAddressSync(
+                this.mintAddress,
+                recipientWallet,
+                false,
+                TOKEN_2022_PROGRAM_ID,
+            );
+
+            // Create the ATA if it doesn't exist yet
+            const ataInfo = await this.connection.getAccountInfo(toAta);
+            if (!ataInfo) {
+                const createAtaTx = new Transaction().add(
+                    createAssociatedTokenAccountInstruction(
+                        params.sender.publicKey,
+                        toAta,
+                        recipientWallet,
+                        this.mintAddress,
+                        TOKEN_2022_PROGRAM_ID,
+                    ),
+                );
+                const latestBlockhash = await this.connection.getLatestBlockhash();
+                createAtaTx.recentBlockhash = latestBlockhash.blockhash;
+                createAtaTx.feePayer = params.sender.publicKey;
+                createAtaTx.sign(params.sender);
+                const ataSignature = await this.connection.sendRawTransaction(
+                    createAtaTx.serialize(),
+                );
+                await this.connection.confirmTransaction(ataSignature, 'confirmed');
+            }
+        }
+
         const sig = await transferChecked(
             this.connection,
             params.sender,            // payer & signer
-            params.fromAta,           // source ATA
+            fromAta,                  // source ATA
             this.mintAddress,         // mint
-            params.toAta,             // destination ATA
+            toAta,                    // destination ATA
             params.sender.publicKey,  // owner of source ATA
             BigInt(params.amount),
             mintInfo.decimals,        // actual mint decimals
@@ -477,12 +585,25 @@ export class SolanaStablecoin {
     async freeze(authority: Keypair, account: PublicKey): Promise<string> {
         const program = this.buildProgram(authority); // ✅ authority signs
 
+        // Resolve: if account is a wallet address (not a token account), derive ATA
+        let tokenAccount = account;
+        const accountInfo = await this.connection.getAccountInfo(account);
+        const isTokenAccount = accountInfo?.owner?.equals(TOKEN_2022_PROGRAM_ID);
+        if (!isTokenAccount) {
+            tokenAccount = getAssociatedTokenAddressSync(
+                this.mintAddress,
+                account,
+                false,
+                TOKEN_2022_PROGRAM_ID,
+            );
+        }
+
         return await program.methods
             .freezeAccount()
             .accounts({
                 authority: authority.publicKey,
                 config: this.config,
-                account,
+                account: tokenAccount,
                 mint: this.mintAddress,
                 tokenProgram: TOKEN_2022_PROGRAM_ID,
             } as any)
@@ -507,12 +628,25 @@ export class SolanaStablecoin {
     async thaw(authority: Keypair, account: PublicKey): Promise<string> {
         const program = this.buildProgram(authority);
 
+        // Resolve: if account is a wallet address (not a token account), derive ATA
+        let tokenAccount = account;
+        const accountInfo = await this.connection.getAccountInfo(account);
+        const isTokenAccount = accountInfo?.owner?.equals(TOKEN_2022_PROGRAM_ID);
+        if (!isTokenAccount) {
+            tokenAccount = getAssociatedTokenAddressSync(
+                this.mintAddress,
+                account,
+                false,
+                TOKEN_2022_PROGRAM_ID,
+            );
+        }
+
         return await program.methods
             .thawAccount()
             .accounts({
                 authority: authority.publicKey,
                 config: this.config,
-                account,
+                account: tokenAccount,
                 mint: this.mintAddress,
                 tokenProgram: TOKEN_2022_PROGRAM_ID,
             } as any)
