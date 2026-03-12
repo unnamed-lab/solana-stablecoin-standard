@@ -198,6 +198,19 @@ export class SolanaStablecoin {
         return new Program(idl as SssCore, provider);
     }
 
+        /** @internal Builds a read-only Program instance for fetching data. */
+    private static buildReadOnlyProgram(connection: Connection): Program<SssCore> {
+        // Use a dummy keypair for read-only operations (not used for signing)
+        const dummyKeypair = Keypair.generate();
+        const wallet = new NodeWallet(dummyKeypair);
+        const provider = new AnchorProvider(connection, wallet, {
+            commitment: "confirmed",
+            preflightCommitment: "confirmed",
+        });
+        return new Program(idl as SssCore, provider);
+    }
+
+
     /**
      * Deploy a brand-new stablecoin to the blockchain.
      *
@@ -304,9 +317,12 @@ export class SolanaStablecoin {
         network: SolanaNetwork = SolanaNetwork.DEVNET,
         mint: PublicKey,
     ): Promise<SolanaStablecoin> {
-        const connection = new Connection(NETWORK_RPC[network], "confirmed");
+                const connection = new Connection(NETWORK_RPC[network], "confirmed");
         // Read-only program — fine for fetching, no wallet needed
-        const program = new Program(idl as SssCore, { connection });
+        const program = SolanaStablecoin.buildReadOnlyProgram(connection);
+        // const connection = new Connection(NETWORK_RPC[network], "confirmed");
+        // // Read-only program — fine for fetching, no wallet needed
+        // const program = new Program(idl as SssCore, { connection });
 
         const [configPda] = PublicKey.findProgramAddressSync(
             [Buffer.from("sss-config"), mint.toBuffer()],
@@ -856,8 +872,12 @@ export class SolanaStablecoin {
     // ── Read-only helpers ────────────────────────────────────────────────
 
     /** @internal Read-only program instance (no wallet/signer needed). */
-    private get readProgram(): Program<SssCore> {
-        return new Program(idl as SssCore, { connection: this.connection });
+    // private get readProgram(): Program<SssCore> {
+    //     return new Program(idl as SssCore, { connection: this.connection });
+    // }
+
+        private get readProgram(): Program<SssCore> {
+        return SolanaStablecoin.buildReadOnlyProgram(this.connection);
     }
 
     /**
