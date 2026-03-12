@@ -11,9 +11,14 @@ import {
     printSuccess,
     printError,
 } from '../utils';
-import { saveToken, setActiveToken, loadConfig, type TokenEntry } from '../config';
+
+import { intro, outro, text, select, isCancel, cancel } from "@clack/prompts";
+import {
+    saveToken, setActiveToken, loadConfig,
+    deleteAllTokens,
+    deleteToken, type TokenEntry
+} from '../config';
 import { parseAndValidateConfigFile } from '../config-validator';
-import { intro, outro, text, select, isCancel, cancel } from '@clack/prompts';
 
 
 export function registerInitCommand(program: Command): void {
@@ -39,7 +44,7 @@ export function registerInitCommand(program: Command): void {
                 console.log(chalk.green(`\n✓ Active Token Found`));
                 console.log(chalk.gray(`  Mint:    ${config.activeToken}`));
                 console.log(chalk.gray(`  Network: ${active.network}  |  Preset: ${active.preset.toUpperCase()}`));
-                
+
                 console.log(chalk.bold('\nAvailable Commands:\n'));
                 console.log(chalk.cyan('Operations'));
                 console.log('  sss-token mint <recipient> <amount>');
@@ -47,7 +52,7 @@ export function registerInitCommand(program: Command): void {
                 console.log('  sss-token transfer <sender> <recipient> <amount>');
                 console.log('  sss-token holders');
                 console.log('  sss-token info');
-                
+
                 if (active.preset === 'sss2' || active.preset === 'sss3') {
                     console.log(chalk.cyan('\nCompliance'));
                     console.log('  sss-token freeze <address>');
@@ -55,13 +60,13 @@ export function registerInitCommand(program: Command): void {
                     console.log('  sss-token pause');
                     console.log('  sss-token unpause');
                 }
-                
+
                 console.log(chalk.cyan('\nManagement'));
                 console.log('  sss-token add-minter <pubkey>');
                 console.log('  sss-token remove-minter <pubkey>');
                 console.log('  sss-token use');
                 console.log('  sss-token list\n');
-                
+
                 process.exit(0);
             }
 
@@ -97,16 +102,16 @@ export function registerInitCommand(program: Command): void {
                 }
 
                 const cfg = result.config;
-                name        = cfg.name;
-                symbol      = cfg.symbol;
-                uri         = cfg.uri;
-                decimals    = cfg.decimals.toString();
-                presetName  = cfg.preset;
+                name = cfg.name;
+                symbol = cfg.symbol;
+                uri = cfg.uri;
+                decimals = cfg.decimals.toString();
+                presetName = cfg.preset;
                 networkName = cfg.network;
                 keypairPath = cfg.authorities.keypair.replace(/^~/, process.env.HOME ?? '~');
 
                 if (cfg.authorities.blacklister) blacklister = cfg.authorities.blacklister;
-                if (cfg.authorities.seizer)      seizer      = cfg.authorities.seizer;
+                if (cfg.authorities.seizer) seizer = cfg.authorities.seizer;
 
                 console.log(chalk.green(`\n  ✓ Config file valid — deploying from "${custom}"\n`));
             }
@@ -432,4 +437,202 @@ export function registerUseCommand(program: Command): void {
             }
         });
 }
-3
+
+export function registerDeleteCommand(program: Command): void {
+    program
+        .command("delete")
+        .description(
+            "Remove a token from your local config (on-chain token is unaffected)",
+        )
+        .argument("[mint]", "Mint address of the token to remove")
+        .action(async (mintArg?: string) => {
+            const config = loadConfig();
+            const mints = Object.keys(config.tokens);
+
+            if (mints.length === 0) {
+                console.log(chalk.gray("\n  No tokens stored. Nothing to delete.\n"));
+                process.exit(0);
+            }
+
+            let mint = mintArg;
+
+            // ── If no mint argument, prompt the user to pick one ───────────
+            if (!mint) {
+                intro(chalk.bgRed.white(" Remove Token from Local Config "));
+
+                const res = await select({
+                    message: "Which token do you want to remove?",
+                    options: mints.map((m) => ({
+                        value: m,
+                        label: `${config.tokens[m].symbol} — ${config.tokens[m].name}`,
+                        hint: `${m.slice(0, 8)}...  ${config.tokens[m].network
+                            }  ${config.tokens[m].preset.toUpperCase()}`,
+                    })),
+                });
+
+                if (isCancel(res)) {
+                    cancel("Operation cancelled.");
+                    process.exit(0);
+                }
+
+                mint = res as string;
+            }
+
+            const entry = config.tokens[mint];
+            if (!entry) {
+                printError(
+                    "Token not found",
+                    new Error(
+                        `No stored token with mint ${mint}.\nRun sss-token list to see available tokens.`,
+                    ),
+                );
+                process.exit(1);
+            }
+
+            // ── Confirm before deleting ────────────────────────────────────
+            console.log();
+            console.log(
+                chalk.yellow(
+                    "  ⚠  This will remove the token from your local config only.",
+                ),
+            );
+            console.log(
+                chalk.gray(
+                    "     The token still exists on-chain and is not affected.\n",
+                ),
+            );
+
+            printHeader("Token to Remove");
+            printField("Name", entry.name);
+            printField("Symbol", entry.symbol);
+            printField("Mint", mint);
+            printField("Network", entry.network);
+            printField("Preset", entry.preset.toUpperCase());
+            console.log();
+
+            const confirm = await select({
+                message: "Are you sure you want to remove this token?",
+                options: [
+                    { value: false, label: "No, keep it" },
+                    { value: true, label: `Yes, remove ${entry.symbol}` },
+                ],
+            });
+
+            if (isCancel(confirm) || !confirm) {
+                cancel("Cancelled. Token was not removed.");
+                process.exit(0);
+            }
+
+            // ── Delete ─────────────────────────────────────────────────────
+            const deleted = deleteToken(mint);
+            if (!deleted) {
+                printError(
+                    "Delete failed",
+                    new Error("Token was not found in config."),
+                );
+                process.exit(1);
+            }
+
+            // Inform user about new active token if it changed
+            const updatedConfig = (await import("../config")).loadConfig();
+            const newActive = updatedConfig.activeToken;
+
+            console.log();
+            console.log(
+                chalk.green(
+                    `  ✓ Removed ${deleted.symbol} (${mint.slice(
+                        0,
+                        8,
+                    )}...) from local config.`,
+                ),
+            );
+
+            if (newActive) {
+                const next = updatedConfig.tokens[newActive];
+                console.log(
+                    chalk.gray(
+                        `  Active token is now: ${next.symbol} — ${newActive.slice(
+                            0,
+                            8,
+                        )}...`,
+                    ),
+                );
+            } else {
+                console.log(
+                    chalk.gray("  No active token. Run sss-token init to create one."),
+                );
+            }
+
+            console.log();
+
+            if (!mintArg) {
+                outro(chalk.green("Done."));
+            }
+        });
+}
+
+export function registerDeleteAllCommand(program: Command): void {
+    program
+        .command('delete-all')
+        .description('Remove ALL tokens from your local config (on-chain tokens are unaffected)')
+        .action(async () => {
+            const config = loadConfig();
+            const mints = Object.keys(config.tokens);
+
+            if (mints.length === 0) {
+                console.log(chalk.gray('\n  No tokens stored. Nothing to delete.\n'));
+                process.exit(0);
+            }
+
+            intro(chalk.bgRed.white(' Remove ALL Tokens from Local Config '));
+
+            console.log(chalk.yellow(`  ⚠  This will remove all ${mints.length} token(s) from your local config.`));
+            console.log(chalk.gray('     Your on-chain tokens are NOT affected in any way.\n'));
+
+            // Show what will be deleted
+            for (const mint of mints) {
+                const t = config.tokens[mint];
+                const active = mint === config.activeToken ? chalk.green(' (active)') : '';
+                console.log(`  ${chalk.cyan(t.symbol)} — ${t.name}${active}`);
+                console.log(chalk.gray(`    ${mint.slice(0, 8)}...  ${t.network}  ${t.preset.toUpperCase()}`));
+            }
+            console.log();
+
+            // First confirmation
+            const first = await select({
+                message: `Remove all ${mints.length} token(s) from local config?`,
+                options: [
+                    { value: false, label: 'No, keep them' },
+                    { value: true, label: 'Yes, remove all' },
+                ],
+            });
+
+            if (isCancel(first) || !first) {
+                cancel('Cancelled. No tokens were removed.');
+                process.exit(0);
+            }
+
+            // Second confirmation — extra safety for destructive bulk action
+            const second = await select({
+                message: 'Are you absolutely sure? This cannot be undone.',
+                options: [
+                    { value: false, label: 'No, cancel' },
+                    { value: true, label: `Yes, delete all ${mints.length} token(s)` },
+                ],
+            });
+
+            if (isCancel(second) || !second) {
+                cancel('Cancelled. No tokens were removed.');
+                process.exit(0);
+            }
+
+            // ── Delete all ─────────────────────────────────────────────────
+            const count = deleteAllTokens();
+
+            console.log();
+            console.log(chalk.green(`  ✓ Removed ${count} token(s) from local config.`));
+            console.log(chalk.gray('  Run sss-token init to create a new token.\n'));
+
+            outro(chalk.green('Done.'));
+        });
+}

@@ -20,6 +20,8 @@ import {
     registerProposeTransferCommand,
     registerAcceptTransferCommand,
     registerComplianceCommands,
+    registerDeleteAllCommand,
+    registerDeleteCommand,
     registerHookCommands,
     registerConfigCommands,
 } from './commands';

@@ -1,0 +1,7 @@
+{
+  "require": "ts-node/register",
+  "extension": ["ts"],
+  "spec": "tests/**/*.ts",
+  "timeout": 1000000,
+  "node-option": ["experimental-specifier-resolution=node"]
+}
