@@ -1,5 +1,12 @@
 import { Command } from 'commander';
-import { PublicKey } from '@solana/web3.js';
+import { Connection, PublicKey } from '@solana/web3.js';
+import {
+    TOKEN_2022_PROGRAM_ID,
+    getAssociatedTokenAddressSync,
+    getAccount,
+    createAssociatedTokenAccountInstruction,
+} from '@solana/spl-token';
+import { Transaction, sendAndConfirmTransaction } from '@solana/web3.js';
 import { SolanaStablecoin, SolanaNetwork } from '@stbr/sss-token';
 import ora from 'ora';
 import chalk from 'chalk';
@@ -12,14 +19,21 @@ import {
 } from '../utils';
 import { resolveMint } from '../config';
 
+const NETWORK_RPC: Record<string, string> = {
+    devnet: 'https://api.devnet.solana.com',
+    mainnet: 'https://api.mainnet-beta.solana.com',
+    testnet: 'https://api.testnet.solana.com',
+    localnet: 'http://127.0.0.1:8899',
+};
+
 export function registerMintCommand(program: Command): void {
     program
         .command('mint')
-        .description('Mint new tokens to a recipient')
-        .argument('[recipient]', 'Recipient token account (ATA)')
+        .description('Mint new tokens to a recipient wallet (ATA is derived automatically)')
+        .argument('[recipient]', 'Recipient wallet address (ATA will be created/derived if needed)')
         .argument('[amount]', 'Amount to mint (base units)')
         .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
-        .option('--minter <path>', 'Path to minter keypair JSON', getDefaultKeypairPath())
+        .option('--minter <path>', 'Path to minter keypair JSON (must be registered via add-minter first)', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (recipientArg, amountArg, opts) => {
             let recipient = recipientArg;
@@ -32,8 +46,8 @@ export function registerMintCommand(program: Command): void {
 
                 if (!recipient) {
                     const res = await text({
-                        message: 'Enter recipient token account (ATA):',
-                        placeholder: 'Address',
+                        message: 'Enter recipient wallet address:',
+                        placeholder: 'Wallet address (ATA will be derived automatically)',
                         validate: (v) => {
                             if (!v) return 'Recipient address is required';
                             try { new PublicKey(v); } catch { return 'Invalid public key'; }
@@ -54,6 +68,7 @@ export function registerMintCommand(program: Command): void {
                 }
             }
 
+
             const spinner = ora('Minting tokens...').start();
 
             try {
@@ -63,18 +78,58 @@ export function registerMintCommand(program: Command): void {
 
                 const minter = loadKeypair(opts.minter);
 
+                // Derive the ATA for the recipient wallet address
+                const recipientWallet = new PublicKey(recipient);
+                const recipientAta = getAssociatedTokenAddressSync(
+                    mintPubkey,
+                    recipientWallet,
+                    false,
+                    TOKEN_2022_PROGRAM_ID,
+                );
+
+                // Create the ATA if it doesn't exist yet
+                const connection = new Connection(NETWORK_RPC[opts.network] || NETWORK_RPC['devnet'], 'confirmed');
+                try {
+                    await getAccount(connection, recipientAta, 'confirmed', TOKEN_2022_PROGRAM_ID);
+                } catch {
+                    spinner.text = 'Creating recipient token account (ATA)...';
+                    const createAtaTx = new Transaction().add(
+                        createAssociatedTokenAccountInstruction(
+                            minter.publicKey,
+                            recipientAta,
+                            recipientWallet,
+                            mintPubkey,
+                            TOKEN_2022_PROGRAM_ID,
+                        )
+                    );
+                    await sendAndConfirmTransaction(connection, createAtaTx, [minter], { commitment: 'confirmed' });
+                }
+
+                spinner.text = 'Minting tokens...';
                 const txSig = await sdk.mint({
-                    recipient: new PublicKey(recipient),
+                    recipient: recipientAta,
                     amount: parseInt(amount),
                     minter,
                 });
 
                 spinner.stop();
                 if (isInteractive) outro(chalk.green('Tokens minted successfully!'));
-                printSuccess(`Minted ${amount} tokens to ${recipient}`, txSig);
-            } catch (err) {
+                printSuccess(`Minted ${amount} tokens to ${recipient} (ATA: ${recipientAta.toBase58()})`, txSig);
+            } catch (err: any) {
                 spinner.fail('Minting failed');
-                printError('Failed to mint tokens', err);
+                const msg: string = err?.message ?? String(err);
+                if (msg.includes('AccountNotInitialized') && msg.includes('minter_config')) {
+                    printError(
+                        'Failed to mint tokens',
+                        new Error(
+                            `The signing keypair has not been registered as a minter.\n` +
+                            `  Run first:  sss-token add-minter <YOUR_PUBKEY> --network ${opts.network}\n` +
+                            `  Your pubkey can be found with: solana-keygen pubkey ${opts.minter}`
+                        )
+                    );
+                } else {
+                    printError('Failed to mint tokens', err);
+                }
                 process.exit(1);
             }
         });
@@ -261,12 +316,4 @@ export function registerHoldersCommand(program: Command): void {
                 process.exit(1);
             }
         });
-}
-export function registerHolderCommand(program: Command): void{
-    program
-    .command('holder')
-    .description('Holder commands')
-    .action(async () => {
-        
-    })
 }

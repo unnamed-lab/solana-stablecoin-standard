@@ -1,0 +1,5 @@
+Keypair Details
+===============
+Reference Path: C:\Users\sysadmin\Documents\projects\test-keys\admin.json
+Public Key (Base58): 7dzzmuPsJN9bMp8yrmLrLVHF7SWSnBCP6iRgwX5z3d35
+Secret Key (Base58): p5ZaydQAa7JrTVDAKiF4K1G5bWvPEUfHHWJxCwhHNEjg2uV9yvNusimJA9uE1vCVV1Ax6Jq4We3oGJNuud5EpJj

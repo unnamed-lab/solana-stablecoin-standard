@@ -1,6 +1,6 @@
 /**
  * deploy-stablecoin.ts
-*
+ *
  * One-shot script that deploys a new stablecoin to localnet (or devnet)
  * using the SSS SDK, then prints the mint address + authority keypair in
  * base58 so you can paste them straight into .env and API requests.
@@ -13,7 +13,11 @@
  *   npx ts-node scripts/deploy-stablecoin.ts
  */
 import { Keypair, Connection, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { SolanaStablecoin, SolanaNetwork, StablecoinPreset } from '@stbr/sss-token';
+import {
+  SolanaStablecoin,
+  SolanaNetwork,
+  StablecoinPreset,
+} from '@stbr/sss-token';
 import bs58 from 'bs58';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -22,10 +26,13 @@ import * as os from 'os';
 // Attempt to load .env file if running locally
 try {
   require('dotenv').config();
-} catch (e) { }
+} catch (e) {}
 
 async function main() {
-  const network = process.env.SOLANA_NETWORK === 'localnet' ? SolanaNetwork.LOCALNET : SolanaNetwork.DEVNET;
+  const network =
+    process.env.SOLANA_NETWORK === 'localnet'
+      ? SolanaNetwork.LOCALNET
+      : SolanaNetwork.DEVNET;
   const rpcUrl = process.env.RPC_URL || 'https://api.devnet.solana.com';
   const connection = new Connection(rpcUrl, 'confirmed');
 
@@ -39,19 +46,29 @@ async function main() {
     console.log(`🔑 Loading authority from ${keypairPath}`);
     const keyData = JSON.parse(fs.readFileSync(keypairPath, 'utf-8'));
     authority = Keypair.fromSecretKey(new Uint8Array(keyData));
-    console.log({privateKey: authority.secretKey.toString()})
+    console.log({ privateKey: authority.secretKey.toString() });
   } else if (process.env.ADMIN_WALLET_SECRET_KEY) {
-    console.log('🔑 Loading authority from process.env.ADMIN_WALLET_SECRET_KEY');
-    authority = Keypair.fromSecretKey(bs58.decode(process.env.ADMIN_WALLET_SECRET_KEY));
+    console.log(
+      '🔑 Loading authority from process.env.ADMIN_WALLET_SECRET_KEY',
+    );
+    authority = Keypair.fromSecretKey(
+      bs58.decode(process.env.ADMIN_WALLET_SECRET_KEY),
+    );
   } else {
-    console.log('🔑 Generating new authority keypair (Not recommended for devnet without airdrop!)');
+    console.log(
+      '🔑 Generating new authority keypair (Not recommended for devnet without airdrop!)',
+    );
     authority = Keypair.generate();
   }
 
   console.log('🔑 Authority public key:', authority.publicKey.toBase58());
 
   // ── 2. Airdrop SOL to authority (localnet only) ──────────────────────
-  if (network === SolanaNetwork.LOCALNET || rpcUrl.includes('127.0.0.1') || rpcUrl.includes('localhost')) {
+  if (
+    network === SolanaNetwork.LOCALNET ||
+    rpcUrl.includes('127.0.0.1') ||
+    rpcUrl.includes('localhost')
+  ) {
     console.log('💧 Requesting airdrop for localnet...');
     try {
       const airdropSig = await connection.requestAirdrop(
@@ -61,14 +78,19 @@ async function main() {
       await connection.confirmTransaction(airdropSig, 'confirmed');
       console.log('✅ Airdrop confirmed');
     } catch (e) {
-      console.log('⚠️ Airdrop failed (might already have funds or RPC issue):', e);
+      console.log(
+        '⚠️ Airdrop failed (might already have funds or RPC issue):',
+        e,
+      );
     }
   } else {
     console.log('⏭️ Skipping airdrop on devnet/mainnet. Checking balance...');
     const balance = await connection.getBalance(authority.publicKey);
     console.log(`💰 Authority balance: ${balance / LAMPORTS_PER_SOL} SOL`);
     if (balance === 0) {
-      throw new Error('❌ Authority wallet has 0 SOL. Please fund it before deploying on devnet.');
+      throw new Error(
+        '❌ Authority wallet has 0 SOL. Please fund it before deploying on devnet.',
+      );
     }
   }
 
@@ -101,11 +123,13 @@ async function main() {
     (bs58 as unknown as { default: { encode: (a: Uint8Array) => string } })
       .default.encode;
   const authoritySecretB58 = encode(authority.secretKey);
-  console.log({ authoritySecretB58 })
+  console.log({ authoritySecretB58 });
 
   console.log('\n── Paste these into your backend .env ──────────────');
   console.log(`MINT_ADDRESS=${mintAddress.toBase58()}`);
-  console.log('\n── Use this as minterKeypair / burnerKeypair in API requests ──');
+  console.log(
+    '\n── Use this as minterKeypair / burnerKeypair in API requests ──',
+  );
   console.log(`Authority Secret (base58): ${authoritySecretB58}`);
 
   // ── 5. Add the authority as a minter so you can mint via API ─────────
