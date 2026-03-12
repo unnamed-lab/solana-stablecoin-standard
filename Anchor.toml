@@ -6,15 +6,15 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-sss_core = "GadHhHigc12B86Q1SiWCLL9RAKpziACqrFP2jcjHiyja"
-sss_oracle = "4zWRVk1pfuF63XztGceNExpTNKF7EdNsAdyQcxMwb5jU"
-sss_transfer_hook = "rb1x3TyqYSWAE5JtLnZm4yAvvsLNaHZWMF2YiD3kB75"
+sss_core = "AVKfSdE7SLvR4NzK7C8kcSRK4BauKwSoUApZaUC5US9c"
+sss_oracle = "CUKfNWS1uWT29GccLKtGMoRB1sqascAjH7GoEddHSfEi"
+sss_transfer_hook = "H4jdofPy83igVaSyZkKFjzb3nGQXvbvmJqZTtWDFJwpn"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "Devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

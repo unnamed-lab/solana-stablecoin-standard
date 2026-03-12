@@ -189,9 +189,9 @@ export function registerComplianceCommands(program: Command): void {
     compliance
         .command('seize')
         .description('Seize tokens from a frozen account (SSS-2, permanent delegate)')
-        .argument('<address>', 'Source token account (must be frozen)')
+        .argument('<address>', 'Source wallet address or token account (must be frozen)')
         .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
-        .requiredOption('--to <pubkey>', 'Destination token account')
+        .requiredOption('--to <pubkey>', 'Destination wallet address or token account')
         .requiredOption('--amount <number>', 'Amount to seize (base units)')
         .requiredOption('--reason <reason>', 'Reason for seizure')
         .option('--keypair <path>', 'Path to seizer keypair JSON', getDefaultKeypairPath())

@@ -1,19 +1,34 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
-import * as fs from 'fs';
-import * as os from 'os';
+import proxyquire from 'proxyquire';
 import * as path from 'path';
-import { loadConfig, saveToken, getActiveToken, setActiveToken, resolveMint } from './config';
 
 describe('config', () => {
     let sandbox: sinon.SinonSandbox;
+    let configModule: any;
+    let mockFs: any;
+    let mockOs: any;
+
     const mockHome = '/home/user';
     const mockConfigDir = path.join(mockHome, '.sss');
     const mockConfigFile = path.join(mockConfigDir, 'config.json');
 
     beforeEach(() => {
         sandbox = sinon.createSandbox();
-        sandbox.stub(os, 'homedir').returns(mockHome);
+        mockFs = {
+            existsSync: sandbox.stub(),
+            mkdirSync: sandbox.stub(),
+            writeFileSync: sandbox.stub(),
+            readFileSync: sandbox.stub(),
+        };
+        mockOs = {
+            homedir: sandbox.stub().returns(mockHome),
+        };
+
+        configModule = proxyquire('./config', {
+            fs: mockFs,
+            os: mockOs,
+        });
     });
 
     afterEach(() => {
@@ -22,34 +37,31 @@ describe('config', () => {
 
     describe('loadConfig', () => {
         it('should create config folder and file if they dont exist', () => {
-            sandbox.stub(fs, 'existsSync').returns(false);
-            sandbox.stub(fs, 'mkdirSync');
-            sandbox.stub(fs, 'writeFileSync');
-            sandbox.stub(fs, 'readFileSync').returns(JSON.stringify({ activeToken: '', tokens: {} }));
+            mockFs.existsSync.returns(false);
+            mockFs.readFileSync.returns(JSON.stringify({ activeToken: '', tokens: {} }));
 
-            loadConfig();
+            configModule.loadConfig();
 
-            expect((fs.mkdirSync as sinon.SinonStub).calledWith(mockConfigDir, { recursive: true })).to.be.true;
-            expect((fs.writeFileSync as sinon.SinonStub).calledWith(mockConfigFile, sinon.match.string)).to.be.true;
+            expect(mockFs.mkdirSync.calledWith(mockConfigDir, { recursive: true })).to.be.true;
+            expect(mockFs.writeFileSync.calledWith(mockConfigFile, sinon.match.string)).to.be.true;
         });
 
         it('should return parsed config if it exists', () => {
-            sandbox.stub(fs, 'existsSync').returns(true);
+            mockFs.existsSync.returns(true);
             const mockConfig = { activeToken: 'mint123', tokens: {} };
-            sandbox.stub(fs, 'readFileSync').returns(JSON.stringify(mockConfig));
+            mockFs.readFileSync.returns(JSON.stringify(mockConfig));
 
-            const config = loadConfig();
+            const config = configModule.loadConfig();
 
             expect(config).to.deep.equal(mockConfig);
-            expect((fs.readFileSync as sinon.SinonStub).calledWith(mockConfigFile, 'utf-8')).to.be.true;
+            expect(mockFs.readFileSync.calledWith(mockConfigFile, 'utf-8')).to.be.true;
         });
     });
 
     describe('saveToken', () => {
         it('should add a token to the config', () => {
-            sandbox.stub(fs, 'existsSync').returns(true);
-            sandbox.stub(fs, 'readFileSync').returns(JSON.stringify({ activeToken: '', tokens: {} }));
-            sandbox.stub(fs, 'writeFileSync');
+            mockFs.existsSync.returns(true);
+            mockFs.readFileSync.returns(JSON.stringify({ activeToken: '', tokens: {} }));
 
             const mockToken: any = {
                 name: 'Test',
@@ -57,9 +69,9 @@ describe('config', () => {
                 mintAddress: 'mint123',
             };
 
-            saveToken('mint123', mockToken);
+            configModule.saveToken('mint123', mockToken);
 
-            expect((fs.writeFileSync as sinon.SinonStub).calledWith(
+            expect(mockFs.writeFileSync.calledWith(
                 mockConfigFile,
                 sinon.match(/"mint123"/)
             )).to.be.true;
@@ -68,38 +80,38 @@ describe('config', () => {
 
     describe('getActiveToken', () => {
         it('should throw if no active token is set', () => {
-            sandbox.stub(fs, 'existsSync').returns(true);
-            sandbox.stub(fs, 'readFileSync').returns(JSON.stringify({ activeToken: '', tokens: {} }));
+            mockFs.existsSync.returns(true);
+            mockFs.readFileSync.returns(JSON.stringify({ activeToken: '', tokens: {} }));
 
-            expect(() => getActiveToken()).to.throw('No active token set...');
+            expect(() => configModule.getActiveToken()).to.throw('No active token set...');
         });
 
         it('should return the active token', () => {
-            sandbox.stub(fs, 'existsSync').returns(true);
+            mockFs.existsSync.returns(true);
             const mockToken = { mintAddress: 'mint123' };
-            sandbox.stub(fs, 'readFileSync').returns(JSON.stringify({
+            mockFs.readFileSync.returns(JSON.stringify({
                 activeToken: 'mint123',
                 tokens: { 'mint123': mockToken }
             }));
 
-            const token = getActiveToken();
+            const token = configModule.getActiveToken();
             expect(token).to.deep.equal(mockToken);
         });
     });
 
     describe('resolveMint', () => {
         it('should return the provided mint if present', () => {
-            expect(resolveMint('explicitMint')).to.equal('explicitMint');
+            expect(configModule.resolveMint('explicitMint')).to.equal('explicitMint');
         });
 
         it('should fall back to active token if no mint is provided', () => {
-            sandbox.stub(fs, 'existsSync').returns(true);
-            sandbox.stub(fs, 'readFileSync').returns(JSON.stringify({
+            mockFs.existsSync.returns(true);
+            mockFs.readFileSync.returns(JSON.stringify({
                 activeToken: 'activeMint',
                 tokens: { 'activeMint': { mintAddress: 'activeMint' } }
             }));
 
-            expect(resolveMint()).to.equal('activeMint');
+            expect(configModule.resolveMint()).to.equal('activeMint');
         });
     });
 });

@@ -11,7 +11,7 @@
   "scripts": {
     "dev": "yarn tsx src/index.tsx",
     "start": "yarn tsx src/index.tsx",
-    "test": "vitest run"
+    "test": "node --experimental-vm-modules node_modules/mocha/bin/_mocha --require ts-node/register \"src/**/*.test.{ts,tsx}\""
   },
   "keywords": [],
   "author": "",
@@ -29,14 +29,14 @@
   },
   "devDependencies": {
     "@testing-library/react": "16.2.0",
+    "@types/mocha": "^10.0.7",
     "@types/node": "^25.3.2",
     "@types/react": "^19.2.14",
-    "@vitest/coverage-v8": "^4.0.18",
     "ink-testing-library": "^4.0.0",
+    "mocha": "^10.7.3",
     "react-test-renderer": "^19.2.4",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18"
+    "typescript": "^5.9.3"
   }
 }

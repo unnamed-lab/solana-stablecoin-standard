@@ -17,7 +17,7 @@ import {
     printSuccess,
     printError,
 } from '../utils';
-import { resolveMint } from '../config';
+import { resolveMint, getActiveToken } from '../config';
 
 const NETWORK_RPC: Record<string, string> = {
     devnet: 'https://api.devnet.solana.com',
@@ -29,8 +29,8 @@ const NETWORK_RPC: Record<string, string> = {
 export function registerMintCommand(program: Command): void {
     program
         .command('mint')
-        .description('Mint new tokens to a recipient wallet (ATA is derived automatically)')
-        .argument('[recipient]', 'Recipient wallet address (ATA will be created/derived if needed)')
+        .description('Mint new tokens to a recipient')
+        .argument('[recipient]', 'Recipient wallet address (ATA is auto-derived)')
         .argument('[amount]', 'Amount to mint (base units)')
         .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--minter <path>', 'Path to minter keypair JSON (must be registered via add-minter first)', getDefaultKeypairPath())
@@ -47,7 +47,7 @@ export function registerMintCommand(program: Command): void {
                 if (!recipient) {
                     const res = await text({
                         message: 'Enter recipient wallet address:',
-                        placeholder: 'Wallet address (ATA will be derived automatically)',
+                        placeholder: 'Address',
                         validate: (v) => {
                             if (!v) return 'Recipient address is required';
                             try { new PublicKey(v); } catch { return 'Invalid public key'; }
@@ -141,7 +141,7 @@ export function registerBurnCommand(program: Command): void {
         .description('Burn tokens from a token account')
         .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .argument('[amount]', 'Amount to burn (base units)')
-        .option('--source <pubkey>', 'Source token account (defaults to burner ATA)')
+        .option('--source <pubkey>', 'Source wallet address or token account (defaults to burner ATA)')
         .option('--burner <path>', 'Path to burner keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (amountArg, opts) => {
@@ -189,7 +189,7 @@ export function registerFreezeCommand(program: Command): void {
     program
         .command('freeze')
         .description('Freeze a token account')
-        .argument('[address]', 'Token account to freeze')
+        .argument('[address]', 'Wallet address or token account to freeze (ATA is auto-derived)')
         .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
@@ -237,7 +237,7 @@ export function registerThawCommand(program: Command): void {
     program
         .command('thaw')
         .description('Thaw (unfreeze) a token account')
-        .argument('[address]', 'Token account to thaw')
+        .argument('[address]', 'Wallet address or token account to thaw (ATA is auto-derived)')
         .option('--mint <pubkey>', 'Stablecoin mint address (defaults to active token)')
         .option('--keypair <path>', 'Path to authority keypair JSON', getDefaultKeypairPath())
         .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
@@ -294,17 +294,17 @@ export function registerHoldersCommand(program: Command): void {
                 const mintPubkey = new PublicKey(resolveMint(opts.mint));
                 const network = opts.network as SolanaNetwork;
                 const sdk = await SolanaStablecoin.load(network, mintPubkey);
-
+                const token = getActiveToken()
                 const count = await sdk.getHoldersCount();
                 const largestHolders = await sdk.getLargestHolders(parseInt(opts.min));
 
                 spinner.stop();
                 console.log(chalk.bold(`\nTotal Holders: ${count}`));
-                
+
                 if (largestHolders.length > 0) {
                     console.log(chalk.bold('\nLargest Holders:'));
                     largestHolders.forEach((h, i) => {
-                        console.log(`  ${i + 1}. ${h.address.toBase58()} - ${h.uiAmountString != null ? h.uiAmountString : h.amount} tokens`);
+                        console.log(`  ${i + 1}. ${h.address.toBase58()} - ${h.uiAmountString != null ? h.uiAmountString : h.amount} ${token.symbol}`);
                     });
                 } else {
                     console.log(chalk.gray('\nNo top holders found matching criteria.'));
