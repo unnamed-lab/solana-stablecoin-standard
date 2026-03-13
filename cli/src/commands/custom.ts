@@ -69,8 +69,9 @@ export function registerConfigCommands(program: Command): void {
         .command('minters')
         .description('View minters list. Supports JSON or TOML format output.')
         .option('--format <fmt>', 'Output format: json or toml', 'json')
+        .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .action(async (opts) => {
-            const spinner = ora('Fetching minter list...').start();
+            const spinner = ora('Connecting to network...').start();
             try {
                 // For CLI, we can use the same logic as backend or call backend.
                 // Let's use the SDK to fetch info since CLI usually connects to RPC.
@@ -79,7 +80,8 @@ export function registerConfigCommands(program: Command): void {
 
                 const mintAddress = resolveMint();
                 // Note: network is usually devnet by default in CLI opts, but here we'll assume devnet or load from config
-                const sdk = await SolanaStablecoin.load('devnet' as any, new (await import('@solana/web3.js')).PublicKey(mintAddress));
+                const sdk = await SolanaStablecoin.load(opts.network as any, new (await import('@solana/web3.js')).PublicKey(mintAddress));
+                spinner.text = 'Fetching minter list...';
                 const info = await sdk.getInfo();
 
                 const minters = [
@@ -109,16 +111,18 @@ export function registerConfigCommands(program: Command): void {
         .command('holders')
         .description('View token holders list. Supports JSON or TOML format output.')
         .option('--format <fmt>', 'Output format: json or toml', 'json')
+        .option('--network <network>', 'Network: devnet, mainnet, testnet, localnet', 'devnet')
         .option('--min <amount>', 'Minimum amount to filter holders', '0')
         .action(async (opts) => {
-            const spinner = ora('Fetching holders...').start();
+            const spinner = ora('Connecting to network...').start();
             try {
                 const { resolveMint } = await import('../config');
                 const { SolanaStablecoin } = await import('@stbr/sss-token');
                 const { PublicKey } = await import('@solana/web3.js');
 
                 const mintAddress = resolveMint();
-                const sdk = await SolanaStablecoin.load('devnet' as any, new PublicKey(mintAddress));
+                const sdk = await SolanaStablecoin.load(opts.network as any, new PublicKey(mintAddress));
+                spinner.text = 'Fetching holders...';
                 const holders = await sdk.getLargestHolders(parseInt(opts.min));
 
                 spinner.stop();

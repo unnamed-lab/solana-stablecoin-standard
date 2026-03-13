@@ -1,5 +1,5 @@
 import { Command } from "commander";
-import { PublicKey } from "@solana/web3.js";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   SolanaStablecoin,
   SolanaNetwork,
@@ -36,7 +36,7 @@ export function registerInitCommand(program: Command): void {
       "--uri <uri>",
       'Metadata URI (e.g. "https://example.com/meta.json")',
     )
-    .option("--decimals <number>", "Number of decimal places", "6")
+    .option("--decimals <number>", "Number of decimal places")
     .option("--preset <preset>", "Preset: sss1, sss2, sss3, or custom")
     .option("--custom <path>", "Initialize from a TOML or JSON config file")
     .option(
@@ -47,10 +47,12 @@ export function registerInitCommand(program: Command): void {
     .option(
       "--network <network>",
       "Network: devnet, mainnet, testnet, localnet",
-      "devnet",
     )
     .option("--blacklister <pubkey>", "Blacklister public key (SSS-2 only)")
     .option("--seizer <pubkey>", "Seizer public key (SSS-2 only)")
+    .option("--auto-approve", "Auto-approve new accounts for confidential transfers (SSS-3 only)")
+    .option("--compliance-note <note>", "Initial compliance note (SSS-3 only)")
+    .option("--auditor <base64>", "Auditor ElGamal Public Key in Base64 (SSS-3 only)")
     .action(async (opts) => {
       const config = loadConfig();
 
@@ -142,6 +144,9 @@ export function registerInitCommand(program: Command): void {
         keypair: keypairPath,
         blacklister,
         seizer,
+        autoApprove,
+        complianceNote,
+        auditor,
         custom,
       } = opts;
 
@@ -235,7 +240,7 @@ export function registerInitCommand(program: Command): void {
           uri = res || "";
         }
 
-        if (!decimals || decimals === "6") {
+        if (!decimals) {
           const res = await text({
             message: "How many decimal places?",
             initialValue: "6",
@@ -270,7 +275,7 @@ export function registerInitCommand(program: Command): void {
           presetName = res as string;
         }
 
-        if (opts.network === "devnet") {
+        if (!networkName) {
           const res = await select({
             message: "Select target network:",
             options: [
@@ -346,10 +351,55 @@ export function registerInitCommand(program: Command): void {
             seizer = sz as string;
           }
         }
+
+        if (presetName === "sss3" && !custom) {
+          if (opts.autoApprove === undefined) {
+             const autoApproveRes = await select({
+               message: "Auto-approve new accounts for confidential transfers?",
+               options: [
+                 { value: "yes", label: "Yes" },
+                 { value: "no", label: "No" },
+               ],
+             });
+             if (isCancel(autoApproveRes)) {
+               cancel("Operation cancelled.");
+               process.exit(0);
+             }
+             autoApprove = autoApproveRes === "yes";
+          }
+          if (!complianceNote) {
+             const noteRes = await text({
+               message: "Enter an initial compliance note:",
+               initialValue: "Initial Deployment",
+               validate: (value: string | undefined) => {
+                 if (!value) return "Compliance note is required";
+               },
+             });
+             if (isCancel(noteRes)) {
+               cancel("Operation cancelled.");
+               process.exit(0);
+             }
+             complianceNote = noteRes as string;
+          }
+          if (!auditor) {
+             const audRes = await text({
+               message: "Optional: Provide a 64-byte Auditor ElGamal Public Key (Base64) or leave empty:",
+             });
+             if (isCancel(audRes)) {
+               cancel("Operation cancelled.");
+               process.exit(0);
+             }
+             auditor = audRes || undefined;
+          }
+        }
       }
 
-      // ── Deploy ────────────────────────────────────────────────────────
-      const spinnerMsg = ora("Deploying stablecoin...").start();
+      if (!decimals) decimals = "6";
+      if (!networkName) networkName = "devnet";
+      if (!presetName) presetName = "sss1";
+      if (!complianceNote) complianceNote = "Initial Deployment";
+
+      const spinnerMsg = ora('Connecting to network...').start();
 
       try {
         const authority = loadKeypair(keypairPath);
@@ -367,19 +417,71 @@ export function registerInitCommand(program: Command): void {
           return;
         }
 
+        let effectivePreset = preset;
+        if (preset === StablecoinPreset.SSS_3) {
+            effectivePreset = StablecoinPreset.SSS_2; // deploy as SSS-2 first
+        }
+
+        spinnerMsg.text = 'Deploying stablecoin...';
         const { txSig, mintAddress } = await SolanaStablecoin.create(
           {
             name,
             symbol,
             uri,
             decimals: parseInt(decimals),
-            preset,
+            preset: effectivePreset,
             authority,
             blacklister: blacklister ? new PublicKey(blacklister) : undefined,
             seizer: seizer ? new PublicKey(seizer) : undefined,
           },
           network,
         );
+
+        spinnerMsg.text = 'Saving to local config...';
+        const mint58 = mintAddress.toBase58();
+        const entry: TokenEntry = {
+          name,
+          symbol,
+          preset: presetName,
+          network,
+          createdAt: new Date().toISOString(),
+          keypairPath: keypairPath,
+          mintAddress: mint58,
+          decimals: parseInt(decimals),
+        };
+        saveToken(mint58, entry);
+        setActiveToken(mint58);
+
+        if (presetName === "sss3") {
+          spinnerMsg.text = 'Waiting for deployment confirmation...';
+          let freshSdk;
+          for (let attempt = 0; attempt < 5; attempt++) {
+              try {
+                  freshSdk = await SolanaStablecoin.load(network, mintAddress);
+                  break;
+              } catch {
+                  if (attempt === 4) throw new Error('Config PDA not yet visible after deployment');
+                  await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+              }
+          }
+
+          spinnerMsg.text = 'Initializing transfer hook...';
+          await freshSdk!.transferHook.initializeHook(authority, authority, true);
+
+          spinnerMsg.text = 'Registering transfer hook account metas...';
+          await freshSdk!.transferHook.initializeExtraAccountMetaList(authority, authority);
+
+          spinnerMsg.text = 'Upgrading to SSS-3 (confidential transfers + allowlist)...';
+          let auditorArray: Uint8Array | undefined = undefined;
+          if (auditor) {
+            auditorArray = new Uint8Array(Buffer.from(auditor, 'base64'));
+          }
+          await freshSdk!.sss3.initialize(authority, {
+             auditorPubkey: auditorArray,
+             autoApproveNewAccounts: autoApprove || false,
+             complianceNote: complianceNote || "Initial Deployment",
+          });
+        }
 
         spinnerMsg.stop();
 
@@ -395,20 +497,6 @@ export function registerInitCommand(program: Command): void {
         printField("Decimals", decimals);
         printField("Network", network);
         printSuccess("Deployment details", txSig);
-
-        const mint58 = mintAddress.toBase58();
-        const entry: TokenEntry = {
-          name,
-          symbol,
-          preset: presetName,
-          network,
-          createdAt: new Date().toISOString(),
-          keypairPath: keypairPath,
-          mintAddress: mint58,
-          decimals: parseInt(decimals),
-        };
-        saveToken(mint58, entry);
-        setActiveToken(mint58);
         console.log(chalk.gray(`\n  Saved to config & set as active token.`));
       } catch (err) {
         spinnerMsg.fail("Failed to create stablecoin");
@@ -428,8 +516,8 @@ export function registerCreateCommand(program: Command): void {
       "--uri <uri>",
       'Metadata URI (e.g. "https://example.com/meta.json")',
     )
-    .option("--decimals <number>", "Number of decimal places", "6")
-    .option("--preset <preset>", "Preset: sss1, sss2, sss3, or custom", "sss1")
+    .option("--decimals <number>", "Number of decimal places")
+    .option("--preset <preset>", "Preset: sss1, sss2, sss3, or custom")
     .option(
       "--keypair <path>",
       "Path to authority keypair JSON",
@@ -438,10 +526,12 @@ export function registerCreateCommand(program: Command): void {
     .option(
       "--network <network>",
       "Network: devnet, mainnet, testnet, localnet",
-      "devnet",
     )
     .option("--blacklister <pubkey>", "Blacklister public key (SSS-2 only)")
     .option("--seizer <pubkey>", "Seizer public key (SSS-2 only)")
+    .option("--auto-approve", "Auto-approve new accounts for confidential transfers (SSS-3 only)")
+    .option("--compliance-note <note>", "Initial compliance note (SSS-3 only)")
+    .option("--auditor <base64>", "Auditor ElGamal Public Key in Base64 (SSS-3 only)")
     .action(async (opts) => {
       let {
         name,
@@ -453,6 +543,9 @@ export function registerCreateCommand(program: Command): void {
         keypair: keypairPath,
         blacklister,
         seizer,
+        autoApprove,
+        complianceNote,
+        auditor,
       } = opts;
 
       const isInteractive = !name || !symbol || !uri;
@@ -506,7 +599,7 @@ export function registerCreateCommand(program: Command): void {
           uri = res;
         }
 
-        if (opts.decimals === "6") {
+        if (!decimals) {
           const res = await text({
             message: "How many decimal places?",
             initialValue: "6",
@@ -521,7 +614,7 @@ export function registerCreateCommand(program: Command): void {
           decimals = res;
         }
 
-        if (opts.preset === "sss1") {
+        if (!presetName) {
           const res = await select({
             message: "Select a stablecoin preset:",
             options: [
@@ -541,7 +634,7 @@ export function registerCreateCommand(program: Command): void {
           presetName = res as string;
         }
 
-        if (opts.network === "devnet") {
+        if (!networkName) {
           const res = await select({
             message: "Select target network:",
             options: [
@@ -617,9 +710,55 @@ export function registerCreateCommand(program: Command): void {
             seizer = sz as string;
           }
         }
+
+        if (presetName === "sss3") {
+          if (opts.autoApprove === undefined) {
+             const autoApproveRes = await select({
+               message: "Auto-approve new accounts for confidential transfers?",
+               options: [
+                 { value: "yes", label: "Yes" },
+                 { value: "no", label: "No" },
+               ],
+             });
+             if (isCancel(autoApproveRes)) {
+               cancel("Operation cancelled.");
+               process.exit(0);
+             }
+             autoApprove = autoApproveRes === "yes";
+          }
+          if (!complianceNote) {
+             const noteRes = await text({
+               message: "Enter an initial compliance note:",
+               initialValue: "Initial Deployment",
+               validate: (value: string | undefined) => {
+                 if (!value) return "Compliance note is required";
+               },
+             });
+             if (isCancel(noteRes)) {
+               cancel("Operation cancelled.");
+               process.exit(0);
+             }
+             complianceNote = noteRes as string;
+          }
+          if (!auditor) {
+             const audRes = await text({
+               message: "Optional: Provide a 64-byte Auditor ElGamal Public Key (Base64) or leave empty:",
+             });
+             if (isCancel(audRes)) {
+               cancel("Operation cancelled.");
+               process.exit(0);
+             }
+             auditor = audRes || undefined;
+          }
+        }
       }
 
-      const spinnerMsg = ora("Deploying stablecoin...").start();
+      if (!decimals) decimals = "6";
+      if (!networkName) networkName = "devnet";
+      if (!presetName) presetName = "sss1";
+      if (!complianceNote) complianceNote = "Initial Deployment";
+
+      const spinnerMsg = ora('Connecting to network...').start();
 
       try {
         const authority = loadKeypair(keypairPath);
@@ -637,19 +776,71 @@ export function registerCreateCommand(program: Command): void {
           return;
         }
 
+        let effectivePreset = preset;
+        if (preset === StablecoinPreset.SSS_3) {
+            effectivePreset = StablecoinPreset.SSS_2; // deploy as SSS-2 first
+        }
+
+        spinnerMsg.text = 'Deploying stablecoin...';
         const { txSig, mintAddress } = await SolanaStablecoin.create(
           {
             name,
             symbol,
             uri,
             decimals: parseInt(decimals),
-            preset,
+            preset: effectivePreset,
             authority,
             blacklister: blacklister ? new PublicKey(blacklister) : undefined,
             seizer: seizer ? new PublicKey(seizer) : undefined,
           },
           network,
         );
+
+        spinnerMsg.text = 'Saving to local config...';
+        const mint58 = mintAddress.toBase58();
+        const entry: TokenEntry = {
+          name,
+          symbol,
+          preset: presetName,
+          network,
+          createdAt: new Date().toISOString(),
+          keypairPath: keypairPath,
+          mintAddress: mint58,
+          decimals: parseInt(decimals),
+        };
+        saveToken(mint58, entry);
+        setActiveToken(mint58);
+
+        if (presetName === "sss3") {
+          spinnerMsg.text = 'Waiting for deployment confirmation...';
+          let freshSdk;
+          for (let attempt = 0; attempt < 5; attempt++) {
+              try {
+                  freshSdk = await SolanaStablecoin.load(network, mintAddress);
+                  break;
+              } catch {
+                  if (attempt === 4) throw new Error('Config PDA not yet visible after deployment');
+                  await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+              }
+          }
+
+          spinnerMsg.text = 'Initializing transfer hook...';
+          await freshSdk!.transferHook.initializeHook(authority, authority, true);
+
+          spinnerMsg.text = 'Registering transfer hook account metas...';
+          await freshSdk!.transferHook.initializeExtraAccountMetaList(authority, authority);
+
+          spinnerMsg.text = 'Upgrading to SSS-3 (confidential transfers + allowlist)...';
+          let auditorArray: Uint8Array | undefined = undefined;
+          if (auditor) {
+            auditorArray = new Uint8Array(Buffer.from(auditor, 'base64'));
+          }
+          await freshSdk!.sss3.initialize(authority, {
+             auditorPubkey: auditorArray,
+             autoApproveNewAccounts: autoApprove || false,
+             complianceNote: complianceNote || "Initial Deployment",
+          });
+        }
 
         spinnerMsg.stop();
 
@@ -665,20 +856,6 @@ export function registerCreateCommand(program: Command): void {
         printField("Decimals", decimals);
         printField("Network", network);
         printSuccess("Deployment details", txSig);
-
-        const mint58 = mintAddress.toBase58();
-        const entry: TokenEntry = {
-          name,
-          symbol,
-          preset: presetName,
-          network,
-          createdAt: new Date().toISOString(),
-          keypairPath: keypairPath,
-          mintAddress: mint58,
-          decimals: parseInt(decimals),
-        };
-        saveToken(mint58, entry);
-        setActiveToken(mint58);
         console.log(chalk.gray(`\n  Saved to config & set as active token.`));
       } catch (err) {
         spinnerMsg.fail("Failed to create stablecoin");
@@ -722,12 +899,14 @@ export function registerInfoCommand(program: Command): void {
         mintStr = res;
       }
 
-      const spinner = ora("Fetching stablecoin info...").start();
+      const spinner = ora('Connecting to network...').start();
 
       try {
         const mint = new PublicKey(mintStr);
         const network = networkName as SolanaNetwork;
         const sdk = await SolanaStablecoin.load(network, mint);
+
+        spinner.text = 'Fetching token info...';
         const info = await sdk.getInfo();
 
         spinner.stop();

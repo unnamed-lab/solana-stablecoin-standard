@@ -1134,6 +1134,9 @@ export class SolanaStablecoin {
 
         // Fetch parsed account info to get the actual wallet owner of the token account
         const accountsToFetch = holders.map((h) => h.address);
+        if (accountsToFetch.length === 0) {
+            return [];
+        }
         const parsedAccounts = await this.connection.getMultipleParsedAccounts(accountsToFetch);
 
         return holders.map((account, index) => {

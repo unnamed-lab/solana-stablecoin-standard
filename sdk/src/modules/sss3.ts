@@ -48,7 +48,6 @@ export class Sss3Module {
     private readonly connection: Connection;
     private readonly mint: PublicKey;
     private readonly configPda: PublicKey;
-    private readonly hookProgramId = new PublicKey("9Vu21Cy4yShn7SukayuArDRy36fVzXMjsnJiTG2ZZDxF"); // Localnet default
 
     constructor(
         connection: Connection,
